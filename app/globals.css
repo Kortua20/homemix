@@ -33,9 +33,9 @@
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: #f4efe7;
-  --foreground: #251b16;
+  --radius: 0.75rem;
+  --background: #fcf9f8;
+  --foreground: #1b1c1c;
   --card: #ffffff;
   --card-foreground: #1b1c1c;
   --popover: #ffffff;

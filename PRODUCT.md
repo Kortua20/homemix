@@ -26,7 +26,7 @@ Customers browse a public storefront while Home Mix staff maintain categories, p
 
 - The customer experience is entirely in Georgian and must support Georgian Unicode slugs.
 - The public routes are the homepage, product catalog, product detail, about, and contact pages.
-- The homepage presents a static furniture-image story followed by all live categories and the newest live products.
+- The homepage presents a static furniture-image story followed by the newest live products and then all live categories.
 - Product and category content comes from Supabase; product images come from a private Cloudflare R2 bucket through server-only credentials.
 - The storefront has no cart, checkout, customer accounts, favorites, reviews, inventory controls, or administration features.
 - Product data and missing/error states must remain truthful; no mock products, fabricated business claims, or invented contact details.
@@ -37,7 +37,8 @@ Customers browse a public storefront while Home Mix staff maintain categories, p
 - Brand name: Home Mix.
 - `/public/logo.png` is the established brand mark and must remain the header, footer, favicon, and Apple touch icon.
 - The experience should feel warm, minimal, thoughtful, and made for everyday living.
-- The homepage should feel distinctive and editorial rather than generic, templated, or visibly AI-generated.
+- The homepage should feel simple, familiar, warm, and polished for a furniture store rather than experimental, complicated, overly modern, templated, or visibly AI-generated.
+- Real products take priority over category navigation on the homepage.
 - The established warm neutral and brown identity remains binding.
 
 ## Evidence on Hand

@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import { cache } from "react";
 
 export type Category = { id: string; slug: string; name: string };
 export type ProductImage = { id: string; sort_order: number; created_at: string };
@@ -12,6 +13,14 @@ export type Product = {
   created_at: string;
   category: Category | null;
   images: ProductImage[];
+};
+
+export type CatalogSort = "date-desc" | "date-asc" | "price-desc" | "price-asc";
+
+export type CatalogFilters = {
+  search?: string;
+  categorySlug?: string;
+  sort?: CatalogSort;
 };
 
 const productSelection = `
@@ -60,6 +69,68 @@ export async function getNewestProducts(limit = 8): Promise<Product[]> {
   if (error) throw new Error("პროდუქტების ჩატვირთვა ვერ მოხერხდა", { cause: error });
   return (data ?? []).map((row) => normalizeProduct(row as Record<string, unknown>));
 }
+
+export async function getCatalogProducts({
+  search = "",
+  categorySlug = "",
+  sort = "date-desc",
+}: CatalogFilters = {}): Promise<Product[]> {
+  const supabase = publicClient();
+  let categoryId: string | null = null;
+
+  if (categorySlug) {
+    const { data: category, error: categoryError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", categorySlug)
+      .maybeSingle();
+
+    if (categoryError) {
+      throw new Error("კატეგორიის ჩატვირთვა ვერ მოხერხდა", { cause: categoryError });
+    }
+
+    if (!category) return [];
+    categoryId = String(category.id);
+  }
+
+  const sortOptions: Record<CatalogSort, { column: "created_at" | "price"; ascending: boolean }> = {
+    "date-desc": { column: "created_at", ascending: false },
+    "date-asc": { column: "created_at", ascending: true },
+    "price-desc": { column: "price", ascending: false },
+    "price-asc": { column: "price", ascending: true },
+  };
+  const selectedSort = sortOptions[sort] ?? sortOptions["date-desc"];
+
+  let query = supabase.from("products").select(productSelection);
+  const normalizedSearch = search.trim().slice(0, 100);
+
+  if (normalizedSearch) query = query.ilike("name", `%${normalizedSearch}%`);
+  if (categoryId) query = query.eq("category_id", categoryId);
+
+  const { data, error } = await query
+    .order(selectedSort.column, { ascending: selectedSort.ascending })
+    .order("id", { ascending: true });
+
+  if (error) {
+    throw new Error("პროდუქტების ჩატვირთვა ვერ მოხერხდა", { cause: error });
+  }
+
+  return (data ?? []).map((row) => normalizeProduct(row as Record<string, unknown>));
+}
+
+export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
+  const { data, error } = await publicClient()
+    .from("products")
+    .select(productSelection)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("პროდუქტის ჩატვირთვა ვერ მოხერხდა", { cause: error });
+  }
+
+  return data ? normalizeProduct(data as Record<string, unknown>) : null;
+});
 
 export function formatPrice(value: number) {
   const formatted = new Intl.NumberFormat("ka-GE", { minimumFractionDigits: Number.isInteger(value) ? 0 : 2, maximumFractionDigits: 2 }).format(value);

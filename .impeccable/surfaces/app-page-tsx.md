@@ -10,26 +10,34 @@ related_targets: ["components/hero-slider.tsx","components/category-card.tsx","c
 - Scope: `/` homepage implemented by `app/page.tsx` and its shared storefront components.
 - Visitor mode: Persuade.
 - Audience: Georgian customers browsing real furniture for their homes, primarily on mobile.
-- Job: Understand Home Mix immediately, discover live furniture categories, and continue to the full catalog.
+- Job: See Home Mix products quickly and continue to the full catalog; use categories as a secondary way to narrow the selection.
 - Primary action: Browse all products.
 - Proof and content: Existing Home Mix logo, three local furniture photographs, all live Supabase categories, and the newest live Supabase products with R2 imagery.
 - Constraints: Entirely Georgian; preserve the warm brown identity and all Supabase/R2 behavior; no fabricated claims; reduced-motion support; minimum 44px controls; no horizontal overflow at 320px.
-- Chosen direction: Furniture-maker's workshop index. Joinery drawings, registration marks, numbered category rows, edge-cropped room photography, and product contact sheets replace the incumbent rounded-card template.
-- Memorable moment: An oversized Georgian promise and pinned living-room photograph share one measured drafting sheet, followed by categories that read like a maker's index.
-- Approved composition: `.impeccable/mocks/home-workshop-index.png` (user delegated the choice; selected for clarity and distinctiveness).
+- Chosen direction: A simple, familiar, warm furniture storefront. Product photography and clear catalog access lead; decoration and experimental composition recede.
+- Memorable moment: A calm, full-width room photograph welcomes the visitor and moves directly into real products.
+- Approval: User explicitly rejected the complex workshop-index treatment and requested a simpler, less modern, product-first homepage.
 - Unresolved decisions: None for this homepage pass.
+
+## Simplification record
+
+| Removed complexity | Reason |
+| --- | --- |
+| Drafting grids, measurements, registration marks, and numbered metadata | Made the store feel complicated and overly modern |
+| Products after categories | Delayed the homepage's primary customer goal |
+| Dark contact-sheet product section | Added visual weight and made browsing feel specialized |
+| Oversized compressed headlines | Dominated the furniture and reduced familiarity |
+| Numbered category index and technical icons | Categories are secondary navigation, not the main story |
+| Repeated descriptive copy | The furniture photographs and product data already provide the needed context |
 
 ## Implementation fidelity inventory
 
 | Visible ingredient | Required composition | Medium |
 | --- | --- | --- |
-| Navigation | Compact brand rail with four Georgian routes and a square mobile menu control | Semantic HTML, Radix dialog, Lucide menu glyph |
-| Hero headline | Oversized, left-weighted Georgian headline interlocked with the image edge | Semantic HTML/CSS |
-| Hero room | Tall natural furniture photograph, pinned into the drafting sheet and cropped assertively | Existing `/public/hero/living-room.webp` via `next/image` |
-| Drafting grammar | Thin rules, dimension arrows, registration crosses, blue annotations and paper grain | CSS and small authored SVG/CSS geometry |
-| Primary action | Walnut rectangular catalog action integrated into the drawing title block | Semantic link/CSS |
-| Hero sequence | Three real static rooms retain accessible previous/next and pagination behavior | Existing images and React state; restyled controls |
-| Category index | Numbered horizontal rows with typographic category names and furniture line glyphs | Live Supabase data, semantic links, Lucide icons |
-| Product section | Editorial contact sheet with varied image scale and restrained specifications | Live Supabase/R2 data and `next/image` |
-| Empty/error states | Integrated ruled notice blocks, not floating cards | Existing truthful state content, semantic HTML/CSS |
-| Footer | Minimal logo close inside the same drafting-rule system | Existing logo, semantic footer |
+| Navigation | Familiar logo-left, four-link header with clear active state and simple mobile drawer | Semantic HTML, Radix dialog, Lucide menu glyph |
+| Hero | One full-width room photograph, concise Georgian copy, one catalog action | Existing `/public/hero` imagery, semantic HTML and `next/image` |
+| Slider | Quiet pagination and previous/next controls with swipe, pause, and reduced-motion behavior | React state and accessible controls |
+| Product section | First content section after the hero; straightforward responsive product grid | Live Supabase/R2 data and `next/image` |
+| Categories | Secondary compact navigation cards after products | Live Supabase data and semantic links |
+| Empty/error states | Clear centered messages with one restrained icon | Semantic HTML and Lucide icons |
+| Footer | Minimal centered Home Mix logo | Existing logo and semantic footer |

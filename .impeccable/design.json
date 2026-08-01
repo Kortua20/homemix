@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-01T15:35:25.247Z",
+  "title": "Design System: Home Mix",
+  "extensions": {
+    "colorMeta": {
+      "warm-canvas": {
+        "role": "neutral",
+        "displayName": "Warm Canvas",
+        "canonical": "#fcf9f8",
+        "tonalRamp": ["oklch(15% 0.006 45)", "oklch(27% 0.007 45)", "oklch(39% 0.008 45)", "oklch(51% 0.009 45)", "oklch(63% 0.01 45)", "oklch(75% 0.011 45)", "oklch(87% 0.012 45)", "oklch(97% 0.012 45)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1b1c1c",
+        "tonalRamp": ["oklch(15% 0.003 200)", "oklch(27% 0.003 200)", "oklch(39% 0.003 200)", "oklch(51% 0.003 200)", "oklch(63% 0.003 200)", "oklch(75% 0.003 200)", "oklch(87% 0.003 200)", "oklch(95% 0.003 200)"]
+      },
+      "walnut": {
+        "role": "primary",
+        "displayName": "Walnut",
+        "canonical": "#7f512f",
+        "tonalRamp": ["oklch(15% 0.07 55)", "oklch(27% 0.08 55)", "oklch(39% 0.09 55)", "oklch(51% 0.1 55)", "oklch(63% 0.09 55)", "oklch(75% 0.07 55)", "oklch(87% 0.04 55)", "oklch(95% 0.02 55)"]
+      },
+      "walnut-deep": {
+        "role": "primary",
+        "displayName": "Deep Walnut",
+        "canonical": "#6d4528",
+        "tonalRamp": ["oklch(15% 0.065 55)", "oklch(27% 0.075 55)", "oklch(39% 0.085 55)", "oklch(51% 0.095 55)", "oklch(63% 0.085 55)", "oklch(75% 0.065 55)", "oklch(87% 0.04 55)", "oklch(95% 0.02 55)"]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["oklch(15% 0 0)", "oklch(27% 0 0)", "oklch(39% 0 0)", "oklch(51% 0 0)", "oklch(63% 0 0)", "oklch(75% 0 0)", "oklch(87% 0 0)", "oklch(100% 0 0)"]
+      },
+      "soft-linen": {
+        "role": "neutral",
+        "displayName": "Soft Linen",
+        "canonical": "#f6f3f2",
+        "tonalRamp": ["oklch(15% 0.008 40)", "oklch(27% 0.009 40)", "oklch(39% 0.01 40)", "oklch(51% 0.011 40)", "oklch(63% 0.012 40)", "oklch(75% 0.013 40)", "oklch(87% 0.014 40)", "oklch(96% 0.014 40)"]
+      },
+      "warm-mist": {
+        "role": "neutral",
+        "displayName": "Warm Mist",
+        "canonical": "#e6e2de",
+        "tonalRamp": ["oklch(15% 0.012 50)", "oklch(27% 0.014 50)", "oklch(39% 0.016 50)", "oklch(51% 0.018 50)", "oklch(63% 0.02 50)", "oklch(75% 0.021 50)", "oklch(87% 0.02 50)", "oklch(95% 0.012 50)"]
+      },
+      "clay-border": {
+        "role": "neutral",
+        "displayName": "Clay Border",
+        "canonical": "#d6c3b8",
+        "tonalRamp": ["oklch(15% 0.025 45)", "oklch(27% 0.03 45)", "oklch(39% 0.035 45)", "oklch(51% 0.04 45)", "oklch(63% 0.045 45)", "oklch(75% 0.042 45)", "oklch(87% 0.03 45)", "oklch(95% 0.015 45)"]
+      },
+      "quiet-ink": {
+        "role": "neutral",
+        "displayName": "Quiet Ink",
+        "canonical": "#605e5b",
+        "tonalRamp": ["oklch(15% 0.008 70)", "oklch(27% 0.009 70)", "oklch(39% 0.01 70)", "oklch(51% 0.011 70)", "oklch(63% 0.012 70)", "oklch(75% 0.011 70)", "oklch(87% 0.008 70)", "oklch(95% 0.004 70)"]
+      },
+      "soft-brown": {
+        "role": "neutral",
+        "displayName": "Soft Brown",
+        "canonical": "#83746b",
+        "tonalRamp": ["oklch(15% 0.02 50)", "oklch(27% 0.025 50)", "oklch(39% 0.03 50)", "oklch(51% 0.035 50)", "oklch(63% 0.038 50)", "oklch(75% 0.032 50)", "oklch(87% 0.02 50)", "oklch(95% 0.01 50)"]
+      },
+      "image-placeholder": {
+        "role": "neutral",
+        "displayName": "Image Placeholder",
+        "canonical": "#f0eded",
+        "tonalRamp": ["oklch(15% 0.006 20)", "oklch(27% 0.007 20)", "oklch(39% 0.008 20)", "oklch(51% 0.009 20)", "oklch(63% 0.01 20)", "oklch(75% 0.011 20)", "oklch(87% 0.011 20)", "oklch(95% 0.008 20)"]
+      },
+      "destructive": {
+        "role": "primary",
+        "displayName": "Destructive",
+        "canonical": "#a33c32",
+        "tonalRamp": ["oklch(15% 0.09 28)", "oklch(27% 0.12 28)", "oklch(39% 0.15 28)", "oklch(51% 0.17 28)", "oklch(63% 0.15 28)", "oklch(75% 0.11 28)", "oklch(87% 0.06 28)", "oklch(95% 0.025 28)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Concise hero headlines over room photography." },
+      "headline": { "displayName": "Headline", "purpose": "Primary section headings." },
+      "title": { "displayName": "Title", "purpose": "Category and contained-content titles." },
+      "body": { "displayName": "Body", "purpose": "Readable supporting copy in Georgian and Latin scripts." },
+      "label": { "displayName": "Label", "purpose": "Navigation, actions, and compact metadata." }
+    },
+    "shadows": [
+      { "name": "product-lift", "value": "0 10px 28px rgba(59,40,27,0.06)", "purpose": "Soft resting depth beneath product cards." },
+      { "name": "category-lift", "value": "0 8px 24px rgba(59,40,27,0.05)", "purpose": "Quiet resting depth beneath category links." },
+      { "name": "drawer-elevation", "value": "-18px 0 50px rgba(36,25,19,0.16)", "purpose": "Directional separation for the open mobile navigation drawer." }
+    ],
+    "motion": [
+      { "name": "state-color", "value": "150ms ease", "purpose": "Default Tailwind color transition for links, buttons, and icon tiles." },
+      { "name": "product-image", "value": "500ms ease-out", "purpose": "Restrained product image scale on card hover." },
+      { "name": "hero-crossfade", "value": "700ms ease-out", "purpose": "Hero image opacity and scale transition; disabled for reduced motion." },
+      { "name": "mobile-drawer", "value": "300ms", "purpose": "Slide and fade timing for mobile navigation." }
+    ],
+    "breakpoints": [
+      { "name": "product-two-column", "value": "520px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The filled Walnut action used for catalog navigation and retry actions.",
+      "html": "<button class=\"ds-btn-primary\">პროდუქტების ნახვა <svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" aria-hidden=\"true\"><path d=\"M19 12H5M12 19l-7-7 7-7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>",
+      "css": ".ds-btn-primary { display:inline-flex; min-height:48px; align-items:center; gap:12px; border:0; border-radius:1.05rem; background:var(--primary, #7f512f); color:var(--primary-foreground, #fff); padding:12px 24px; font-family:'Noto Sans Georgian Variable','Manrope Variable',sans-serif; font-size:14px; font-weight:600; transition:background-color 150ms ease; } .ds-btn-primary:hover { background:#6d4528; } .ds-btn-primary:focus-visible { outline:2px solid var(--ring, #7f512f); outline-offset:4px; } .ds-btn-primary:active { background:#6d4528; }"
+    },
+    {
+      "name": "Icon Control",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "A 44px square control for menus and compact directional actions.",
+      "html": "<button class=\"ds-icon-control\" aria-label=\"მენიუს გახსნა\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path d=\"M4 6h16M4 12h16M4 18h16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/></svg></button>",
+      "css": ".ds-icon-control { display:grid; width:44px; height:44px; place-items:center; border:1px solid var(--border, #d6c3b8); border-radius:1.05rem; background:var(--card, #fff); color:var(--foreground, #1b1c1c); transition:background-color 150ms ease; } .ds-icon-control:hover { background:var(--secondary, #f6f3f2); } .ds-icon-control:focus-visible { outline:2px solid var(--ring, #7f512f); outline-offset:2px; } .ds-icon-control:active { background:#e6e2de; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "A photography-first catalog card with quiet metadata and a Walnut price.",
+      "html": "<a class=\"ds-product-card\" href=\"#\"><div class=\"ds-product-image\"><svg viewBox=\"0 0 24 24\" width=\"36\" height=\"36\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><circle cx=\"9\" cy=\"10\" r=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/><path d=\"m3 17 5-5 4 4 3-3 6 6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"/></svg></div><div class=\"ds-product-copy\"><div class=\"ds-product-meta\">დივნები</div><h3>რბილი კუთხის დივანი</h3><strong>1 290 ₾</strong></div></a>",
+      "css": ".ds-product-card { display:block; width:280px; border-radius:1.35rem; background:var(--card, #fff); color:var(--card-foreground, #1b1c1c); padding:10px; font-family:'Noto Sans Georgian Variable','Manrope Variable',sans-serif; text-decoration:none; box-shadow:0 10px 28px rgba(59,40,27,.06); } .ds-product-image { display:grid; aspect-ratio:4/3; place-items:center; overflow:hidden; border-radius:1.05rem; background:#f0eded; color:#a89082; transition:transform 500ms ease-out; } .ds-product-copy { padding:16px 8px 8px; } .ds-product-meta { overflow:hidden; color:#83746b; font-size:12px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; } .ds-product-card h3 { min-height:48px; margin:6px 0 0; font-size:16px; line-height:24px; font-weight:600; } .ds-product-card strong { display:block; margin-top:12px; color:var(--primary, #7f512f); font-size:18px; } .ds-product-card:hover .ds-product-image { transform:scale(1.025); } .ds-product-card:focus-visible { outline:2px solid var(--ring, #7f512f); outline-offset:4px; } .ds-product-card:active { box-shadow:0 6px 18px rgba(59,40,27,.06); } @media (prefers-reduced-motion:reduce) { .ds-product-image { transition:none; } }"
+    },
+    {
+      "name": "Category Card",
+      "kind": "card",
+      "refersTo": "card-category",
+      "description": "A compact secondary navigation card with a single directional tile.",
+      "html": "<a class=\"ds-category-card\" href=\"#\"><span>საძინებელი</span><i><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" aria-hidden=\"true\"><path d=\"M19 12H5M12 19l-7-7 7-7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></i></a>",
+      "css": ".ds-category-card { display:flex; min-height:96px; align-items:center; justify-content:space-between; gap:16px; border-radius:1.35rem; background:var(--card, #fff); color:var(--card-foreground, #1b1c1c); padding:20px; font-family:'Noto Sans Georgian Variable','Manrope Variable',sans-serif; font-size:20px; font-weight:600; letter-spacing:-.02em; text-decoration:none; box-shadow:0 8px 24px rgba(59,40,27,.05); transition:transform 150ms ease; } .ds-category-card i { display:grid; width:44px; height:44px; flex:none; place-items:center; border-radius:1.05rem; background:var(--secondary, #f6f3f2); color:var(--primary, #7f512f); font-style:normal; transition:background-color 150ms ease,color 150ms ease; } .ds-category-card:hover { transform:translateY(-2px); } .ds-category-card:hover i { background:var(--primary, #7f512f); color:#fff; } .ds-category-card:focus-visible { outline:2px solid var(--ring, #7f512f); outline-offset:4px; } .ds-category-card:active { transform:translateY(0); }"
+    },
+    {
+      "name": "Desktop Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "A familiar four-link navigation whose Walnut underline signals hover and active state.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"მთავარი ნავიგაცია\"><a class=\"ds-nav-link ds-active\" href=\"#\">მთავარი</a><a class=\"ds-nav-link\" href=\"#\">პროდუქტები</a><a class=\"ds-nav-link\" href=\"#\">ჩვენ შესახებ</a><a class=\"ds-nav-link\" href=\"#\">კონტაქტი</a></nav>",
+      "css": ".ds-nav { display:flex; align-items:center; gap:28px; font-family:'Noto Sans Georgian Variable','Manrope Variable',sans-serif; } .ds-nav-link { position:relative; display:flex; min-height:44px; align-items:center; padding:0 4px; color:var(--muted-foreground, #605e5b); font-size:14px; font-weight:600; text-decoration:none; transition:color 150ms ease; } .ds-nav-link::after { position:absolute; right:4px; bottom:0; left:4px; height:2px; background:var(--primary, #7f512f); content:''; transform:scaleX(0); transform-origin:left; transition:transform 150ms ease; } .ds-nav-link:hover,.ds-nav-link.ds-active { color:var(--primary, #7f512f); } .ds-nav-link:hover::after,.ds-nav-link.ds-active::after { transform:scaleX(1); } .ds-nav-link:focus-visible { outline:2px solid var(--ring, #7f512f); outline-offset:3px; } .ds-nav-link:active { color:#6d4528; }"
+    },
+    {
+      "name": "Hero Slider",
+      "kind": "custom",
+      "description": "The calm first-view composition: one room-like image field, concise white copy, one action, and quiet controls.",
+      "html": "<section class=\"ds-hero\"><div class=\"ds-hero-content\"><h1>შექმენი სახლი, სადაც ცხოვრება გიყვარს</h1><p>კომფორტული ავეჯი ყოველდღიური ცხოვრებისთვის.</p><button class=\"ds-hero-action\">პროდუქტების ნახვა</button></div><div class=\"ds-hero-controls\"><span class=\"ds-hero-dot ds-selected\"></span><span class=\"ds-hero-dot\"></span><span class=\"ds-hero-dot\"></span><button aria-label=\"შემდეგი სლაიდი\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button></div></section>",
+      "css": ".ds-hero { position:relative; display:flex; min-height:420px; align-items:center; overflow:hidden; border-radius:1.35rem; background:linear-gradient(90deg,rgba(30,21,16,.72),rgba(30,21,16,.24)),linear-gradient(135deg,#8f7867,#d9d3ce 72%); padding:40px; color:#fff; font-family:'Noto Sans Georgian Variable','Manrope Variable',sans-serif; } .ds-hero-content { max-width:640px; } .ds-hero h1 { max-width:13ch; margin:0; font-size:clamp(38px,5.2vw,68px); line-height:1.08; font-weight:600; letter-spacing:-.03em; } .ds-hero p { max-width:512px; margin:20px 0 0; color:rgba(255,255,255,.85); font-size:16px; line-height:28px; } .ds-hero-action { min-height:48px; margin-top:28px; border:0; border-radius:1.05rem; background:#7f512f; color:#fff; padding:12px 24px; font:600 14px 'Noto Sans Georgian Variable','Manrope Variable',sans-serif; transition:background-color 150ms ease; } .ds-hero-action:hover { background:#6d4528; } .ds-hero-action:focus-visible { outline:2px solid #fff; outline-offset:4px; } .ds-hero-controls { position:absolute; right:32px; bottom:24px; left:32px; display:flex; align-items:center; gap:8px; } .ds-hero-dot { width:6px; height:6px; border-radius:999px; background:#fff; opacity:.55; } .ds-hero-dot.ds-selected { width:28px; opacity:1; } .ds-hero-controls button { display:grid; width:44px; height:44px; margin-left:auto; place-items:center; border:1px solid rgba(255,255,255,.45); border-radius:1.05rem; background:rgba(0,0,0,.2); color:#fff; transition:background-color 150ms ease,color 150ms ease; } .ds-hero-controls button:hover { background:#fff; color:#1b1c1c; } .ds-hero-controls button:focus-visible { outline:2px solid #fff; outline-offset:2px; } .ds-hero-controls button:active { background:#f6f3f2; }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "description": "A truthful, centered fallback container for empty and failed catalog states.",
+      "html": "<div class=\"ds-empty-state\"><svg viewBox=\"0 0 24 24\" width=\"32\" height=\"32\" aria-hidden=\"true\"><path d=\"M4 7h16v12H4zM7 7l2-3h6l2 3M8 12h8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg><h3>პროდუქტები მალე დაემატება</h3><p>ჩვენ ვამზადებთ ახალ კოლექციას თქვენი სახლისთვის.</p></div>",
+      "css": ".ds-empty-state { display:flex; min-height:208px; flex-direction:column; align-items:center; justify-content:center; border:1px solid #e4e2e1; border-radius:1.35rem; background:var(--card, #fff); color:#a89082; padding:40px 20px; text-align:center; font-family:'Noto Sans Georgian Variable','Manrope Variable',sans-serif; } .ds-empty-state h3 { margin:16px 0 0; color:var(--foreground, #1b1c1c); font-size:18px; font-weight:600; } .ds-empty-state p { max-width:448px; margin:8px 0 0; color:var(--muted-foreground, #605e5b); font-size:14px; line-height:24px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Welcoming Living Room",
+    "overview": "Home Mix feels like entering a comfortable, well-kept home: warm, calm, and immediately understandable. Natural furniture photography carries the atmosphere, while a restrained off-white, white, and walnut palette keeps the interface familiar and lets real products remain the point.\n\nThe system is polished through proportion, spacing, legible Georgian typography, and quiet interaction states rather than decorative concepts. It favors straightforward storefront patterns and moderate density; experimental grids, technical annotations, oversized display treatments, and visually complicated compositions are outside this world.",
+    "keyCharacteristics": [
+      "Warm neutral canvas with walnut-brown actions",
+      "Natural room and product photography as the main visual voice",
+      "Real products presented before category navigation",
+      "Familiar cards, navigation, and controls with soft corners",
+      "Restrained motion and clearly visible keyboard focus"
+    ],
+    "rules": [
+      { "name": "The One Walnut Rule", "body": "Walnut is the only chromatic accent for ordinary actions and emphasis; the rest of the interface stays neutral so furniture imagery remains dominant.", "section": "colors" },
+      { "name": "The Warm Canvas Rule", "body": "Large page surfaces use Warm Canvas or Soft Linen, while pure white is reserved for contained cards and controls.", "section": "colors" },
+      { "name": "The One Voice Rule", "body": "Use the Georgian-first sans stack everywhere and create hierarchy with size, weight, and spacing rather than introducing a contrasting display typeface.", "section": "typography" },
+      { "name": "The Furniture Leads Rule", "body": "Headlines are concise and controlled; typography never competes with room or product imagery for attention.", "section": "typography" },
+      { "name": "The Product-First Rule", "body": "On discovery surfaces, show real products before category navigation unless the task has a stronger product reason to change the sequence.", "section": "layout" },
+      { "name": "The Quiet Depth Rule", "body": "Resting cards use warm ambient shadows below 0.07 opacity; pronounced elevation belongs only to temporary overlays.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do let real room and product photography carry the first impression.",
+      "Do keep products ahead of categories on storefront discovery pages.",
+      "Do use Warm Canvas for the page and white for contained product or navigation surfaces.",
+      "Do preserve 44px minimum controls, visible focus outlines, and reduced-motion behavior.",
+      "Do use straightforward responsive grids and the established 1rem / 1.5rem / 2rem page gutters."
+    ],
+    "donts": [
+      "Don't add drafting grids, measurements, registration marks, numbered metadata, or technical-looking navigation devices.",
+      "Don't introduce dark catalog sections or decorative color fields that overpower product photography.",
+      "Don't use oversized compressed headlines, ornamental display type, or copy-heavy layouts.",
+      "Don't turn categories into the primary homepage story ahead of real products.",
+      "Don't add speculative commerce UI or fabricated proof to make the storefront feel fuller."
+    ]
+  }
+}
