@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Manrope Variable", "Noto Sans Georgian", sans-serif;
+  --font-sans: "Noto Sans Georgian Variable", "Manrope Variable", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -33,9 +33,9 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  --background: #fcf9f8;
-  --foreground: #1b1c1c;
+  --radius: 0.5rem;
+  --background: #f4efe7;
+  --foreground: #251b16;
   --card: #ffffff;
   --card-foreground: #1b1c1c;
   --popover: #ffffff;
@@ -61,6 +61,11 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  ::selection {
+    background: #6f4329;
+    color: #ffffff;
   }
 
   button,
