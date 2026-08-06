@@ -4,7 +4,8 @@ import { ContactForm } from "@/components/contact-form";
 
 export const metadata: Metadata = {
   title: "კონტაქტი",
-  description: "დაუკავშირდით Home Mix-ს შეკითხვის ან პროდუქტის შესახებ დამატებითი ინფორმაციისთვის.",
+  description:
+    "დაუკავშირდით Home Mix-ს შეკითხვის ან პროდუქტის შესახებ დამატებითი ინფორმაციისთვის.",
 };
 
 const temporaryContact = {
@@ -24,7 +25,7 @@ export default function ContactPage() {
             კონტაქტი
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-[#605e5b]">
-            გაქვთ შეკითხვა პროდუქტზე? მოგვწერეთ ან დაგვიკავშირდით მითითებულ ნომერზე.
+            გაქვთ კითხვები? მოგვწერეთ ან დაგვიკავშირდით მითითებულ ნომერზე.
           </p>
         </div>
 
@@ -37,13 +38,7 @@ export default function ContactPage() {
                 <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#1b1c1c]">
                   საკონტაქტო ინფორმაცია
                 </h2>
-                <span className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-[#7f512f]">
-                  დროებითი
-                </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-[#605e5b]">
-                ქვემოთ მოცემული მისამართი, ნომერი და რუკა სატესტოა და მოგვიანებით ჩანაცვლდება.
-              </p>
 
               <dl className="mt-7 space-y-5">
                 <div className="flex gap-4">
@@ -51,10 +46,15 @@ export default function ContactPage() {
                     <Phone className="size-5" aria-hidden="true" />
                   </span>
                   <div>
-                    <dt className="text-sm font-semibold text-[#1b1c1c]">ტელეფონი</dt>
+                    <dt className="text-sm font-semibold text-[#1b1c1c]">
+                      ტელეფონი
+                    </dt>
                     <dd className="mt-1 text-sm leading-6 text-[#605e5b]">
-                      <a className="underline decoration-[#d6c3b8] underline-offset-4 hover:text-[#7f512f]" href={`tel:${temporaryContact.phoneHref}`}>
-                        {temporaryContact.phone}
+                      <a
+                        className="underline decoration-[#d6c3b8] underline-offset-4 hover:text-[#7f512f]"
+                        href={`tel:${temporaryContact.phoneHref}`}
+                      >
+                        აქ რეალური ნომერი უნდა იყოს
                       </a>
                     </dd>
                   </div>
@@ -65,8 +65,13 @@ export default function ContactPage() {
                     <MapPin className="size-5" aria-hidden="true" />
                   </span>
                   <div>
-                    <dt className="text-sm font-semibold text-[#1b1c1c]">მისამართი</dt>
-                    <dd className="mt-1 text-sm leading-6 text-[#605e5b]">{temporaryContact.address}</dd>
+                    <dt className="text-sm font-semibold text-[#1b1c1c]">
+                      მისამართი
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-[#605e5b]">
+                      {/* {temporaryContact.address} */}
+                      ხოლო აქ მისამართი
+                    </dd>
                   </div>
                 </div>
 
@@ -75,8 +80,12 @@ export default function ContactPage() {
                     <Clock3 className="size-5" aria-hidden="true" />
                   </span>
                   <div>
-                    <dt className="text-sm font-semibold text-[#1b1c1c]">სამუშაო დრო</dt>
-                    <dd className="mt-1 text-sm leading-6 text-[#605e5b]">ორშაბათი–შაბათი, 10:00–19:00</dd>
+                    <dt className="text-sm font-semibold text-[#1b1c1c]">
+                      სამუშაო დრო
+                    </dt>
+                    <dd className="mt-1 text-sm leading-6 text-[#605e5b]">
+                      ორშაბათი–შაბათი, 10:00–19:00
+                    </dd>
                   </div>
                 </div>
               </dl>

@@ -1,8 +1,13 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Category } from "@/lib/storefront";
 
-export function CategoryCard({ category }: { category: Category; index: number }) {
+export function CategoryCard({
+  category,
+}: {
+  category: Category;
+  index: number;
+}) {
   return (
     <Link
       href={`/products?category=${encodeURIComponent(category.slug)}`}
@@ -12,7 +17,10 @@ export function CategoryCard({ category }: { category: Category; index: number }
         {category.name}
       </h3>
       <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#f6f3f2] text-[#7f512f] transition-colors group-hover:bg-[#7f512f] group-hover:text-white">
-        <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden="true" />
+        <ArrowRight
+          className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none"
+          aria-hidden="true"
+        />
       </span>
     </Link>
   );

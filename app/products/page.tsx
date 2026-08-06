@@ -11,7 +11,8 @@ import {
 
 export const metadata: Metadata = {
   title: "პროდუქტები",
-  description: "დაათვალიერეთ Home Mix-ის პროდუქტები, მოძებნეთ სახელით და გაფილტრეთ კატეგორიის მიხედვით.",
+  description:
+    "დაათვალიერეთ Home Mix-ის პროდუქტები, მოძებნეთ სახელით და გაფილტრეთ კატეგორიის მიხედვით.",
 };
 
 type ProductsPageProps = {
@@ -26,7 +27,7 @@ const sortOptions: Array<{ value: CatalogSort; label: string }> = [
 ];
 
 function firstValue(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 }
 
 function normalizeSort(value: string): CatalogSort {
@@ -35,7 +36,9 @@ function normalizeSort(value: string): CatalogSort {
     : "date-desc";
 }
 
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+export default async function ProductsPage({
+  searchParams,
+}: ProductsPageProps) {
   const params = await searchParams;
   const search = firstValue(params.q).trim().slice(0, 100);
   const categorySlug = firstValue(params.category).trim();
@@ -46,8 +49,10 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     getCatalogProducts({ search, categorySlug, sort }),
   ]);
 
-  const categories = categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
-  const products = productsResult.status === "fulfilled" ? productsResult.value : [];
+  const categories =
+    categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
+  const products =
+    productsResult.status === "fulfilled" ? productsResult.value : [];
   const filtersActive = Boolean(search || categorySlug || sort !== "date-desc");
 
   return (
@@ -58,7 +63,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             პროდუქტები
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-[#605e5b]">
-            მოძებნეთ სასურველი ავეჯი სახელით ან შეარჩიეთ კატეგორია.
+            რამე ტექსტი აქ
           </p>
         </div>
 
@@ -68,9 +73,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           className="mt-8 grid gap-4 rounded-2xl bg-white p-4 shadow-[0_10px_28px_rgba(59,40,27,0.06)] sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(260px,1.4fr)_minmax(190px,0.8fr)_minmax(210px,0.9fr)_auto] lg:items-end"
         >
           <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">ძიება სახელით</span>
+            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+              ძიება სახელით
+            </span>
             <span className="relative block">
-              <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#83746b]" aria-hidden="true" />
+              <Search
+                className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#83746b]"
+                aria-hidden="true"
+              />
               <input
                 type="search"
                 name="q"
@@ -83,7 +93,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </label>
 
           <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">კატეგორია</span>
+            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+              კატეგორია
+            </span>
             <select
               name="category"
               defaultValue={categorySlug}
@@ -91,23 +103,31 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             >
               <option value="">ყველა კატეგორია</option>
               {categories.map((category) => (
-                <option key={category.id} value={category.slug}>{category.name}</option>
+                <option key={category.id} value={category.slug}>
+                  {category.name}
+                </option>
               ))}
             </select>
             {categoriesResult.status === "rejected" ? (
-              <span className="mt-2 block text-xs text-[#a33c32]">კატეგორიები ვერ ჩაიტვირთა</span>
+              <span className="mt-2 block text-xs text-[#a33c32]">
+                კატეგორიები ვერ ჩაიტვირთა
+              </span>
             ) : null}
           </label>
 
           <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">დალაგება</span>
+            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+              დალაგება
+            </span>
             <select
               name="sort"
               defaultValue={sort}
               className="min-h-12 w-full rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] px-4 text-base text-[#1b1c1c] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
             >
               {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
             </select>
           </label>
@@ -120,14 +140,22 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </button>
         </form>
 
-        <section className="pt-12 sm:pt-16" aria-labelledby="catalog-results-heading">
+        <section
+          className="pt-12 sm:pt-16"
+          aria-labelledby="catalog-results-heading"
+        >
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 id="catalog-results-heading" className="text-2xl font-semibold tracking-[-0.02em] text-[#1b1c1c] sm:text-3xl">
+              <h2
+                id="catalog-results-heading"
+                className="text-2xl font-semibold tracking-[-0.02em] text-[#1b1c1c] sm:text-3xl"
+              >
                 კატალოგი
               </h2>
               {productsResult.status === "fulfilled" ? (
-                <p className="mt-2 text-sm text-[#605e5b]">ნაპოვნია: {products.length}</p>
+                <p className="mt-2 text-sm text-[#605e5b]">
+                  ნაპოვნია: {products.length}
+                </p>
               ) : null}
             </div>
             {filtersActive ? (
@@ -148,8 +176,16 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             />
           ) : products.length === 0 ? (
             <EmptyState
-              title={filtersActive ? "პროდუქტი ვერ მოიძებნა" : "პროდუქტები ჯერ არ დამატებულა"}
-              description={filtersActive ? "შეცვალეთ საძიებო სიტყვა ან არჩეული კატეგორია." : "ახალი პროდუქტები მალე გამოჩნდება."}
+              title={
+                filtersActive
+                  ? "პროდუქტი ვერ მოიძებნა"
+                  : "პროდუქტები ჯერ არ დამატებულა"
+              }
+              description={
+                filtersActive
+                  ? "შეცვალეთ საძიებო სიტყვა ან არჩეული კატეგორია."
+                  : "ახალი პროდუქტები მალე გამოჩნდება."
+              }
             />
           ) : (
             <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">

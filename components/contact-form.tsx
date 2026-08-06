@@ -11,7 +11,8 @@ type ContactResponse = {
 };
 
 export function ContactForm() {
-  const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
+  const [submissionState, setSubmissionState] =
+    useState<SubmissionState>("idle");
   const [notice, setNotice] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -33,11 +34,15 @@ export function ContactForm() {
         body: JSON.stringify({ email, subject, description }),
       });
 
-      const result = (await response.json().catch(() => ({}))) as ContactResponse;
+      const result = (await response
+        .json()
+        .catch(() => ({}))) as ContactResponse;
 
       if (response.status === 429 || result.error === "rate_limited") {
         setSubmissionState("error");
-        setNotice("24 საათში მაქსიმუმ 3 წერილის გაგზავნა შეგიძლიათ. გთხოვთ, მოგვიანებით სცადოთ.");
+        setNotice(
+          "24 საათში მაქსიმუმ 3 წერილის გაგზავნა შეგიძლიათ. გთხოვთ, მოგვიანებით სცადოთ.",
+        );
         return;
       }
 
@@ -74,7 +79,9 @@ export function ContactForm() {
 
       <div className="mt-7 space-y-5">
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">თქვენი ელფოსტა</span>
+          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+            თქვენი ელფოსტა
+          </span>
           <input
             type="email"
             name="email"
@@ -87,7 +94,9 @@ export function ContactForm() {
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">თემა</span>
+          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+            სათაური
+          </span>
           <input
             type="text"
             name="subject"
@@ -100,14 +109,16 @@ export function ContactForm() {
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">აღწერა</span>
+          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+            აღწერა
+          </span>
           <textarea
             name="description"
             required
             maxLength={2000}
             rows={6}
             disabled={submissionState === "sending"}
-            placeholder="დაგვიწერეთ თქვენი შეკითხვა ან სასურველი პროდუქტის დეტალები."
+            placeholder="დაწერეთ თქვენი კითხვა ან კომენტარი"
             className="w-full resize-y rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] px-4 py-3 text-base leading-7 text-[#1b1c1c] placeholder:text-[#83746b] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
           />
         </label>
@@ -121,7 +132,10 @@ export function ContactForm() {
         {submissionState === "sending" ? (
           <>
             იგზავნება...
-            <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            <LoaderCircle
+              className="size-4 animate-spin motion-reduce:animate-none"
+              aria-hidden="true"
+            />
           </>
         ) : (
           <>
@@ -132,7 +146,8 @@ export function ContactForm() {
       </button>
 
       <p className="mt-4 max-w-xl text-sm leading-6 text-[#605e5b]">
-        წერილი პირდაპირ Home Mix-ის ელფოსტაზე გაიგზავნება. თქვენი ელფოსტა მხოლოდ პასუხისთვის გამოიყენება.
+        წერილი პირდაპირ Home Mix-ის ელფოსტაზე გაიგზავნება. თქვენი ელფოსტა მხოლოდ
+        პასუხისთვის გამოიყენება.
       </p>
       {notice ? (
         <p

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -10,20 +10,20 @@ const slides = [
   {
     image: "/hero/living-room.webp",
     alt: "თბილ ფერებში მოწყობილი მისაღები ოთახი რბილი დივნით",
-    title: "შექმენი სახლი, სადაც ცხოვრება გიყვარს",
-    description: "კომფორტული ავეჯი ყოველდღიური ცხოვრებისთვის.",
+    title: "დაამატე სლაიდერის სათაური",
+    description: "დაამატე სლაიდერის აღწერა",
   },
   {
     image: "/hero/dining-room.webp",
     alt: "ნათელი სასადილო ოთახი ხის მაგიდითა და რბილი სკამებით",
-    title: "კომფორტი და სტილი ერთ სივრცეში",
-    description: "მარტივი არჩევანი თბილი და მყუდრო სახლისთვის.",
+    title: "დაამატე სლაიდერის სათაური",
+    description: "დაამატე სლაიდერის აღწერა",
   },
   {
     image: "/hero/bedroom.webp",
     alt: "მყუდრო საძინებელი რბილი საწოლითა და თბილი განათებით",
-    title: "ავეჯი შენი სახლისთვის",
-    description: "გააზრებული ფორმები და მშვიდი ტექსტურები.",
+    title: "დაამატე სლაიდერის სათაური",
+    description: "დაამატე სლაიდერის აღწერა",
   },
 ] as const;
 
@@ -37,7 +37,8 @@ export function HeroSlider() {
   }, []);
 
   useEffect(() => {
-    if (paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      return;
     const interval = window.setInterval(
       () => setActive((current) => (current + 1) % slides.length),
       7000,
@@ -61,13 +62,14 @@ export function HeroSlider() {
       onTouchEnd={(event) => {
         if (touchStart.current === null) return;
         const distance =
-          (event.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current;
+          (event.changedTouches[0]?.clientX ?? touchStart.current) -
+          touchStart.current;
         if (Math.abs(distance) > 45) goTo(active + (distance < 0 ? 1 : -1));
         touchStart.current = null;
       }}
-      className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8"
+      className="mx-auto w-full max-w-360 px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8"
     >
-      <div className="relative min-h-[540px] overflow-hidden rounded-2xl bg-[#d9d3ce] sm:min-h-[600px]">
+      <div className="relative min-h-135 overflow-hidden rounded-2xl bg-[#d9d3ce] sm:min-h-150">
         {slides.map((item, index) => (
           <Image
             key={item.image}
@@ -88,7 +90,7 @@ export function HeroSlider() {
 
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(30,21,16,.72)_0%,rgba(30,21,16,.45)_43%,rgba(30,21,16,.06)_78%),linear-gradient(0deg,rgba(30,21,16,.38)_0%,transparent_45%)]" />
 
-        <div className="relative z-10 flex min-h-[540px] items-end px-5 pb-24 pt-16 sm:min-h-[600px] sm:items-center sm:px-10 sm:pb-28 lg:px-16">
+        <div className="relative z-10 flex min-h-135 items-end px-5 pb-24 pt-16 sm:min-h-150 sm:items-center sm:px-10 sm:pb-28 lg:px-16">
           <div className="max-w-2xl text-white">
             <h1 className="max-w-[13ch] text-[clamp(2.35rem,5.2vw,4.75rem)] leading-[1.08] font-semibold tracking-[-0.03em] text-balance">
               {slide.title}
@@ -101,13 +103,20 @@ export function HeroSlider() {
               className="group mt-7 inline-flex min-h-12 items-center gap-3 rounded-xl bg-[#7f512f] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#6d4528] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:mt-8"
             >
               პროდუქტების ნახვა
-              <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden="true" />
+              <ArrowRight
+                className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none"
+                aria-hidden="true"
+              />
             </Link>
           </div>
         </div>
 
         <div className="absolute inset-x-5 bottom-5 z-20 flex items-center justify-between gap-4 sm:inset-x-10 sm:bottom-8 lg:inset-x-16">
-          <div className="flex items-center gap-1" role="tablist" aria-label="სლაიდის არჩევა">
+          <div
+            className="flex items-center gap-1"
+            role="tablist"
+            aria-label="სლაიდის არჩევა"
+          >
             {slides.map((item, index) => (
               <button
                 key={item.image}
@@ -118,7 +127,12 @@ export function HeroSlider() {
                 onClick={() => goTo(index)}
                 className="grid size-11 place-items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                <span className={cn("h-1.5 rounded-full bg-white transition-all", active === index ? "w-7" : "w-1.5 opacity-55")} />
+                <span
+                  className={cn(
+                    "h-1.5 rounded-full bg-white transition-all",
+                    active === index ? "w-7" : "w-1.5 opacity-55",
+                  )}
+                />
               </button>
             ))}
           </div>
