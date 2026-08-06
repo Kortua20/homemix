@@ -8,22 +8,22 @@ import { cn } from "@/lib/utils";
 
 const slides = [
   {
-    image: "/hero/living-room.webp",
-    alt: "თბილ ფერებში მოწყობილი მისაღები ოთახი რბილი დივნით",
-    title: "დაამატე სლაიდერის სათაური",
-    description: "დაამატე სლაიდერის აღწერა",
-  },
-  {
     image: "/hero/dining-room.webp",
     alt: "ნათელი სასადილო ოთახი ხის მაგიდითა და რბილი სკამებით",
-    title: "დაამატე სლაიდერის სათაური",
-    description: "დაამატე სლაიდერის აღწერა",
+    title: "აქ დაამატე სათაური",
+    description: "ხოლო აქ აღწერა",
+  },
+  {
+    image: "/hero/living-room.webp",
+    alt: "თბილ ფერებში მოწყობილი მისაღები ოთახი რბილი დივნით",
+    title: "აქ დაამატე სათაური",
+    description: "ხოლო აქ აღწერა",
   },
   {
     image: "/hero/bedroom.webp",
     alt: "მყუდრო საძინებელი რბილი საწოლითა და თბილი განათებით",
-    title: "დაამატე სლაიდერის სათაური",
-    description: "დაამატე სლაიდერის აღწერა",
+    title: "აქ დაამატე სათაური",
+    description: "ხოლო აქ აღწერა",
   },
 ] as const;
 
@@ -67,42 +67,42 @@ export function HeroSlider() {
         if (Math.abs(distance) > 45) goTo(active + (distance < 0 ? 1 : -1));
         touchStart.current = null;
       }}
-      className="mx-auto w-full max-w-360 px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8"
+      className="relative w-full bg-[#173c2f]"
     >
-      <div className="relative min-h-135 overflow-hidden rounded-2xl bg-[#d9d3ce] sm:min-h-150">
+      <div className="relative min-h-120 overflow-hidden bg-[#173c2f] sm:min-h-125 lg:min-h-130">
         {slides.map((item, index) => (
           <Image
             key={item.image}
             src={item.image}
             alt={item.alt}
             fill
-            priority={index === 0}
+            preload={index === 0}
             aria-hidden={active !== index}
-            sizes="(max-width: 1440px) 100vw, 1376px"
+            sizes="100vw"
             className={cn(
-              "object-cover object-[62%_center] transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none sm:object-center",
+              "object-cover object-[58%_center] transition-[opacity,transform,filter] duration-1000 ease-out motion-reduce:transition-none sm:object-center",
               active === index
-                ? "scale-100 opacity-100"
-                : "pointer-events-none scale-[1.015] opacity-0",
+                ? "scale-100 opacity-100 blur-0"
+                : "pointer-events-none scale-[1.018] opacity-0 blur-[2px]",
             )}
           />
         ))}
 
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(30,21,16,.72)_0%,rgba(30,21,16,.45)_43%,rgba(30,21,16,.06)_78%),linear-gradient(0deg,rgba(30,21,16,.38)_0%,transparent_45%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,24,17,.88)_0%,rgba(8,24,17,.63)_32%,rgba(8,24,17,.14)_68%,rgba(8,24,17,.04)_100%),linear-gradient(0deg,rgba(8,24,17,.42)_0%,transparent_42%)]" />
 
-        <div className="relative z-10 flex min-h-135 items-end px-5 pb-24 pt-16 sm:min-h-150 sm:items-center sm:px-10 sm:pb-28 lg:px-16">
-          <div className="max-w-2xl text-white">
-            <h1 className="max-w-[13ch] text-[clamp(2.35rem,5.2vw,4.75rem)] leading-[1.08] font-semibold tracking-[-0.03em] text-balance">
+        <div className="relative z-10 mx-auto flex min-h-120 w-full max-w-384 items-end px-5 pb-20 pt-12 sm:min-h-125 sm:items-center sm:px-8 sm:pb-20 lg:min-h-130 lg:px-12 xl:px-16">
+          <div className="max-w-172.5 text-white">
+            <h1 className="max-w-[15ch] text-[clamp(2.25rem,4.2vw,4.25rem)] leading-[1.04] font-semibold tracking-[-0.035em] text-balance">
               {slide.title}
             </h1>
-            <p className="mt-5 max-w-lg text-base leading-7 text-white/85 sm:text-lg">
+            <p className="mt-4 max-w-140 text-base leading-7 text-[#dce7df]">
               {slide.description}
             </p>
             <Link
               href="/products"
-              className="group mt-7 inline-flex min-h-12 items-center gap-3 rounded-xl bg-[#7f512f] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#6d4528] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:mt-8"
+              className="group mt-6 inline-flex min-h-12 items-center gap-3 rounded-xl border border-[#c2a56b] bg-[#173c2f]/88 px-6 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              პროდუქტების ნახვა
+              კატალოგის ნახვა
               <ArrowRight
                 className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none"
                 aria-hidden="true"
@@ -111,7 +111,7 @@ export function HeroSlider() {
           </div>
         </div>
 
-        <div className="absolute inset-x-5 bottom-5 z-20 flex items-center justify-between gap-4 sm:inset-x-10 sm:bottom-8 lg:inset-x-16">
+        <div className="absolute inset-x-0 bottom-3 z-20 mx-auto flex w-full max-w-384 items-center justify-between gap-4 px-5 sm:bottom-5 sm:px-8 lg:px-12 xl:px-16">
           <div
             className="flex items-center gap-1"
             role="tablist"
@@ -129,8 +129,8 @@ export function HeroSlider() {
               >
                 <span
                   className={cn(
-                    "h-1.5 rounded-full bg-white transition-all",
-                    active === index ? "w-7" : "w-1.5 opacity-55",
+                    "h-px bg-white transition-all",
+                    active === index ? "w-10" : "w-5 opacity-45",
                   )}
                 />
               </button>
@@ -142,7 +142,7 @@ export function HeroSlider() {
               type="button"
               onClick={() => goTo(active - 1)}
               aria-label="წინა სლაიდი"
-              className="grid size-11 place-items-center rounded-xl border border-white/45 bg-black/20 text-white transition-colors hover:bg-white hover:text-[#1b1c1c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="grid size-11 place-items-center rounded-xl border border-white/55 bg-[#173c2f]/40 text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
@@ -150,7 +150,7 @@ export function HeroSlider() {
               type="button"
               onClick={() => goTo(active + 1)}
               aria-label="შემდეგი სლაიდი"
-              className="grid size-11 place-items-center rounded-xl border border-white/45 bg-black/20 text-white transition-colors hover:bg-white hover:text-[#1b1c1c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="grid size-11 place-items-center rounded-xl border border-white/55 bg-[#173c2f]/40 text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronRight className="size-5" aria-hidden="true" />
             </button>

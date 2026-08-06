@@ -66,20 +66,22 @@ export function ContactForm() {
   return (
     <form
       onSubmit={handleSubmit}
+      aria-busy={submissionState === "sending"}
+      aria-describedby="contact-privacy-note contact-form-notice"
       className="rounded-2xl bg-white p-5 shadow-[0_10px_28px_rgba(59,40,27,0.06)] sm:p-7 lg:p-8"
     >
       <div className="flex items-center gap-3">
-        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#f6f3f2] text-[#7f512f]">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#e9eee9] text-[#1d4a38]">
           <Mail className="size-5" aria-hidden="true" />
         </span>
-        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#1b1c1c]">
+        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#18221d]">
           მოგვწერეთ
         </h2>
       </div>
 
       <div className="mt-7 space-y-5">
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+          <span className="mb-2 block text-sm font-semibold text-[#18221d]">
             თქვენი ელფოსტა
           </span>
           <input
@@ -89,12 +91,12 @@ export function ContactForm() {
             required
             disabled={submissionState === "sending"}
             placeholder="name@example.com"
-            className="min-h-12 w-full rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] px-4 text-base text-[#1b1c1c] placeholder:text-[#83746b] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
+            className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+          <span className="mb-2 block text-sm font-semibold text-[#18221d]">
             სათაური
           </span>
           <input
@@ -104,12 +106,12 @@ export function ContactForm() {
             maxLength={120}
             disabled={submissionState === "sending"}
             placeholder="რის შესახებ გვწერთ?"
-            className="min-h-12 w-full rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] px-4 text-base text-[#1b1c1c] placeholder:text-[#83746b] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
+            className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+          <span className="mb-2 block text-sm font-semibold text-[#18221d]">
             აღწერა
           </span>
           <textarea
@@ -119,7 +121,7 @@ export function ContactForm() {
             rows={6}
             disabled={submissionState === "sending"}
             placeholder="დაწერეთ თქვენი კითხვა ან კომენტარი"
-            className="w-full resize-y rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] px-4 py-3 text-base leading-7 text-[#1b1c1c] placeholder:text-[#83746b] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
+            className="w-full resize-y rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 py-3 text-base leading-7 text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
           />
         </label>
       </div>
@@ -127,7 +129,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={submissionState === "sending"}
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#7f512f] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#6d4528] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#7f512f] disabled:cursor-wait disabled:opacity-65 sm:w-auto"
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1d4a38] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] disabled:cursor-wait disabled:opacity-65 sm:w-auto"
       >
         {submissionState === "sending" ? (
           <>
@@ -145,14 +147,15 @@ export function ContactForm() {
         )}
       </button>
 
-      <p className="mt-4 max-w-xl text-sm leading-6 text-[#605e5b]">
+      <p id="contact-privacy-note" className="mt-4 max-w-xl text-sm leading-6 text-[#5e685f]">
         წერილი პირდაპირ Home Mix-ის ელფოსტაზე გაიგზავნება. თქვენი ელფოსტა მხოლოდ
         პასუხისთვის გამოიყენება.
       </p>
       {notice ? (
         <p
+          id="contact-form-notice"
           role={submissionState === "error" ? "alert" : "status"}
-          className={`mt-3 text-sm font-medium leading-6 ${submissionState === "error" ? "text-[#a33c32]" : "text-[#7f512f]"}`}
+          className={`mt-3 text-sm font-medium leading-6 ${submissionState === "error" ? "text-[#a33c32]" : "text-[#1d4a38]"}`}
         >
           {notice}
         </p>

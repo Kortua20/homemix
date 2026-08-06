@@ -13,10 +13,11 @@ related_targets: ["components/hero-slider.tsx","components/category-card.tsx","c
 - Job: See Home Mix products quickly and continue to the full catalog; use categories as a secondary way to narrow the selection.
 - Primary action: Browse all products.
 - Proof and content: Existing Home Mix logo, three local furniture photographs, all live Supabase categories, and the newest live Supabase products with R2 imagery.
-- Constraints: Entirely Georgian; preserve the warm brown identity and all Supabase/R2 behavior; no fabricated claims; reduced-motion support; minimum 44px controls; no horizontal overflow at 320px.
-- Chosen direction: A simple, familiar, warm furniture storefront. Product photography and clear catalog access lead; decoration and experimental composition recede.
-- Memorable moment: A calm, full-width room photograph welcomes the visitor and moves directly into real products.
-- Approval: User explicitly rejected the complex workshop-index treatment and requested a simpler, less modern, product-first homepage.
+- Constraints: Entirely Georgian; preserve all existing routes/tabs and Supabase/R2 behavior; no fabricated claims; reduced-motion support; minimum 44px controls; no page overflow at 320px.
+- Chosen direction: Cinematic room — forest-green retail framing, wide authentic room photography, quiet line controls, an editorial category rail, and live products on chalk.
+- Memorable moment: The header gives way directly to a room-scale image; copy and navigation sit low and light over the darker edge while the furniture remains the dominant subject.
+- Approval: User selected option B from the three generated comps and explicitly asked to keep the same pages and tabs.
+- Approved comp: `.impeccable/mocks/homepage-b-cinematic.png` (`homepage-b-cinematic.json` records approval).
 - Unresolved decisions: None for this homepage pass.
 
 ## Simplification record
@@ -34,10 +35,10 @@ related_targets: ["components/hero-slider.tsx","components/category-card.tsx","c
 
 | Visible ingredient | Required composition | Medium |
 | --- | --- | --- |
-| Navigation | Familiar logo-left, four-link header with clear active state and simple mobile drawer | Semantic HTML, Radix dialog, Lucide menu glyph |
-| Hero | One full-width room photograph, concise Georgian copy, one catalog action | Existing `/public/hero` imagery, semantic HTML and `next/image` |
-| Slider | Quiet pagination and previous/next controls with swipe, pause, and reduced-motion behavior | React state and accessible controls |
-| Product section | First content section after the hero; straightforward responsive product grid | Live Supabase/R2 data and `next/image` |
-| Categories | Secondary compact navigation cards after products | Live Supabase data and semantic links |
+| Navigation | Slim forest utility strip, logo-left white header, the same four route tabs, search and outlined catalog action; simple mobile drawer | Semantic HTML, Radix dialog, Lucide glyphs |
+| Hero | Full-bleed 570–690px room photograph, lower-left Georgian copy, outlined catalog action, deep green light falloff | Existing `/public/hero` imagery, semantic HTML, CSS gradients and `next/image` |
+| Slider | Hairline progress tabs and outlined previous/next controls with swipe, pause, blur transition, and reduced-motion behavior | React state and accessible controls |
+| Categories | Horizontal snap rail of tall photographic panels immediately after the hero | Live Supabase categories, existing room imagery, `next/image` |
+| Product section | Chalk field with four-column image-first product grid and line-separated price/action row | Live Supabase/R2 data and `next/image` |
 | Empty/error states | Clear centered messages with one restrained icon | Semantic HTML and Lucide icons |
-| Footer | Minimal centered Home Mix logo | Existing logo and semantic footer |
+| Footer | Deep forest closing field with centered Home Mix logo and quiet brand line | Existing logo and semantic footer |

@@ -9,15 +9,35 @@ import {
   type CatalogSort,
 } from "@/lib/storefront";
 
-export const metadata: Metadata = {
-  title: "პროდუქტები",
-  description:
-    "დაათვალიერეთ Home Mix-ის პროდუქტები, მოძებნეთ სახელით და გაფილტრეთ კატეგორიის მიხედვით.",
-};
-
 type ProductsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+export async function generateMetadata({
+  searchParams,
+}: ProductsPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const search = firstValue(params.q).trim().slice(0, 100);
+  const category = firstValue(params.category).trim();
+  const sort = firstValue(params.sort).trim();
+  const filtered = Boolean(search || category || (sort && sort !== "date-desc"));
+  const description = search
+    ? `Home Mix-ის კატალოგში ძიების შედეგები: ${search}.`
+    : "დაათვალიერეთ Home Mix-ის პროდუქტები და გაფილტრეთ ავეჯი კატეგორიის მიხედვით.";
+
+  return {
+    title: search ? `${search} — ძიების შედეგები` : "პროდუქტები",
+    description,
+    alternates: { canonical: "/products" },
+    robots: filtered ? { index: false, follow: true } : undefined,
+    openGraph: {
+      title: "ავეჯის კატალოგი | Home Mix",
+      description,
+      url: "/products",
+      type: "website",
+    },
+  };
+}
 
 const sortOptions: Array<{ value: CatalogSort; label: string }> = [
   { value: "date-desc", label: "თარიღი: ჯერ ახალი" },
@@ -56,13 +76,13 @@ export default async function ProductsPage({
   const filtersActive = Boolean(search || categorySlug || sort !== "date-desc");
 
   return (
-    <main className="bg-[#fcf9f8]">
+    <main className="bg-[#f4f2ed]">
       <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="max-w-2xl">
-          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#1b1c1c] sm:text-5xl">
+          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] sm:text-5xl">
             პროდუქტები
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-[#605e5b]">
+          <p className="mt-4 max-w-xl text-base leading-7 text-[#5e685f]">
             რამე ტექსტი აქ
           </p>
         </div>
@@ -73,12 +93,12 @@ export default async function ProductsPage({
           className="mt-8 grid gap-4 rounded-2xl bg-white p-4 shadow-[0_10px_28px_rgba(59,40,27,0.06)] sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(260px,1.4fr)_minmax(190px,0.8fr)_minmax(210px,0.9fr)_auto] lg:items-end"
         >
           <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+            <span className="mb-2 block text-sm font-semibold text-[#18221d]">
               ძიება სახელით
             </span>
             <span className="relative block">
               <Search
-                className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#83746b]"
+                className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#667168]"
                 aria-hidden="true"
               />
               <input
@@ -87,19 +107,19 @@ export default async function ProductsPage({
                 defaultValue={search}
                 maxLength={100}
                 placeholder="პროდუქტის სახელი"
-                className="min-h-12 w-full rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] pr-4 pl-11 text-base text-[#1b1c1c] placeholder:text-[#83746b] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
+                className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] pr-4 pl-11 text-base text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
               />
             </span>
           </label>
 
           <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+            <span className="mb-2 block text-sm font-semibold text-[#18221d]">
               კატეგორია
             </span>
             <select
               name="category"
               defaultValue={categorySlug}
-              className="min-h-12 w-full rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] px-4 text-base text-[#1b1c1c] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
+              className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
             >
               <option value="">ყველა კატეგორია</option>
               {categories.map((category) => (
@@ -116,13 +136,13 @@ export default async function ProductsPage({
           </label>
 
           <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#1b1c1c]">
+            <span className="mb-2 block text-sm font-semibold text-[#18221d]">
               დალაგება
             </span>
             <select
               name="sort"
               defaultValue={sort}
-              className="min-h-12 w-full rounded-xl border border-[#d6c3b8] bg-[#fcf9f8] px-4 text-base text-[#1b1c1c] focus:border-[#7f512f] focus:outline-none focus:ring-2 focus:ring-[#7f512f]/20"
+              className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -134,7 +154,7 @@ export default async function ProductsPage({
 
           <button
             type="submit"
-            className="min-h-12 rounded-xl bg-[#7f512f] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#6d4528] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#7f512f] sm:col-span-2 lg:col-span-1"
+            className="min-h-12 rounded-xl bg-[#1d4a38] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:col-span-2 lg:col-span-1"
           >
             შედეგების ჩვენება
           </button>
@@ -148,12 +168,12 @@ export default async function ProductsPage({
             <div>
               <h2
                 id="catalog-results-heading"
-                className="text-2xl font-semibold tracking-[-0.02em] text-[#1b1c1c] sm:text-3xl"
+                className="text-2xl font-semibold tracking-[-0.02em] text-[#18221d] sm:text-3xl"
               >
                 კატალოგი
               </h2>
               {productsResult.status === "fulfilled" ? (
-                <p className="mt-2 text-sm text-[#605e5b]">
+                <p className="mt-2 text-sm text-[#5e685f]" role="status" aria-live="polite">
                   ნაპოვნია: {products.length}
                 </p>
               ) : null}
@@ -161,7 +181,7 @@ export default async function ProductsPage({
             {filtersActive ? (
               <Link
                 href="/products"
-                className="inline-flex min-h-11 items-center text-sm font-semibold text-[#7f512f] underline decoration-[#d6c3b8] underline-offset-8 transition-colors hover:text-[#6d4528] hover:decoration-[#7f512f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7f512f]"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-[#1d4a38] underline decoration-[#b9c6bd] underline-offset-8 transition-colors hover:text-[#15382a] hover:decoration-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
               >
                 ფილტრების გასუფთავება
               </Link>

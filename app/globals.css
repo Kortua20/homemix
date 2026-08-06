@@ -34,24 +34,24 @@
 
 :root {
   --radius: 0.75rem;
-  --background: #fcf9f8;
-  --foreground: #1b1c1c;
+  --background: #f4f2ed;
+  --foreground: #18221d;
   --card: #ffffff;
-  --card-foreground: #1b1c1c;
+  --card-foreground: #18221d;
   --popover: #ffffff;
-  --popover-foreground: #1b1c1c;
-  --primary: #7f512f;
+  --popover-foreground: #18221d;
+  --primary: #1d4a38;
   --primary-foreground: #ffffff;
-  --secondary: #f6f3f2;
-  --secondary-foreground: #1b1c1c;
-  --muted: #f6f3f2;
-  --muted-foreground: #605e5b;
-  --accent: #e6e2de;
-  --accent-foreground: #7f512f;
+  --secondary: #e9eee9;
+  --secondary-foreground: #18221d;
+  --muted: #e9eee9;
+  --muted-foreground: #5e685f;
+  --accent: #dfe7e1;
+  --accent-foreground: #1d4a38;
   --destructive: #a33c32;
-  --border: #d6c3b8;
-  --input: #d6c3b8;
-  --ring: #7f512f;
+  --border: #b9c6bd;
+  --input: #b9c6bd;
+  --ring: #1d4a38;
 }
 
 @layer base {
@@ -64,12 +64,22 @@
   }
 
   ::selection {
-    background: #6f4329;
+    background: #173c2f;
     color: #ffffff;
   }
 
   button,
   a {
     -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

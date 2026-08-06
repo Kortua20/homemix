@@ -3,7 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Facebook,
+  Instagram,
+  Menu,
+  Phone,
+  Search,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
@@ -24,28 +32,61 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#e4e2e1] bg-[#fcf9f8]/95 backdrop-blur-md">
-      <div className="mx-auto flex h-[68px] w-full max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 bg-white">
+      <div className="bg-[#173c2f] text-white">
+        <div className="mx-auto flex h-9 w-full max-w-384 items-center justify-between px-4 sm:px-6 lg:px-10">
+          <span className="flex items-center gap-2 text-xs font-semibold sm:text-sm">
+            <Phone className="size-3.5" aria-hidden="true" />
+            +995 ...
+          </span>
+          <span className="flex items-center gap-4 text-white/90">
+            <span
+              role="img"
+              aria-label="Facebook-ის ბმული მალე დაემატება"
+              title="Facebook"
+            >
+              <Facebook className="size-4" aria-hidden="true" />
+            </span>
+            <span
+              role="img"
+              aria-label="Instagram-ის ბმული მალე დაემატება"
+              title="Instagram"
+            >
+              <Instagram className="size-4" aria-hidden="true" />
+            </span>
+          </span>
+        </div>
+      </div>
+      <div className="mx-auto flex h-18 w-full max-w-384 items-center justify-between px-4 sm:h-20.5 sm:px-6 lg:px-10">
         <Link
           href="/"
           aria-label="Home Mix — მთავარი გვერდი"
-          className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#7f512f]"
+          className="flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
         >
-          <Image src="/logo.png" alt="Home Mix" width={500} height={500} priority className="size-11 object-contain sm:size-13" />
-          <span className="truncate text-lg font-bold tracking-[-0.02em] text-[#1b1c1c]">Home Mix</span>
+          <Image
+            src="/logo.png"
+            alt="Home Mix"
+            width={500}
+            height={500}
+            preload
+            className="size-20 object-contain"
+          />
         </Link>
 
-        <nav aria-label="მთავარი ნავიგაცია" className="hidden items-center gap-7 md:flex">
+        <nav
+          aria-label="მთავარი ნავიგაცია"
+          className="hidden items-center gap-6 lg:flex xl:gap-8"
+        >
           {navigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               aria-current={isActive(pathname, item.href) ? "page" : undefined}
               className={cn(
-                "relative flex min-h-11 items-center px-1 text-sm font-semibold transition-colors after:absolute after:inset-x-1 after:bottom-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-[#7f512f] after:transition-transform hover:text-[#7f512f] hover:after:scale-x-100 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#7f512f]",
+                "relative flex min-h-11 items-center px-1 text-sm font-semibold transition-colors after:absolute after:inset-x-1 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-[#1d4a38] after:transition-transform hover:text-[#1d4a38] hover:after:scale-x-100 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]",
                 isActive(pathname, item.href)
-                  ? "text-[#7f512f] after:scale-x-100"
-                  : "text-[#605e5b]",
+                  ? "text-[#1d4a38] after:scale-x-100"
+                  : "text-[#4f5d54]",
               )}
             >
               {item.label}
@@ -53,48 +94,99 @@ export function SiteHeader() {
           ))}
         </nav>
 
+        <div className="ml-auto hidden items-center gap-2 sm:flex lg:ml-0">
+          <Link
+            href="/products"
+            aria-label="პროდუქტების ძიება"
+            className="grid size-11 place-items-center rounded-xl text-[#173c2f] transition-colors hover:bg-[#e9eee9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38]"
+          >
+            <Search className="size-5" aria-hidden="true" />
+          </Link>
+          <Link
+            href="/products"
+            className="group hidden min-h-11 items-center gap-2 rounded-xl border border-[#173c2f] px-5 text-sm font-semibold text-[#173c2f] transition-colors hover:bg-[#173c2f] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] md:inline-flex"
+          >
+            კატალოგის ნახვა
+            <ArrowUpRight
+              className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+              aria-hidden="true"
+            />
+          </Link>
+        </div>
+
         <SheetPrimitive.Root open={open} onOpenChange={setOpen}>
           <SheetPrimitive.Trigger asChild>
             <button
               type="button"
               aria-label="მენიუს გახსნა"
-              className="grid size-11 place-items-center rounded-xl border border-[#d6c3b8] bg-white text-[#1b1c1c] transition-colors hover:bg-[#f6f3f2] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7f512f] md:hidden"
+              className="ml-2 grid size-11 place-items-center rounded-xl border border-[#b9c6bd] bg-white text-[#18221d] transition-colors hover:bg-[#e9eee9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38] lg:hidden"
             >
               <Menu className="size-5" aria-hidden="true" />
             </button>
           </SheetPrimitive.Trigger>
           <SheetPrimitive.Portal>
             <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/35 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out data-[state=open]:fade-in" />
-            <SheetPrimitive.Content className="fixed inset-y-0 right-0 z-50 flex w-[min(90vw,360px)] flex-col bg-[#fcf9f8] p-5 shadow-[-18px_0_50px_rgba(36,25,19,0.16)] duration-300 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right">
-              <SheetPrimitive.Title className="sr-only">მთავარი მენიუ</SheetPrimitive.Title>
-              <SheetPrimitive.Description className="sr-only">Home Mix-ის გვერდებზე გადასასვლელი ბმულები</SheetPrimitive.Description>
-              <div className="flex items-center justify-between border-b border-[#e4e2e1] pb-5">
+            <SheetPrimitive.Content className="fixed inset-y-0 right-0 z-50 flex w-[min(90vw,380px)] flex-col bg-[#f4f2ed] p-5 shadow-[-18px_0_50px_rgba(12,34,25,0.18)] duration-300 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right">
+              <SheetPrimitive.Title className="sr-only">
+                მთავარი მენიუ
+              </SheetPrimitive.Title>
+              <SheetPrimitive.Description className="sr-only">
+                Home Mix-ის გვერდებზე გადასასვლელი ბმულები
+              </SheetPrimitive.Description>
+              <div className="flex items-center justify-between border-b border-[#d8ded8] pb-5">
                 <div className="flex items-center gap-3">
-                  <Image src="/logo.png" alt="Home Mix" width={500} height={500} className="size-12 object-contain" />
-                  <span className="font-bold text-[#1b1c1c]">Home Mix</span>
+                  <Image
+                    src="/logo.png"
+                    alt="Home Mix"
+                    width={500}
+                    height={500}
+                    className="size-12 object-contain"
+                  />
+                  <span className="font-extrabold tracking-[-0.03em] text-[#173c2f]">
+                    HOME MIX
+                  </span>
                 </div>
                 <SheetPrimitive.Close asChild>
-                  <button type="button" aria-label="მენიუს დახურვა" className="grid size-11 place-items-center rounded-xl border border-[#d6c3b8] bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7f512f]">
+                  <button
+                    type="button"
+                    aria-label="მენიუს დახურვა"
+                    className="grid size-11 place-items-center rounded-xl border border-[#b9c6bd] bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38]"
+                  >
                     <X className="size-5" aria-hidden="true" />
                   </button>
                 </SheetPrimitive.Close>
               </div>
-              <nav aria-label="მობილური ნავიგაცია" className="mt-6 flex flex-col">
+              <nav
+                aria-label="მობილური ნავიგაცია"
+                className="mt-6 flex flex-col"
+              >
                 {navigation.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    aria-current={isActive(pathname, item.href) ? "page" : undefined}
+                    aria-current={
+                      isActive(pathname, item.href) ? "page" : undefined
+                    }
                     className={cn(
-                      "flex min-h-14 items-center border-b border-[#e4e2e1] px-2 text-base font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7f512f]",
-                      isActive(pathname, item.href) ? "text-[#7f512f]" : "text-[#1b1c1c] hover:text-[#7f512f]",
+                      "flex min-h-14 items-center border-b border-[#d8ded8] px-2 text-base font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38]",
+                      isActive(pathname, item.href)
+                        ? "text-[#1d4a38]"
+                        : "text-[#18221d] hover:text-[#1d4a38]",
                     )}
                   >
                     {item.label}
                   </Link>
                 ))}
               </nav>
+              <Link
+                href="/products"
+                onClick={() => setOpen(false)}
+                className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#173c2f] px-5 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
+              >
+                კატალოგის ნახვა
+                <ArrowUpRight className="size-4" aria-hidden="true" />
+              </Link>
             </SheetPrimitive.Content>
           </SheetPrimitive.Portal>
         </SheetPrimitive.Root>
