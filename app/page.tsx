@@ -11,7 +11,8 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: { absolute: "Home Mix — ავეჯი თქვენი სახლისთვის" },
-  description: "აღმოაჩინეთ Home Mix-ის თანამედროვე ავეჯი, ახალი პროდუქტები და კოლექციები თქვენი სახლისთვის.",
+  description:
+    "აღმოაჩინეთ Home Mix-ის თანამედროვე ავეჯი, ახალი პროდუქტები და კოლექციები თქვენი სახლისთვის.",
   alternates: { canonical: "/" },
 };
 

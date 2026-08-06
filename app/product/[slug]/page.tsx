@@ -19,7 +19,10 @@ export async function generateMetadata({
   const product = await getProductBySlug(slug);
 
   if (!product) {
-    return { title: "პროდუქტი ვერ მოიძებნა", robots: { index: false, follow: false } };
+    return {
+      title: "პროდუქტი ვერ მოიძებნა",
+      robots: { index: false, follow: false },
+    };
   }
 
   const description =
@@ -55,7 +58,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const productUrl = absoluteUrl(`/product/${encodeURIComponent(product.slug)}`);
+  const productUrl = absoluteUrl(
+    `/product/${encodeURIComponent(product.slug)}`,
+  );
   const productImages = product.images.map((image) =>
     absoluteUrl(`/api/product-images/${image.id}`),
   );
@@ -80,9 +85,24 @@ export default async function ProductPage({ params }: ProductPageProps) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "მთავარი", item: absoluteUrl("/") },
-      { "@type": "ListItem", position: 2, name: "პროდუქტები", item: absoluteUrl("/products") },
-      { "@type": "ListItem", position: 3, name: product.name, item: productUrl },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "მთავარი",
+        item: absoluteUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "პროდუქტები",
+        item: absoluteUrl("/products"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: productUrl,
+      },
     ],
   };
 
@@ -90,11 +110,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <main className="bg-[#f4f2ed]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productJsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <nav
