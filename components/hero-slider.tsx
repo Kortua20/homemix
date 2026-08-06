@@ -29,7 +29,9 @@ const slides = [
 
 export function HeroSlider() {
   const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [isInView, setIsInView] = useState(true);
+  const [documentVisible, setDocumentVisible] = useState(true);
+  const sliderRef = useRef<HTMLElement>(null);
   const touchStart = useRef<number | null>(null);
 
   const goTo = useCallback((index: number) => {
@@ -37,25 +39,45 @@ export function HeroSlider() {
   }, []);
 
   useEffect(() => {
-    if (paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+    if (
+      !isInView ||
+      !documentVisible ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
       return;
-    const interval = window.setInterval(
+    const timeout = window.setTimeout(
       () => setActive((current) => (current + 1) % slides.length),
-      7000,
+      4000,
     );
-    return () => window.clearInterval(interval);
-  }, [paused]);
+    return () => window.clearTimeout(timeout);
+  }, [active, documentVisible, isInView]);
+
+  useEffect(() => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    const updateDocumentVisibility = () => setDocumentVisible(!document.hidden);
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(Boolean(entry?.isIntersecting)),
+      { threshold: 0.15 },
+    );
+
+    observer.observe(slider);
+    document.addEventListener("visibilitychange", updateDocumentVisibility);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", updateDocumentVisibility);
+    };
+  }, []);
 
   const slide = slides[active];
 
   return (
     <section
+      ref={sliderRef}
       aria-roledescription="სლაიდერი"
       aria-label="Home Mix-ის კოლექციები"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
       onTouchStart={(event) => {
         touchStart.current = event.touches[0]?.clientX ?? null;
       }}

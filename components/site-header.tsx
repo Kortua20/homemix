@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
+import { contactDetails, socialLinks } from "@/lib/contact-details";
 
 const navigation = [
   { label: "მთავარი", href: "/" },
@@ -35,25 +36,39 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 bg-white">
       <div className="bg-[#173c2f] text-white">
         <div className="mx-auto flex h-9 w-full max-w-384 items-center justify-between px-4 sm:px-6 lg:px-10">
-          <span className="flex items-center gap-2 text-xs font-semibold sm:text-sm">
-            <Phone className="size-3.5" aria-hidden="true" />
-            +995 ...
-          </span>
+          {contactDetails.phone.href ? (
+            <a
+              href={contactDetails.phone.href}
+              className="flex items-center gap-2 text-xs font-semibold focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-sm"
+            >
+              <Phone className="size-3.5" aria-hidden="true" />
+              {contactDetails.phone.label}
+            </a>
+          ) : (
+            <span className="flex items-center gap-2 text-xs font-semibold sm:text-sm">
+              <Phone className="size-3.5" aria-hidden="true" />
+              {contactDetails.phone.label}
+            </span>
+          )}
           <span className="flex items-center gap-4 text-white/90">
-            <span
-              role="img"
-              aria-label="Facebook-ის ბმული მალე დაემატება"
-              title="Facebook"
-            >
-              <Facebook className="size-4" aria-hidden="true" />
-            </span>
-            <span
-              role="img"
-              aria-label="Instagram-ის ბმული მალე დაემატება"
-              title="Instagram"
-            >
-              <Instagram className="size-4" aria-hidden="true" />
-            </span>
+            {socialLinks.facebook ? (
+              <a href={socialLinks.facebook} target="_blank" rel="noreferrer" aria-label="Facebook">
+                <Facebook className="size-4" aria-hidden="true" />
+              </a>
+            ) : (
+              <span role="img" aria-label="Facebook-ის ბმული მალე დაემატება" title="Facebook">
+                <Facebook className="size-4" aria-hidden="true" />
+              </span>
+            )}
+            {socialLinks.instagram ? (
+              <a href={socialLinks.instagram} target="_blank" rel="noreferrer" aria-label="Instagram">
+                <Instagram className="size-4" aria-hidden="true" />
+              </a>
+            ) : (
+              <span role="img" aria-label="Instagram-ის ბმული მალე დაემატება" title="Instagram">
+                <Instagram className="size-4" aria-hidden="true" />
+              </span>
+            )}
           </span>
         </div>
       </div>
@@ -134,18 +149,7 @@ export function SiteHeader() {
                 Home Mix-ის გვერდებზე გადასასვლელი ბმულები
               </SheetPrimitive.Description>
               <div className="flex items-center justify-between border-b border-[#d8ded8] pb-5">
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/logo.png"
-                    alt="Home Mix"
-                    width={500}
-                    height={500}
-                    className="size-12 object-contain"
-                  />
-                  <span className="font-extrabold tracking-[-0.03em] text-[#173c2f]">
-                    HOME MIX
-                  </span>
-                </div>
+                <div className=""></div>
                 <SheetPrimitive.Close asChild>
                   <button
                     type="button"

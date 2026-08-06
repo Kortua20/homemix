@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
+import { contactDetails } from "@/lib/contact-details";
 
 export const metadata: Metadata = {
   title: "კონტაქტი",
@@ -12,14 +13,6 @@ export const metadata: Metadata = {
     description: "დაუკავშირდით Home Mix-ს პროდუქტის შესახებ დამატებითი ინფორმაციისთვის.",
     url: "/contact",
   },
-};
-
-const temporaryContact = {
-  phone: "+995 555 12 34 56",
-  phoneHref: "+995555123456",
-  address: "ილია ჭავჭავაძის გამზირი 12, თბილისი",
-  mapUrl: "https://www.google.com/maps?q=41.7106,44.7519&z=15&output=embed",
-  mapLink: "https://www.google.com/maps/search/?api=1&query=41.7106%2C44.7519",
 };
 
 export default function ContactPage() {
@@ -56,12 +49,13 @@ export default function ContactPage() {
                       ტელეფონი
                     </dt>
                     <dd className="mt-1 text-sm leading-6 text-[#5e685f]">
-                      <a
-                        className="underline decoration-[#b9c6bd] underline-offset-4 hover:text-[#1d4a38]"
-                        href={`tel:${temporaryContact.phoneHref}`}
-                      >
-                        აქ რეალური ნომერი უნდა იყოს
-                      </a>
+                      {contactDetails.phone.href ? (
+                        <a className="underline decoration-[#b9c6bd] underline-offset-4 hover:text-[#1d4a38]" href={contactDetails.phone.href}>
+                          {contactDetails.phone.label}
+                        </a>
+                      ) : (
+                        contactDetails.phone.label
+                      )}
                     </dd>
                   </div>
                 </div>
@@ -75,8 +69,7 @@ export default function ContactPage() {
                       მისამართი
                     </dt>
                     <dd className="mt-1 text-sm leading-6 text-[#5e685f]">
-                      {/* {temporaryContact.address} */}
-                      ხოლო აქ მისამართი
+                      {contactDetails.address}
                     </dd>
                   </div>
                 </div>
@@ -90,7 +83,7 @@ export default function ContactPage() {
                       სამუშაო დრო
                     </dt>
                     <dd className="mt-1 text-sm leading-6 text-[#5e685f]">
-                      ორშაბათი–შაბათი, 10:00–19:00
+                      {contactDetails.openingHours}
                     </dd>
                   </div>
                 </div>
@@ -100,7 +93,7 @@ export default function ContactPage() {
             <div className="overflow-hidden rounded-2xl bg-[#e8ebe7]">
               <iframe
                 title="Home Mix-ის დროებითი მდებარეობა Google Maps-ზე"
-                src={temporaryContact.mapUrl}
+                src={contactDetails.mapEmbedUrl}
                 width="600"
                 height="360"
                 loading="lazy"
@@ -108,7 +101,7 @@ export default function ContactPage() {
                 className="block h-80 w-full border-0"
               />
               <a
-                href={temporaryContact.mapLink}
+                href={contactDetails.mapUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="flex min-h-12 items-center justify-center gap-2 bg-white px-5 text-sm font-semibold text-[#1d4a38] transition-colors hover:bg-[#e9eee9] focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#1d4a38]"
