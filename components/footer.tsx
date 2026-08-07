@@ -6,6 +6,7 @@ import { contactDetails, socialLinks } from "@/lib/contact-details";
 const footerLinks = [
   { label: "მთავარი", href: "/" },
   { label: "პროდუქტები", href: "/products" },
+  { label: "კატალოგი", href: "/categories" },
   { label: "ჩვენ შესახებ", href: "/about" },
   { label: "კონტაქტი", href: "/contact" },
 ] as const;
@@ -33,11 +34,10 @@ export function Footer() {
               />
             </Link>
             <p className="mt-4 text-xl font-semibold tracking-[-0.02em]">
-              ავეჯი თქვენი სახლისთვის
+              აქ ტექსტი
             </p>
             <p className="mt-3 max-w-xs text-sm leading-6 text-[#e0ebe4]">
-              აღმოაჩინეთ თანამედროვე ავეჯი და მშვიდი, კომფორტული სივრცის შექმნის
-              იდეები.
+              და აქაც
             </p>
           </div>
 
@@ -65,7 +65,10 @@ export function Footer() {
                   <Phone className="size-4" aria-hidden="true" />
                 </span>
                 {contactDetails.phone.href ? (
-                  <a href={contactDetails.phone.href} className="hover:text-white hover:underline">
+                  <a
+                    href={contactDetails.phone.href}
+                    className="hover:text-white hover:underline"
+                  >
                     {contactDetails.phone.label}
                   </a>
                 ) : (
@@ -92,20 +95,42 @@ export function Footer() {
             <h2 className="text-sm font-semibold text-white">გამოგვყევით</h2>
             <div className="mt-5 flex gap-2" aria-label="სოციალური ქსელები">
               {socialLinks.facebook ? (
-                <a href={socialLinks.facebook} target="_blank" rel="noreferrer" aria-label="Facebook" className="grid size-11 place-items-center rounded-xl border border-white/35 text-white hover:bg-white hover:text-[#173c2f]">
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook"
+                  className="grid size-11 place-items-center rounded-xl border border-white/35 text-white hover:bg-white hover:text-[#173c2f]"
+                >
                   <Facebook className="size-4.5" aria-hidden="true" />
                 </a>
               ) : (
-                <span className="grid size-11 place-items-center rounded-xl border border-white/35 text-white" title="Facebook-ის ბმული მალე დაემატება" aria-label="Facebook-ის ბმული მალე დაემატება" role="img">
+                <span
+                  className="grid size-11 place-items-center rounded-xl border border-white/35 text-white"
+                  title="Facebook-ის ბმული მალე დაემატება"
+                  aria-label="Facebook-ის ბმული მალე დაემატება"
+                  role="img"
+                >
                   <Facebook className="size-4.5" aria-hidden="true" />
                 </span>
               )}
               {socialLinks.instagram ? (
-                <a href={socialLinks.instagram} target="_blank" rel="noreferrer" aria-label="Instagram" className="grid size-11 place-items-center rounded-xl border border-white/35 text-white hover:bg-white hover:text-[#173c2f]">
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Instagram"
+                  className="grid size-11 place-items-center rounded-xl border border-white/35 text-white hover:bg-white hover:text-[#173c2f]"
+                >
                   <Instagram className="size-4.5" aria-hidden="true" />
                 </a>
               ) : (
-                <span className="grid size-11 place-items-center rounded-xl border border-white/35 text-white" title="Instagram-ის ბმული მალე დაემატება" aria-label="Instagram-ის ბმული მალე დაემატება" role="img">
+                <span
+                  className="grid size-11 place-items-center rounded-xl border border-white/35 text-white"
+                  title="Instagram-ის ბმული მალე დაემატება"
+                  aria-label="Instagram-ის ბმული მალე დაემატება"
+                  role="img"
+                >
                   <Instagram className="size-4.5" aria-hidden="true" />
                 </span>
               )}

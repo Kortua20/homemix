@@ -79,7 +79,7 @@ export default async function HomePage() {
               ახალი პროდუქტები
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-[#5e685f] sm:text-base">
-              გაეცანით კატალოგში ახლად დამატებულ ავეჯს.
+              აქაც ტექსტი
             </p>
           </div>
           <Link
