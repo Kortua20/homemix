@@ -3,7 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { ProductGallery } from "@/components/product-gallery";
-import { formatPrice, getProductBySlug } from "@/lib/storefront";
+import {
+  formatPrice,
+  getProductBySlug,
+  getProductSlugs,
+  normalizeSlug,
+} from "@/lib/storefront";
 import { absoluteUrl, siteName } from "@/lib/site";
 
 export const revalidate = 60;
@@ -12,10 +17,16 @@ type ProductPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+export async function generateStaticParams() {
+  const slugs = await getProductSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
   const product = await getProductBySlug(slug);
 
   if (!product) {
@@ -53,7 +64,8 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = normalizeSlug(rawSlug);
   const product = await getProductBySlug(slug);
 
   if (!product) notFound();

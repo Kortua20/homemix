@@ -2,7 +2,19 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { cache } from "react";
 
-export type Category = { id: string; slug: string; name: string };
+export type CategoryImage = {
+  id: string;
+  sort_order: number;
+  created_at: string;
+};
+export type Category = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  images: CategoryImage[];
+  productCount: number;
+};
 export type ProductImage = {
   id: string;
   sort_order: number;
@@ -19,12 +31,11 @@ export type Product = {
   images: ProductImage[];
 };
 
-export type CatalogSort = "date-desc" | "date-asc" | "price-desc" | "price-asc";
-
 export type CatalogFilters = {
   search?: string;
   categorySlug?: string;
-  sort?: CatalogSort;
+  minPrice?: number;
+  maxPrice?: number;
 };
 
 const productSelection = `
@@ -34,8 +45,17 @@ const productSelection = `
   description,
   price,
   created_at,
-  category:categories!products_category_id_fkey (id, name, slug),
+  category:categories!products_category_id_fkey (id, name, slug, description, images:category_images (id, sort_order, created_at)),
   images:product_images (id, sort_order, created_at)
+`;
+
+const categorySelection = `
+  id,
+  slug,
+  name,
+  description,
+  images:category_images (id, sort_order, created_at),
+  products(count)
 `;
 
 function publicClient() {
@@ -52,21 +72,53 @@ function publicClient() {
   });
 }
 
+export function normalizeSlug(value: string) {
+  try {
+    return decodeURIComponent(value).trim().normalize("NFC");
+  } catch {
+    return value.trim().normalize("NFC");
+  }
+}
+
+function sortImages<T extends { sort_order: number; created_at: string }>(
+  images: T[],
+) {
+  images.sort((a, b) => {
+    return (
+      a.sort_order - b.sort_order ||
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+  });
+}
+
+function normalizeCategory(row: Record<string, unknown>): Category {
+  const images = Array.isArray(row.images)
+    ? ([...row.images] as CategoryImage[])
+    : [];
+  const products = Array.isArray(row.products) ? row.products : [];
+  const productCount = Number(
+    (products[0] as { count?: number } | undefined)?.count ?? 0,
+  );
+  sortImages(images);
+  return {
+    id: String(row.id),
+    slug: String(row.slug),
+    name: String(row.name),
+    description: row.description ? String(row.description) : null,
+    images,
+    productCount,
+  };
+}
+
 function normalizeProduct(row: Record<string, unknown>): Product {
   const categoryValue = row.category;
   const category = Array.isArray(categoryValue)
     ? (categoryValue[0] ?? null)
     : (categoryValue ?? null);
-  const images = Array.isArray(row.images) ? [...row.images] : [];
-  images.sort((a, b) => {
-    const first = a as ProductImage;
-    const second = b as ProductImage;
-    return (
-      first.sort_order - second.sort_order ||
-      new Date(first.created_at).getTime() -
-        new Date(second.created_at).getTime()
-    );
-  });
+  const images = Array.isArray(row.images)
+    ? ([...row.images] as ProductImage[])
+    : [];
+  sortImages(images);
   return {
     id: String(row.id),
     slug: String(row.slug),
@@ -74,19 +126,33 @@ function normalizeProduct(row: Record<string, unknown>): Product {
     description: row.description ? String(row.description) : null,
     price: Number(row.price),
     created_at: String(row.created_at),
-    category: category as Category | null,
-    images: images as ProductImage[],
+    category: category
+      ? normalizeCategory(category as Record<string, unknown>)
+      : null,
+    images,
   };
 }
 
 export async function getHomeCategories(): Promise<Category[]> {
   const { data, error } = await publicClient()
     .from("categories")
-    .select("id, slug, name")
+    .select(categorySelection)
     .order("name", { ascending: true });
   if (error)
-    throw new Error("კატეგორიების ჩატვირთვა ვერ მოხერხდა", { cause: error });
-  return (data ?? []) as Category[];
+    throw new Error("კატალოგის ჩატვირთვა ვერ მოხერხდა", { cause: error });
+  return (data ?? []).map((row) =>
+    normalizeCategory(row as Record<string, unknown>),
+  );
+}
+
+export async function getCategorySlugs(): Promise<string[]> {
+  const { data, error } = await publicClient()
+    .from("categories")
+    .select("slug")
+    .order("name", { ascending: true });
+  if (error)
+    throw new Error("Category slugs could not be loaded", { cause: error });
+  return (data ?? []).map((row) => String(row.slug));
 }
 
 export async function getNewestProducts(limit = 8): Promise<Product[]> {
@@ -102,54 +168,90 @@ export async function getNewestProducts(limit = 8): Promise<Product[]> {
   );
 }
 
+export async function getProductSlugs(): Promise<string[]> {
+  const { data, error } = await publicClient()
+    .from("products")
+    .select("slug")
+    .order("created_at", { ascending: false });
+  if (error)
+    throw new Error("Product slugs could not be loaded", { cause: error });
+  return (data ?? []).map((row) => String(row.slug));
+}
+
+async function getCategoryIdBySlug(
+  supabase: ReturnType<typeof publicClient>,
+  categorySlug: string,
+) {
+  const normalizedCategorySlug = normalizeSlug(categorySlug);
+  if (!normalizedCategorySlug) return null;
+
+  const { data: category, error } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("slug", normalizedCategorySlug)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Catalog category could not be loaded", { cause: error });
+  }
+
+  return category ? String(category.id) : "";
+}
+
+export async function getMaxProductPrice(categorySlug = "") {
+  const supabase = publicClient();
+  const categoryId = await getCategoryIdBySlug(supabase, categorySlug);
+  if (categoryId === "") return 0;
+
+  let query = supabase
+    .from("products")
+    .select("price")
+    .order("price", { ascending: false })
+    .limit(1);
+
+  if (categoryId) query = query.eq("category_id", categoryId);
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    throw new Error("Max product price could not be loaded", { cause: error });
+  }
+
+  return data ? Number(data.price) : 0;
+}
+
 export async function getCatalogProducts({
   search = "",
   categorySlug = "",
-  sort = "date-desc",
+  minPrice = 0,
+  maxPrice,
 }: CatalogFilters = {}): Promise<Product[]> {
   const supabase = publicClient();
-  let categoryId: string | null = null;
-
-  if (categorySlug) {
-    const { data: category, error: categoryError } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", categorySlug)
-      .maybeSingle();
-
-    if (categoryError) {
-      throw new Error("კატეგორიის ჩატვირთვა ვერ მოხერხდა", {
-        cause: categoryError,
-      });
-    }
-
-    if (!category) return [];
-    categoryId = String(category.id);
-  }
-
-  const sortOptions: Record<
-    CatalogSort,
-    { column: "created_at" | "price"; ascending: boolean }
-  > = {
-    "date-desc": { column: "created_at", ascending: false },
-    "date-asc": { column: "created_at", ascending: true },
-    "price-desc": { column: "price", ascending: false },
-    "price-asc": { column: "price", ascending: true },
-  };
-  const selectedSort = sortOptions[sort] ?? sortOptions["date-desc"];
+  const categoryId = await getCategoryIdBySlug(supabase, categorySlug);
+  if (categoryId === "") return [];
 
   let query = supabase.from("products").select(productSelection);
   const normalizedSearch = search.trim().slice(0, 100);
+  const normalizedMinPrice = Number.isFinite(minPrice)
+    ? Math.max(0, Number(minPrice))
+    : 0;
+  const normalizedMaxPrice =
+    maxPrice !== undefined && Number.isFinite(maxPrice)
+      ? Math.max(0, Number(maxPrice))
+      : undefined;
 
   if (normalizedSearch) query = query.ilike("name", `%${normalizedSearch}%`);
   if (categoryId) query = query.eq("category_id", categoryId);
+  if (normalizedMinPrice > 0) query = query.gte("price", normalizedMinPrice);
+  if (normalizedMaxPrice !== undefined)
+    query = query.lte("price", normalizedMaxPrice);
 
   const { data, error } = await query
-    .order(selectedSort.column, { ascending: selectedSort.ascending })
+    .order("created_at", { ascending: false })
     .order("id", { ascending: true });
 
   if (error) {
-    throw new Error("პროდუქტების ჩატვირთვა ვერ მოხერხდა", { cause: error });
+    throw new Error("Products could not be loaded", { cause: error });
   }
 
   return (data ?? []).map((row) =>
@@ -159,10 +261,11 @@ export async function getCatalogProducts({
 
 export const getProductBySlug = cache(
   async (slug: string): Promise<Product | null> => {
+    const normalizedSlug = normalizeSlug(slug);
     const { data, error } = await publicClient()
       .from("products")
       .select(productSelection)
-      .eq("slug", slug)
+      .eq("slug", normalizedSlug)
       .maybeSingle();
 
     if (error) {
@@ -170,6 +273,23 @@ export const getProductBySlug = cache(
     }
 
     return data ? normalizeProduct(data as Record<string, unknown>) : null;
+  },
+);
+
+export const getCategoryBySlug = cache(
+  async (slug: string): Promise<Category | null> => {
+    const normalizedSlug = normalizeSlug(slug);
+    const { data, error } = await publicClient()
+      .from("categories")
+      .select(categorySelection)
+      .eq("slug", normalizedSlug)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error("Category could not be loaded", { cause: error });
+    }
+
+    return data ? normalizeCategory(data as Record<string, unknown>) : null;
   },
 );
 

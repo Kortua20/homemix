@@ -35,10 +35,10 @@ export default async function HomePage() {
         <div className="mx-auto w-full max-w-384 px-4 sm:px-6 lg:px-10">
           <div className="mb-8 flex items-end justify-between gap-5 sm:mb-10">
             <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#173c2f] sm:text-4xl">
-              კატეგორიები
+              კატალოგი
             </h2>
             <Link
-              href="/products"
+              href="/categories"
               className="group hidden min-h-11 items-center gap-2 text-sm font-semibold text-[#173c2f] transition-colors hover:text-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38] sm:flex"
             >
               ყველას ნახვა
@@ -51,20 +51,20 @@ export default async function HomePage() {
 
           {categoriesResult.status === "rejected" ? (
             <EmptyState
-              title="კატეგორიები ვერ ჩაიტვირთა"
+              title="კატალოგი ვერ ჩაიტვირთა"
               description="გთხოვთ, ცოტა ხანში სცადოთ თავიდან."
               tone="error"
             />
           ) : categories.length === 0 ? (
             <EmptyState
-              title="კატეგორიები ჯერ არ დამატებულა"
-              description="ახალი კატეგორიები მალე გამოჩნდება."
+              title="კატალოგი ჯერ არ დამატებულა"
+              description="ახალი კატალოგი მალე გამოჩნდება."
             />
           ) : (
             <div className="no-scrollbar grid snap-x snap-mandatory auto-cols-[78%] grid-flow-col gap-3 overflow-x-auto pb-2 sm:auto-cols-[45%] lg:auto-cols-[31.5%]">
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <div key={category.id} className="snap-start">
-                  <CategoryCard category={category} index={index} />
+                  <CategoryCard category={category} />
                 </div>
               ))}
             </div>

@@ -20,6 +20,10 @@ import { contactDetails, socialLinks } from "@/lib/contact-details";
 const navigation = [
   { label: "მთავარი", href: "/" },
   { label: "პროდუქტები", href: "/products" },
+  {
+    label: "კატალოგი",
+    href: "/categories",
+  },
   { label: "ჩვენ შესახებ", href: "/about" },
   { label: "კონტაქტი", href: "/contact" },
 ] as const;
@@ -52,20 +56,38 @@ export function SiteHeader() {
           )}
           <span className="flex items-center gap-4 text-white/90">
             {socialLinks.facebook ? (
-              <a href={socialLinks.facebook} target="_blank" rel="noreferrer" aria-label="Facebook">
+              <a
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Facebook"
+              >
                 <Facebook className="size-4" aria-hidden="true" />
               </a>
             ) : (
-              <span role="img" aria-label="Facebook-ის ბმული მალე დაემატება" title="Facebook">
+              <span
+                role="img"
+                aria-label="Facebook-ის ბმული მალე დაემატება"
+                title="Facebook"
+              >
                 <Facebook className="size-4" aria-hidden="true" />
               </span>
             )}
             {socialLinks.instagram ? (
-              <a href={socialLinks.instagram} target="_blank" rel="noreferrer" aria-label="Instagram">
+              <a
+                href={socialLinks.instagram}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+              >
                 <Instagram className="size-4" aria-hidden="true" />
               </a>
             ) : (
-              <span role="img" aria-label="Instagram-ის ბმული მალე დაემატება" title="Instagram">
+              <span
+                role="img"
+                aria-label="Instagram-ის ბმული მალე დაემატება"
+                title="Instagram"
+              >
                 <Instagram className="size-4" aria-hidden="true" />
               </span>
             )}
@@ -118,7 +140,7 @@ export function SiteHeader() {
             <Search className="size-5" aria-hidden="true" />
           </Link>
           <Link
-            href="/products"
+            href="/categories"
             className="group hidden min-h-11 items-center gap-2 rounded-xl border border-[#173c2f] px-5 text-sm font-semibold text-[#173c2f] transition-colors hover:bg-[#173c2f] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] md:inline-flex"
           >
             კატალოგის ნახვა

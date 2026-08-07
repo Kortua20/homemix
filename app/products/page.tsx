@@ -1,17 +1,97 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Search } from "lucide-react";
+import { CatalogFilterForm } from "@/components/catalog-filter-form";
 import { EmptyState } from "@/components/empty-state";
 import { ProductCard } from "@/components/product-card";
+import { ProductGridSkeleton } from "@/components/product-card-skeleton";
 import {
   getCatalogProducts,
   getHomeCategories,
-  type CatalogSort,
+  getMaxProductPrice,
 } from "@/lib/storefront";
 
 type ProductsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+type ProductResultsProps = {
+  filters: {
+    search: string;
+    categorySlug: string;
+    minPrice: number;
+    maxPrice: number;
+  };
+  filtersActive: boolean;
+};
+
+function firstValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
+
+function parsePriceParam(value: string) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
+function resultsKey(filters: ProductResultsProps["filters"]) {
+  return [
+    filters.search,
+    filters.categorySlug,
+    filters.minPrice,
+    filters.maxPrice,
+  ].join("|");
+}
+
+async function CatalogProductResults({
+  filters,
+  filtersActive,
+}: ProductResultsProps) {
+  const products = await getCatalogProducts(filters).catch(() => null);
+
+  if (!products) {
+    return (
+      <EmptyState
+        title="პროდუქტები ვერ ჩაიტვირთა"
+        description="გთხოვთ, ცოტა ხანში სცადოთ თავიდან."
+        tone="error"
+      />
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <EmptyState
+        title={
+          filtersActive
+            ? "პროდუქტი ვერ მოიძებნა"
+            : "პროდუქტები ჯერ არ დამატებულა"
+        }
+        description={
+          filtersActive
+            ? "შეცვალეთ საძიებო სიტყვა, კატეგორია ან ფასის დიაპაზონი."
+            : "ახალი პროდუქტები მალე გამოჩნდება."
+        }
+      />
+    );
+  }
+
+  return (
+    <>
+      <p
+        className="-mt-6 mb-8 text-sm text-[#5e685f]"
+        role="status"
+        aria-live="polite"
+      >
+        ნაპოვნია: {products.length}
+      </p>
+      <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </>
+  );
+}
 
 export async function generateMetadata({
   searchParams,
@@ -19,11 +99,12 @@ export async function generateMetadata({
   const params = await searchParams;
   const search = firstValue(params.q).trim().slice(0, 100);
   const category = firstValue(params.category).trim();
-  const sort = firstValue(params.sort).trim();
-  const filtered = Boolean(search || category || (sort && sort !== "date-desc"));
+  const minPrice = parsePriceParam(firstValue(params.minPrice));
+  const maxPrice = parsePriceParam(firstValue(params.maxPrice));
+  const filtered = Boolean(search || category || minPrice > 0 || maxPrice > 0);
   const description = search
     ? `Home Mix-ის კატალოგში ძიების შედეგები: ${search}.`
-    : "დაათვალიერეთ Home Mix-ის პროდუქტები და გაფილტრეთ ავეჯი კატეგორიის მიხედვით.";
+    : "დაათვალიერეთ Home Mix-ის პროდუქტები და გაფილტრეთ ავეჯი კატეგორიისა და ფასის მიხედვით.";
 
   return {
     title: search ? `${search} — ძიების შედეგები` : "პროდუქტები",
@@ -39,41 +120,32 @@ export async function generateMetadata({
   };
 }
 
-const sortOptions: Array<{ value: CatalogSort; label: string }> = [
-  { value: "date-desc", label: "თარიღი: ჯერ ახალი" },
-  { value: "date-asc", label: "თარიღი: ჯერ ძველი" },
-  { value: "price-asc", label: "ფასი: ზრდადობით" },
-  { value: "price-desc", label: "ფასი: კლებადობით" },
-];
-
-function firstValue(value: string | string[] | undefined) {
-  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
-}
-
-function normalizeSort(value: string): CatalogSort {
-  return sortOptions.some((option) => option.value === value)
-    ? (value as CatalogSort)
-    : "date-desc";
-}
-
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
   const params = await searchParams;
   const search = firstValue(params.q).trim().slice(0, 100);
   const categorySlug = firstValue(params.category).trim();
-  const sort = normalizeSort(firstValue(params.sort));
+  const availableMaxPrice = await getMaxProductPrice(categorySlug);
+  const minPrice = Math.min(
+    parsePriceParam(firstValue(params.minPrice)),
+    availableMaxPrice,
+  );
+  const submittedMaxPrice = parsePriceParam(firstValue(params.maxPrice));
+  const maxPrice =
+    submittedMaxPrice > 0
+      ? Math.min(submittedMaxPrice, availableMaxPrice)
+      : availableMaxPrice;
+  const filters = { search, categorySlug, minPrice, maxPrice };
 
-  const [categoriesResult, productsResult] = await Promise.allSettled([
-    getHomeCategories(),
-    getCatalogProducts({ search, categorySlug, sort }),
-  ]);
+  const categoriesResult = await getHomeCategories().then(
+    (categories) => ({ status: "fulfilled" as const, value: categories }),
+    () => ({ status: "rejected" as const, value: [] }),
+  );
 
-  const categories =
-    categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
-  const products =
-    productsResult.status === "fulfilled" ? productsResult.value : [];
-  const filtersActive = Boolean(search || categorySlug || sort !== "date-desc");
+  const filtersActive = Boolean(
+    search || categorySlug || minPrice > 0 || maxPrice < availableMaxPrice,
+  );
 
   return (
     <main className="bg-[#f4f2ed]">
@@ -83,137 +155,49 @@ export default async function ProductsPage({
             პროდუქტები
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-[#5e685f]">
-            რამე ტექსტი აქ
+            მოძებნეთ პროდუქტი სახელით, კატეგორიით ან ფასის დიაპაზონით.
           </p>
         </div>
 
-        <form
+        <CatalogFilterForm
           action="/products"
-          method="get"
-          className="mt-8 grid gap-4 rounded-2xl bg-white p-4 shadow-[0_10px_28px_rgba(59,40,27,0.06)] sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(260px,1.4fr)_minmax(190px,0.8fr)_minmax(210px,0.9fr)_auto] lg:items-end"
-        >
-          <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#18221d]">
-              ძიება სახელით
-            </span>
-            <span className="relative block">
-              <Search
-                className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[#667168]"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                name="q"
-                defaultValue={search}
-                maxLength={100}
-                placeholder="პროდუქტის სახელი"
-                className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] pr-4 pl-11 text-base text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
-              />
-            </span>
-          </label>
+          search={search}
+          categories={categoriesResult.value}
+          categorySlug={categorySlug}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          maxAvailablePrice={availableMaxPrice}
+          resetHref="/products"
+        />
 
-          <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#18221d]">
-              კატეგორია
-            </span>
-            <select
-              name="category"
-              defaultValue={categorySlug}
-              className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
-            >
-              <option value="">ყველა კატეგორია</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.slug}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {categoriesResult.status === "rejected" ? (
-              <span className="mt-2 block text-xs text-[#a33c32]">
-                კატეგორიები ვერ ჩაიტვირთა
-              </span>
-            ) : null}
-          </label>
-
-          <label className="block min-w-0">
-            <span className="mb-2 block text-sm font-semibold text-[#18221d]">
-              დალაგება
-            </span>
-            <select
-              name="sort"
-              defaultValue={sort}
-              className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            type="submit"
-            className="min-h-12 rounded-xl bg-[#1d4a38] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:col-span-2 lg:col-span-1"
-          >
-            შედეგების ჩვენება
-          </button>
-        </form>
+        {categoriesResult.status === "rejected" ? (
+          <p className="mt-3 text-xs text-[#a33c32]">
+            კატეგორიები ვერ ჩაიტვირთა.
+          </p>
+        ) : null}
 
         <section
           className="pt-12 sm:pt-16"
           aria-labelledby="catalog-results-heading"
         >
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2
-                id="catalog-results-heading"
-                className="text-2xl font-semibold tracking-[-0.02em] text-[#18221d] sm:text-3xl"
-              >
-                კატალოგი
-              </h2>
-              {productsResult.status === "fulfilled" ? (
-                <p className="mt-2 text-sm text-[#5e685f]" role="status" aria-live="polite">
-                  ნაპოვნია: {products.length}
-                </p>
-              ) : null}
-            </div>
-            {filtersActive ? (
-              <Link
-                href="/products"
-                className="inline-flex min-h-11 items-center text-sm font-semibold text-[#1d4a38] underline decoration-[#b9c6bd] underline-offset-8 transition-colors hover:text-[#15382a] hover:decoration-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
-              >
-                ფილტრების გასუფთავება
-              </Link>
-            ) : null}
+          <div className="mb-8">
+            <h2
+              id="catalog-results-heading"
+              className="text-2xl font-semibold tracking-[-0.02em] text-[#18221d] sm:text-3xl"
+            >
+              კატალოგი
+            </h2>
           </div>
 
-          {productsResult.status === "rejected" ? (
-            <EmptyState
-              title="პროდუქტები ვერ ჩაიტვირთა"
-              description="გთხოვთ, ცოტა ხანში სცადოთ თავიდან."
-              tone="error"
+          <Suspense
+            key={resultsKey(filters)}
+            fallback={<ProductGridSkeleton count={4} />}
+          >
+            <CatalogProductResults
+              filters={filters}
+              filtersActive={filtersActive}
             />
-          ) : products.length === 0 ? (
-            <EmptyState
-              title={
-                filtersActive
-                  ? "პროდუქტი ვერ მოიძებნა"
-                  : "პროდუქტები ჯერ არ დამატებულა"
-              }
-              description={
-                filtersActive
-                  ? "შეცვალეთ საძიებო სიტყვა ან არჩეული კატეგორია."
-                  : "ახალი პროდუქტები მალე გამოჩნდება."
-              }
-            />
-          ) : (
-            <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          </Suspense>
         </section>
       </div>
     </main>

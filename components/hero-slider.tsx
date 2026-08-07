@@ -1,12 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const slides = [
+export type HeroSlide = {
+  image: string;
+  alt: string;
+  title: string;
+  description: string;
+  href?: string;
+  actionLabel?: string;
+};
+
+const defaultSlides: HeroSlide[] = [
   {
     image: "/hero/dining-room.webp",
     alt: "ნათელი სასადილო ოთახი ხის მაგიდითა და რბილი სკამებით",
@@ -25,20 +33,28 @@ const slides = [
     title: "აქ დაამატე სათაური",
     description: "ხოლო აქ აღწერა",
   },
-] as const;
+];
 
-export function HeroSlider() {
+export function HeroSlider({
+  slides = defaultSlides,
+}: {
+  slides?: HeroSlide[];
+}) {
   const [active, setActive] = useState(0);
   const [isInView, setIsInView] = useState(true);
   const [documentVisible, setDocumentVisible] = useState(true);
   const sliderRef = useRef<HTMLElement>(null);
   const touchStart = useRef<number | null>(null);
 
-  const goTo = useCallback((index: number) => {
-    setActive((index + slides.length) % slides.length);
-  }, []);
+  const goTo = useCallback(
+    (index: number) => {
+      setActive((index + slides.length) % slides.length);
+    },
+    [slides.length],
+  );
 
   useEffect(() => {
+    if (slides.length <= 1) return;
     if (
       !isInView ||
       !documentVisible ||
@@ -50,7 +66,7 @@ export function HeroSlider() {
       4000,
     );
     return () => window.clearTimeout(timeout);
-  }, [active, documentVisible, isInView]);
+  }, [active, documentVisible, isInView, slides.length]);
 
   useEffect(() => {
     const slider = sliderRef.current;
@@ -67,11 +83,14 @@ export function HeroSlider() {
 
     return () => {
       observer.disconnect();
-      document.removeEventListener("visibilitychange", updateDocumentVisibility);
+      document.removeEventListener(
+        "visibilitychange",
+        updateDocumentVisibility,
+      );
     };
   }, []);
 
-  const slide = slides[active];
+  const slide = slides[active] ?? slides[0] ?? defaultSlides[0];
 
   return (
     <section
@@ -120,16 +139,6 @@ export function HeroSlider() {
             <p className="mt-4 max-w-140 text-base leading-7 text-[#dce7df]">
               {slide.description}
             </p>
-            <Link
-              href="/products"
-              className="group mt-6 inline-flex min-h-12 items-center gap-3 rounded-xl border border-[#c2a56b] bg-[#173c2f]/88 px-6 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-            >
-              კატალოგის ნახვა
-              <ArrowRight
-                className="size-4 transition-transform group-hover:-translate-x-1 motion-reduce:transition-none"
-                aria-hidden="true"
-              />
-            </Link>
           </div>
         </div>
 
