@@ -58,7 +58,7 @@ export function CatalogFilterForm({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-end gap-2",
+        "relative flex flex-wrap items-end gap-2",
         variant === "panel"
           ? "mt-8 rounded-2xl bg-white p-4 shadow-[0_10px_28px_rgba(59,40,27,0.06)] sm:p-5"
           : "",
@@ -119,7 +119,7 @@ export function CatalogFilterForm({
         ) : null}
       </form>
 
-      <details className="group relative shrink-0">
+      <details className="group static shrink-0 sm:relative">
         <summary className="flex h-11 min-w-27 cursor-pointer list-none items-center justify-between gap-2 rounded-xl border border-[#b9c6bd] bg-white px-3.5 text-sm font-semibold text-[#1d4a38] transition-colors hover:border-[#1d4a38] hover:bg-[#e9eee9] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] [&::-webkit-details-marker]:hidden">
           ფასი
           <ChevronDown
@@ -127,7 +127,7 @@ export function CatalogFilterForm({
             aria-hidden="true"
           />
         </summary>
-        <div className="absolute right-0 z-30 mt-2 w-[min(92vw,310px)] rounded-xl border border-[#d8ded8] bg-white p-3 shadow-[0_16px_40px_rgba(12,34,25,0.16)]">
+        <div className="absolute left-1/2 z-30 mt-2 w-[min(calc(100vw-2rem),310px)] -translate-x-1/2 rounded-xl border border-[#d8ded8] bg-white p-3 shadow-[0_16px_40px_rgba(12,34,25,0.16)] sm:right-0 sm:left-auto sm:w-[min(92vw,310px)] sm:translate-x-0">
           <form
             action={action}
             method="get"
