@@ -18,20 +18,23 @@ const defaultSlides: HeroSlide[] = [
   {
     image: "/hero/dining-room.webp",
     alt: "ნათელი სასადილო ოთახი ხის მაგიდითა და რბილი სკამებით",
-    title: "აქ დაამატე სათაური",
-    description: "ხოლო აქ აღწერა",
+    title: "40% -იანი ფასდაკლება სრულ პროდუქციაზე",
+    description:
+      "ახალი და მეორადი ავეჯი. ლიკვიდაცია ჰოუმ მიქსში, უფასო მიტანის სერვისი თბილისის მასშტაბით. დივნები, მაგიდები და საწოლები - ყველაფერი ერთ სივრცეში",
   },
   {
     image: "/hero/living-room.webp",
     alt: "თბილ ფერებში მოწყობილი მისაღები ოთახი რბილი დივნით",
-    title: "აქ დაამატე სათაური",
-    description: "ხოლო აქ აღწერა",
+    title: "40% -იანი ფასდაკლება სრულ პროდუქციაზე",
+    description:
+      "ახალი და მეორადი ავეჯი. ლიკვიდაცია ჰოუმ მიქსში, უფასო მიტანის სერვისი თბილისის მასშტაბით. დივნები, მაგიდები და საწოლები - ყველაფერი ერთ სივრცეში",
   },
   {
     image: "/hero/bedroom.webp",
     alt: "მყუდრო საძინებელი რბილი საწოლითა და თბილი განათებით",
-    title: "აქ დაამატე სათაური",
-    description: "ხოლო აქ აღწერა",
+    title: "40% -იანი ფასდაკლება სრულ პროდუქციაზე",
+    description:
+      "ახალი და მეორადი ავეჯი. ლიკვიდაცია ჰოუმ მიქსში, უფასო მიტანის სერვისი თბილისის მასშტაბით. დივნები, მაგიდები და საწოლები - ყველაფერი ერთ სივრცეში",
   },
 ];
 
@@ -133,7 +136,7 @@ export function HeroSlider({
 
         <div className="relative z-10 mx-auto flex min-h-120 w-full max-w-384 items-end px-5 pb-20 pt-12 sm:min-h-125 sm:items-center sm:px-8 sm:pb-20 lg:min-h-130 lg:px-12 xl:px-16">
           <div className="max-w-172.5 text-white">
-            <h1 className="max-w-[15ch] text-[clamp(2.25rem,4.2vw,4.25rem)] leading-[1.04] font-semibold tracking-[-0.035em] text-balance">
+            <h1 className="max-w-[15ch] text-[clamp(2.25rem,4.2vw,4rem)] md:leading-20 font-semibold tracking-[-0.035em] text-balance">
               {slide.title}
             </h1>
             <p className="mt-4 max-w-140 text-base leading-7 text-[#dce7df]">

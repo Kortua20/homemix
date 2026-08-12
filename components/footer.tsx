@@ -34,10 +34,11 @@ export function Footer() {
               />
             </Link>
             <p className="mt-4 text-xl font-semibold tracking-[-0.02em]">
-              აქ ტექსტი
+              კომფორტი, რომელიც გიყვარს
             </p>
             <p className="mt-3 max-w-xs text-sm leading-6 text-[#e0ebe4]">
-              და აქაც
+              გვეწვიეთ Home Mix - ში, აქ დაგხვდებათ საუკეთესო ფასები და არჩევანი
+              თქვენი სახლის სილამაზისთვის
             </p>
           </div>
 
