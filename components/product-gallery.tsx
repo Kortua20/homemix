@@ -95,7 +95,7 @@ export function ProductGallery({
 
       {images.length > 1 ? (
         <div
-          className="mt-3 flex w-full max-w-full gap-3 overflow-x-auto overscroll-x-contain pb-2"
+          className="mt-2 flex w-full max-w-full overflow-x-auto overscroll-x-contain pb-2"
           role="group"
           aria-label="პროდუქტის ფოტოები"
         >
@@ -109,7 +109,7 @@ export function ProductGallery({
                 aria-label={`ფოტო ${index + 1}-ის ნახვა`}
                 aria-pressed={isSelected}
                 onClick={() => setSelectedId(image.id)}
-                className={`relative h-18 w-24 shrink-0 overflow-hidden rounded-xl bg-[#e8ebe7] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:h-20 sm:w-28 ${
+                className={`relative m-2 h-18 w-24 shrink-0 overflow-hidden rounded-xl bg-[#e8ebe7] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:h-20 sm:w-28 ${
                   isSelected
                     ? "ring-2 ring-[#1d4a38] ring-offset-2 ring-offset-[#f4f2ed]"
                     : "opacity-75 hover:opacity-100"
