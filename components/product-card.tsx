@@ -32,20 +32,23 @@ export function ProductCard({ product }: { product: Product }) {
         )}
       </div>
       <div className="pt-4">
-        <p className="truncate text-xs font-semibold text-[#667168]">
-          {product.category?.name ?? "კატალოგის გარეშე"}
-        </p>
-        <h3 className="mt-1.5 line-clamp-2 min-h-12 text-base leading-6 font-semibold text-[#18221d]">
-          {product.name}
-        </h3>
-        <div className="mt-3 flex items-center justify-between gap-4 border-t border-[#d8ded8] pt-3">
-          <p className="text-lg font-bold text-[#173c2f]">
-            {formatPrice(product.price)}
-          </p>
-          <span className="grid size-9 place-items-center rounded-xl text-[#173c2f] transition-colors group-hover:bg-[#173c2f] group-hover:text-white">
+        <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-2">
+            <p className="truncate text-xs font-semibold text-[#667168]">
+              {product.category?.name ?? "კატალოგის გარეშე"}
+            </p>
+            <h3 className="mt-1.5 line-clamp-2 min-h-12 text-base leading-6 font-semibold text-[#18221d]">
+              {product.name}
+            </h3>
+          </div>
+          <div className="flex flex-col gap-2 items-end">
             <ArrowUpRight className="size-4" aria-hidden="true" />
-          </span>
+            <p className="text-lg font-bold text-[#173c2f]">
+              {formatPrice(product.price)}
+            </p>
+          </div>
         </div>
+        <div className="mt-3 flex items-center justify-end gap-4"></div>
       </div>
     </Link>
   );

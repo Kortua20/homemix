@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
   openGraph: {
     title: "კონტაქტი | Home Mix",
-    description: "დაუკავშირდით Home Mix-ს პროდუქტის შესახებ დამატებითი ინფორმაციისთვის.",
+    description:
+      "დაუკავშირდით Home Mix-ს პროდუქტის შესახებ დამატებითი ინფორმაციისთვის.",
     url: "/contact",
   },
 };
@@ -50,7 +51,10 @@ export default function ContactPage() {
                     </dt>
                     <dd className="mt-1 text-sm leading-6 text-[#5e685f]">
                       {contactDetails.phone.href ? (
-                        <a className="underline decoration-[#b9c6bd] underline-offset-4 hover:text-[#1d4a38]" href={contactDetails.phone.href}>
+                        <a
+                          className="underline decoration-[#b9c6bd] underline-offset-4 hover:text-[#1d4a38]"
+                          href={contactDetails.phone.href}
+                        >
                           {contactDetails.phone.label}
                         </a>
                       ) : (

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Facebook, Instagram, Mail, Phone } from "lucide-react";
+import { ArrowUpRight, Facebook, Mail, MapPin, Phone } from "lucide-react";
 import { contactDetails, socialLinks } from "@/lib/contact-details";
 
 const footerLinks = [
@@ -76,6 +76,21 @@ export function Footer() {
                   <span>{contactDetails.phone.label}</span>
                 )}
               </div>
+              <a
+                href={contactDetails.mapUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex min-h-10 items-center gap-3 text-sm text-[#e0ebe4] transition-colors hover:text-white focus-visible:rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/12 text-white">
+                  <MapPin className="size-4" aria-hidden="true" />
+                </span>
+                <span>{contactDetails.address}</span>
+                <ArrowUpRight
+                  className="size-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+                  aria-hidden="true"
+                />
+              </a>
               <Link
                 href="/contact"
                 className="group flex min-h-10 items-center gap-3 text-sm text-[#e0ebe4] transition-colors hover:text-white focus-visible:rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
@@ -115,7 +130,7 @@ export function Footer() {
                   <Facebook className="size-4.5" aria-hidden="true" />
                 </span>
               )}
-              {socialLinks.instagram ? (
+              {/* {socialLinks.instagram ? (
                 <a
                   href={socialLinks.instagram}
                   target="_blank"
@@ -134,11 +149,8 @@ export function Footer() {
                 >
                   <Instagram className="size-4.5" aria-hidden="true" />
                 </span>
-              )}
+              )} */}
             </div>
-            <p className="mt-3 text-xs leading-5 text-[#bed0c5]">
-              ბმულები მოგვიანებით დაემატება
-            </p>
           </div>
         </div>
 

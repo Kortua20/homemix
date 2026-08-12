@@ -3,15 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  ArrowUpRight,
-  Facebook,
-  Instagram,
-  Menu,
-  Phone,
-  Search,
-  X,
-} from "lucide-react";
+import { ArrowUpRight, Facebook, Menu, Phone, Search, X } from "lucide-react";
 import { useState } from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
@@ -73,7 +65,7 @@ export function SiteHeader() {
                 <Facebook className="size-4" aria-hidden="true" />
               </span>
             )}
-            {socialLinks.instagram ? (
+            {/* {socialLinks.instagram ? (
               <a
                 href={socialLinks.instagram}
                 target="_blank"
@@ -90,25 +82,28 @@ export function SiteHeader() {
               >
                 <Instagram className="size-4" aria-hidden="true" />
               </span>
-            )}
+            )} */}
           </span>
         </div>
       </div>
       <div className="mx-auto flex h-18 w-full max-w-384 items-center justify-between px-4 sm:h-20.5 sm:px-6 lg:px-10">
-        <Link
-          href="/"
-          aria-label="Home Mix — მთავარი გვერდი"
-          className="flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
-        >
-          <Image
-            src="/logo.png"
-            alt="Home Mix"
-            width={500}
-            height={500}
-            preload
-            className="size-20 object-contain"
-          />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            aria-label="Home Mix — მთავარი გვერდი"
+            className="flex min-w-0 items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
+          >
+            <Image
+              src="/logo.png"
+              alt="Home Mix"
+              width={500}
+              height={500}
+              preload
+              className="size-20 object-contain"
+            />
+          </Link>
+          <p className="text-[10px] leading-none">ახალი და მეორადი ავეჯი</p>
+        </div>
 
         <nav
           aria-label="მთავარი ნავიგაცია"
