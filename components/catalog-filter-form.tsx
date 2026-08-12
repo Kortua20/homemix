@@ -59,9 +59,7 @@ export function CatalogFilterForm({
     <div
       className={cn(
         "relative flex flex-wrap items-end gap-2",
-        variant === "panel"
-          ? "mt-8 rounded-2xl bg-white p-4 shadow-[0_10px_28px_rgba(59,40,27,0.06)] sm:p-5"
-          : "",
+        variant === "panel" ? "mt-8 rounded-2xl p-4 sm:p-5" : "",
         className,
       )}
     >
@@ -120,7 +118,7 @@ export function CatalogFilterForm({
       </form>
 
       <details className="group static shrink-0 sm:relative">
-        <summary className="flex h-11 min-w-27 cursor-pointer list-none items-center justify-between gap-2 rounded-xl border border-[#b9c6bd] bg-white px-3.5 text-sm font-semibold text-[#1d4a38] transition-colors hover:border-[#1d4a38] hover:bg-[#e9eee9] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] [&::-webkit-details-marker]:hidden">
+        <summary className="flex h-11 min-w-27 cursor-pointer list-none items-center justify-between gap-2 rounded-xl border border-[#b9c6bd] px-3.5 text-sm font-semibold text-[#1d4a38] transition-colors hover:border-[#1d4a38] hover:bg-[#e9eee9] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] [&::-webkit-details-marker]:hidden">
           ფასი
           <ChevronDown
             className="size-4 transition-transform group-open:rotate-180"
