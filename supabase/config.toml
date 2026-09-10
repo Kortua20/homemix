@@ -1,0 +1,18 @@
+project_id = "ywhrehfugxtbqclgdhwx"
+
+[db.migrations]
+# Explicit load order. Postgres applies these in sequence, so anything referenced by a
+# foreign key must be listed before the table that references it:
+#   categories  <- products          (products.category_id)
+#   categories  <- category_images   (category_images.category_id)
+#   products    <- product_images    (product_images.product_id)
+# Grants and RLS policies come last, once every table exists.
+schema_paths = [
+  "./schemas/01_extensions.sql",
+  "./schemas/02_categories.sql",
+  "./schemas/03_products.sql",
+  "./schemas/04_category_images.sql",
+  "./schemas/05_product_images.sql",
+  "./schemas/06_contact_rate_limit.sql",
+  "./schemas/07_grants_and_rls.sql",
+]
