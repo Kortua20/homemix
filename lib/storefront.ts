@@ -1,6 +1,11 @@
 import "server-only";
-import { createClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  type QueryData,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 import { cache } from "react";
+import type { Database } from "@/lib/database.types";
 
 export type CategoryImage = {
   id: string;
@@ -58,12 +63,26 @@ const categorySelection = `
   products(count)
 `;
 
+// Row types are derived from the queries themselves rather than hand-written, so a
+// schema change surfaces here as a type error instead of being cast away at each call
+// site. See supabase/README.md for how the generated types are refreshed.
+function productQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("products").select(productSelection);
+}
+
+function categoryQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("categories").select(categorySelection);
+}
+
+type ProductRow = QueryData<ReturnType<typeof productQuery>>[number];
+type CategoryRow = QueryData<ReturnType<typeof categoryQuery>>[number];
+
 function publicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key)
     throw new Error("Supabase-ის გარემოს ცვლადები არ არის მითითებული");
-  return createClient(url, key, {
+  return createClient<Database>(url, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -91,14 +110,9 @@ function sortImages<T extends { sort_order: number; created_at: string }>(
   });
 }
 
-function normalizeCategory(row: Record<string, unknown>): Category {
-  const images = Array.isArray(row.images)
-    ? ([...row.images] as CategoryImage[])
-    : [];
-  const products = Array.isArray(row.products) ? row.products : [];
-  const productCount = Number(
-    (products[0] as { count?: number } | undefined)?.count ?? 0,
-  );
+function normalizeCategory(row: CategoryRow): Category {
+  const images = [...row.images];
+  const productCount = Number(row.products[0]?.count ?? 0);
   sortImages(images);
   return {
     id: String(row.id),
@@ -110,14 +124,9 @@ function normalizeCategory(row: Record<string, unknown>): Category {
   };
 }
 
-function normalizeProduct(row: Record<string, unknown>): Product {
-  const categoryValue = row.category;
-  const category = Array.isArray(categoryValue)
-    ? (categoryValue[0] ?? null)
-    : (categoryValue ?? null);
-  const images = Array.isArray(row.images)
-    ? ([...row.images] as ProductImage[])
-    : [];
+function normalizeProduct(row: ProductRow): Product {
+  const category = row.category ?? null;
+  const images = [...row.images];
   sortImages(images);
   return {
     id: String(row.id),
@@ -126,9 +135,9 @@ function normalizeProduct(row: Record<string, unknown>): Product {
     description: row.description ? String(row.description) : null,
     price: Number(row.price),
     created_at: String(row.created_at),
-    category: category
-      ? normalizeCategory(category as Record<string, unknown>)
-      : null,
+    // The embedded category carries no products(count) aggregate, so it normalizes to a
+    // productCount of 0. Callers that need the real count fetch the category directly.
+    category: category ? normalizeCategory({ ...category, products: [] }) : null,
     images,
   };
 }
@@ -140,9 +149,7 @@ export async function getHomeCategories(): Promise<Category[]> {
     .order("name", { ascending: true });
   if (error)
     throw new Error("კატალოგის ჩატვირთვა ვერ მოხერხდა", { cause: error });
-  return (data ?? []).map((row) =>
-    normalizeCategory(row as Record<string, unknown>),
-  );
+  return (data ?? []).map(normalizeCategory);
 }
 
 export async function getCategorySlugs(): Promise<string[]> {
@@ -163,9 +170,7 @@ export async function getNewestProducts(limit = 8): Promise<Product[]> {
     .limit(limit);
   if (error)
     throw new Error("პროდუქტების ჩატვირთვა ვერ მოხერხდა", { cause: error });
-  return (data ?? []).map((row) =>
-    normalizeProduct(row as Record<string, unknown>),
-  );
+  return (data ?? []).map(normalizeProduct);
 }
 
 export async function getProductSlugs(): Promise<string[]> {
@@ -254,9 +259,7 @@ export async function getCatalogProducts({
     throw new Error("Products could not be loaded", { cause: error });
   }
 
-  return (data ?? []).map((row) =>
-    normalizeProduct(row as Record<string, unknown>),
-  );
+  return (data ?? []).map(normalizeProduct);
 }
 
 export const getProductBySlug = cache(
@@ -272,7 +275,7 @@ export const getProductBySlug = cache(
       throw new Error("პროდუქტის ჩატვირთვა ვერ მოხერხდა", { cause: error });
     }
 
-    return data ? normalizeProduct(data as Record<string, unknown>) : null;
+    return data ? normalizeProduct(data) : null;
   },
 );
 
@@ -289,7 +292,7 @@ export const getCategoryBySlug = cache(
       throw new Error("Category could not be loaded", { cause: error });
     }
 
-    return data ? normalizeCategory(data as Record<string, unknown>) : null;
+    return data ? normalizeCategory(data) : null;
   },
 );
 
