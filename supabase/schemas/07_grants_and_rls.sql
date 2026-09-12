@@ -14,19 +14,39 @@ grant usage on schema "public" to "anon";
 grant usage on schema "public" to "authenticated";
 grant usage on schema "public" to "service_role";
 
+-- IMPORTANT: every table below is REVOKEd from anon/authenticated before being granted.
+--
+-- Supabase's database sets ALTER DEFAULT PRIVILEGES on `public` granting anon,
+-- authenticated and service_role ALL table privileges (arwdDxtm), so a newly created
+-- table starts wide open: `grant select` ADDS to that set and takes nothing away.
+-- Without the revokes, anon keeps INSERT/UPDATE/DELETE/TRUNCATE at the privilege layer
+-- and RLS is the only thing standing between an anonymous caller and a write. Grants and
+-- RLS are meant to be independent layers; the revokes are what make the grants below
+-- actually describe the intended state on a fresh database.
+--
+-- Verified 2026-09-12 on a local stack built from these files: without the revokes,
+-- anon held DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE on categories,
+-- products and product_images.
+
 -- categories
 -- DRIFT: production also grants MAINTAIN to anon and authenticated. Omitted here
 -- deliberately; see supabase/migrations/*_tighten_image_table_grants.sql.
+revoke all on table "public"."categories" from "anon";
+revoke all on table "public"."categories" from "authenticated";
 grant select on table "public"."categories" to "anon";
 grant select, insert, update, delete on table "public"."categories" to "authenticated";
 grant all on table "public"."categories" to "service_role";
 
 -- products
+revoke all on table "public"."products" from "anon";
+revoke all on table "public"."products" from "authenticated";
 grant select on table "public"."products" to "anon";
 grant select, insert, update, delete on table "public"."products" to "authenticated";
 grant all on table "public"."products" to "service_role";
 
 -- product_images
+revoke all on table "public"."product_images" from "anon";
+revoke all on table "public"."product_images" from "authenticated";
 grant select on table "public"."product_images" to "anon";
 grant select, insert, update, delete on table "public"."product_images" to "authenticated";
 grant all on table "public"."product_images" to "service_role";
@@ -36,6 +56,8 @@ grant all on table "public"."product_images" to "service_role";
 -- would permit anonymous writes at the privilege layer. RLS is the only thing blocking
 -- them today. The corrective migration brings production in line with what is written
 -- here — matching product_images above.
+revoke all on table "public"."category_images" from "anon";
+revoke all on table "public"."category_images" from "authenticated";
 grant select on table "public"."category_images" to "anon";
 grant select, insert, update, delete on table "public"."category_images" to "authenticated";
 grant all on table "public"."category_images" to "service_role";
