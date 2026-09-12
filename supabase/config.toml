@@ -91,7 +91,16 @@ minimum_password_length = 6
 password_requirements = ""
 
 [auth.email]
-enable_signup = false
+# CAREFUL: despite the name, this is the EMAIL PROVIDER switch, not a signup-only one.
+# The CLI maps it to GOTRUE_EXTERNAL_EMAIL_ENABLED, so setting it false disables email
+# LOGINS too — the admin's signInWithPassword then fails with 422
+# "email_provider_disabled" and no staff account can sign in locally. There is no
+# [auth.email] `enabled` key; this is it.
+#
+# Self-registration is closed by the top-level [auth] enable_signup = false above, which
+# maps to GOTRUE_DISABLE_SIGNUP=true. That is the real registration switch, so logins
+# work while new signups are still refused.
+enable_signup = true
 double_confirm_changes = true
 # No inbox round-trip needed for locally seeded test users.
 enable_confirmations = false
