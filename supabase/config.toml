@@ -1,6 +1,36 @@
-project_id = "ywhrehfugxtbqclgdhwx"
+# Local development stack for the Home Mix database.
+#
+# This config drives `supabase start` / `db reset` / `db diff` LOCALLY only. It does
+# not describe the hosted project beyond project_id, which is the link target.
+#
+# Full reference: https://supabase.com/docs/guides/local-development/cli/config
+
+# Namespace for the LOCAL docker containers (supabase_db_<project_id>, etc.) — not the
+# hosted project reference. The remote link lives in supabase/.temp/project-ref and is
+# set by `supabase link`. This must stay "homemix" to match the existing local stack;
+# changing it orphans the running containers and causes port-bind collisions.
+project_id = "homemix"
+
+[api]
+enabled = true
+# NOTE: the default 543xx ports are taken on this machine by another local project
+# (farm-ops). The homemix stack already runs on 544xx, so these must stay in that range
+# or `supabase start` will collide.
+port = 54421
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54422
+# Used by `db diff` to build the shadow database it compares against. Must be free.
+shadow_port = 54420
+health_timeout = "2m"
+# MUST match production. The hosted project runs Postgres 17.
+major_version = 17
 
 [db.migrations]
+enabled = true
 # Explicit load order. Postgres applies these in sequence, so anything referenced by a
 # foreign key must be listed before the table that references it:
 #   categories  <- products          (products.category_id)
@@ -16,3 +46,76 @@ schema_paths = [
   "./schemas/06_contact_rate_limit.sql",
   "./schemas/07_grants_and_rls.sql",
 ]
+
+[db.seed]
+enabled = true
+# Invented sample catalog data, local only. See the header of seed.sql.
+sql_paths = ["./seed.sql"]
+
+[realtime]
+# Neither app subscribes to realtime channels.
+enabled = false
+
+[studio]
+enabled = true
+port = 54423
+api_url = "http://127.0.0.1"
+
+# Catches outbound mail locally instead of sending it. The storefront's contact form
+# goes through EmailJS rather than Supabase Auth, so this only matters if you exercise
+# password-reset or confirmation flows.
+[local_smtp]
+enabled = true
+port = 54424
+
+[storage]
+# Supabase Storage is not used by either app — all binary assets live in Cloudflare R2.
+enabled = false
+
+[auth]
+enabled = true
+# The admin app runs on :3000 in dev. Update if you run it elsewhere.
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["http://127.0.0.1:3000"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Mirrors production intent: staff accounts are provisioned by hand, not self-served.
+# Flip to true temporarily if you need to create a local test user through the API.
+enable_signup = false
+# Production RLS policies explicitly reject anonymous JWTs (is_anonymous = false), so
+# leaving this off keeps local behaviour honest.
+enable_anonymous_sign_ins = false
+enable_manual_linking = false
+minimum_password_length = 6
+password_requirements = ""
+
+[auth.email]
+# CAREFUL: despite the name, this is the EMAIL PROVIDER switch, not a signup-only one.
+# The CLI maps it to GOTRUE_EXTERNAL_EMAIL_ENABLED, so setting it false disables email
+# LOGINS too — the admin's signInWithPassword then fails with 422
+# "email_provider_disabled" and no staff account can sign in locally. There is no
+# [auth.email] `enabled` key; this is it.
+#
+# Self-registration is closed by the top-level [auth] enable_signup = false above, which
+# maps to GOTRUE_DISABLE_SIGNUP=true. That is the real registration switch, so logins
+# work while new signups are still refused.
+enable_signup = true
+double_confirm_changes = true
+# No inbox round-trip needed for locally seeded test users.
+enable_confirmations = false
+secure_password_change = false
+max_frequency = "1s"
+otp_length = 6
+otp_expiry = 3600
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+[edge_runtime]
+# No edge functions in either repo.
+enabled = false
+
+[analytics]
+enabled = false
