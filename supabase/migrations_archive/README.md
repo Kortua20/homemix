@@ -3,6 +3,16 @@
 These four migration files were the only ones ever committed to this repo. They are
 archived — **not** deleted — because they no longer represent a usable baseline.
 
+> **Update 2026-09-15.** The mismatch described below is resolved. All twelve remote
+> versions were marked `reverted` in production's migration bookkeeping table, and
+> `20260910000000_baseline_catalog_schema.sql` was marked `applied`, so local and remote
+> histories now agree. That changed no schema and no data: the bookkeeping table is the
+> CLI's ledger of which *local files* have been applied, and it was referencing twelve
+> files that do not exist in this repo. The tables those migrations created are still
+> there, now described by the baseline. Six further migrations (steps 1-3a of
+> `../SCHEMA_ROADMAP.md`) have since been pushed. The "do not re-apply" warning below
+> still stands.
+
 ## Why they were archived
 
 On 2026-09-11 we compared local migration files against the remote migration history

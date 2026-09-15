@@ -66,13 +66,12 @@ social proof.
 # Progress
 
 Checkboxes reflect **verified** state, not intent. A box is ticked only when the thing was
-run and its result observed. Last updated: 2026-09-13.
+run and its result observed. Last updated: 2026-09-15.
 
-> **Live hazard — read before any `db push`.**
-> `migrations/20260913000000_add_listing_kind_status_and_condition.sql` is present in
-> `migrations/` and **has not been applied to production**. A plain `db push` would apply it
-> along with the two grant migrations *and* the baseline. See "Production reconciliation"
-> below — that has to happen first.
+> **Steps 1-3a are live in production as of 2026-09-15.** All six migrations applied, and
+> the result was verified against the hosted database directly: 28 products, 3 categories,
+> 50 product images intact, and all 28 products carrying the `unassessed` grade rather than
+> a fabricated one. Types in both repos are generated from `--linked`, and both type-check.
 
 ## Step 1 — Foundation
 
@@ -93,7 +92,7 @@ Schema and migration:
 - [x] `seed.sql` — rewritten; exercises both `listing_kind` branches and four statuses
 - [x] Migration `20260913000000_add_listing_kind_status_and_condition.sql` written
 - [x] Applied and verified **locally** (`supabase db reset`, clean run)
-- [ ] **Applied to production** — blocked on reconciliation below
+- [x] **Applied to production** (2026-09-15)
 
 Verified behaviour (local, 2026-09-13):
 
@@ -186,24 +185,39 @@ Local and remote migration histories share **zero** entries: remote has 12 (thro
 `20260807142624`), local has 4 (from `20260910000000`). `db push` applies all pending
 migrations in timestamp order, so it cannot be pointed at a subset.
 
-- [ ] `migration repair --status applied 20260910000000` — marks the baseline as applied
-      without executing it. **This asserts production already matches a dump taken
-      2026-09-11, five weeks after its last tracked migration.** If anything was changed via
-      the dashboard in that window, the difference gets buried permanently.
-- [ ] `db push --dry-run` — must list exactly the intended migrations; stop if not
-- [ ] `db push`
-- [ ] Regenerate types from `--linked` once production has the columns
-- [ ] Correct the placeholder `condition_grade = 'good'` on every pre-existing row — the
-      migration backfills a claim about furniture nobody inspected
+**Done 2026-09-15.** The sequence that worked:
 
-Also unresolved:
+- [x] Re-dumped production and diffed it against the copy the dry run used — byte-identical,
+      so the baseline assertion below was true at the moment it was made
+- [x] `migration repair --status applied 20260910000000`
+- [x] `migration repair --status reverted <the 12 July-August versions>` — `db push` needs
+      the histories to agree in **both** directions, and those 12 had no local files. Eight
+      of them were never committed to this repo at all; the other four are in
+      `migrations_archive/`. The bookkeeping table is the CLI's ledger of which *local
+      files* are applied, not a historical record of the database, so clearing entries for
+      files that do not exist is correct. It changed no schema and no data.
+- [x] `db push --dry-run` — listed exactly the six expected migrations, baseline absent
+- [x] `db push` — all six applied
+- [x] Verified against the hosted database: 28/3/50/3 rows intact, all 28 products
+      `used_unique` / `available` / `unassessed`, all six grades present, the three new
+      tables reachable through the publishable key
+- [x] Types regenerated from `--linked` for both repos; both `tsc --noEmit` clean
+- [x] The placeholder-grade problem resolved by `unassessed` rather than by hand-correcting
+      28 rows — see the dry-run section above
+
+**Encoding trap, worth remembering:** `npx supabase gen types typescript --linked > file.ts`
+in PowerShell writes **UTF-16LE**. The file looks right in an editor and TypeScript tolerates
+the BOM, but git treats it as binary and every grep, diff and review tool fails silently.
+Redirect from Git Bash, or use `| Out-File -Encoding utf8`.
+
+Still unresolved:
 
 - [ ] `schemas/` vs `migrations/` drift unverified. `db reset` only executes `migrations/`;
       the declarative files were never run. A `db diff` against a shadow DB would close it.
 
 ## Step 2 — Condition detail
 
-**Schema written, not yet applied.** The trust payload, and the reason this project is
+**Live in production as of 2026-09-15.** The trust payload, and the reason this project is
 worth doing.
 
 ### The constraint that shaped the design
