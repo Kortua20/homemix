@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/site";
-import { getCatalogProducts, getHomeCategories } from "@/lib/storefront";
+import { getHomeCategories, getSitemapProducts } from "@/lib/storefront";
 
 export const revalidate = 3600;
 
@@ -14,9 +14,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
+    // getSitemapProducts, not getCatalogProducts: the catalog query is available-only, and
+    // sold listings keep their pages and should stay indexed. They are ranked below
+    // available ones below rather than dropped.
     const [categories, products] = await Promise.all([
       getHomeCategories(),
-      getCatalogProducts(),
+      getSitemapProducts(),
     ]);
     return [
       ...staticPages,
@@ -28,15 +31,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           ? [absoluteUrl(`/api/category-images/${category.images[0].id}`)]
           : undefined,
       })),
-      ...products.map((product) => ({
-        url: absoluteUrl(`/product/${encodeURIComponent(product.slug)}`),
-        lastModified: new Date(product.created_at),
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-        images: product.images[0]
-          ? [absoluteUrl(`/api/product-images/${product.images[0].id}`)]
-          : undefined,
-      })),
+      ...products.map((product) => {
+        const isAvailable = product.status === "available";
+        return {
+          url: absoluteUrl(`/product/${encodeURIComponent(product.slug)}`),
+          lastModified: new Date(product.created_at),
+          // A sold listing will not change again; an available one might.
+          changeFrequency: isAvailable
+            ? ("weekly" as const)
+            : ("monthly" as const),
+          priority: isAvailable ? 0.8 : 0.3,
+          images: product.images[0]
+            ? [absoluteUrl(`/api/product-images/${product.images[0].id}`)]
+            : undefined,
+        };
+      }),
     ];
   } catch {
     return staticPages;
