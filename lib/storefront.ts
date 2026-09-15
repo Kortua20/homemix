@@ -25,6 +25,43 @@ export type ProductImage = {
   sort_order: number;
   created_at: string;
 };
+export type ProductStatus =
+  | "draft"
+  | "available"
+  | "reserved"
+  | "sold"
+  | "archived";
+export type ListingKind = "used_unique" | "new_stocked";
+
+export type ConditionGrade = {
+  code: string;
+  sort_order: number;
+  label_ka: string;
+  label_en: string;
+  description_ka: string;
+};
+
+export type ConditionAspectRating = {
+  aspect_code: string;
+  label_ka: string;
+  description_ka: string;
+  sort_order: number;
+  grade: ConditionGrade | null;
+  note: string | null;
+};
+
+// `image_id` is null for flaws with no meaningful photo — an odour, a slight wobble.
+// The UI shows those as text-only rather than hiding them.
+export type ProductFlaw = {
+  id: string;
+  image_id: string | null;
+  flaw_type: string;
+  severity: string;
+  location_ka: string | null;
+  note_ka: string;
+  sort_order: number;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -32,8 +69,28 @@ export type Product = {
   description: string | null;
   price: number;
   created_at: string;
+  status: ProductStatus;
+  listingKind: ListingKind;
+  conditionGrade: ConditionGrade | null;
+  conditionSummary: string | null;
+  stockQuantity: number | null;
+  isPurchasable: boolean;
+  conditionAspects: ConditionAspectRating[];
+  flaws: ProductFlaw[];
+  dimensions: ProductDimensions;
   category: Category | null;
   images: ProductImage[];
+};
+
+// Null means "not measured", which is distinct from zero. The UI omits null rows rather
+// than showing a dash, so an unmeasured piece does not look like a measured one.
+export type ProductDimensions = {
+  width_cm: number | null;
+  depth_cm: number | null;
+  height_cm: number | null;
+  seat_height_cm: number | null;
+  weight_kg: number | null;
+  note: string | null;
 };
 
 export type CatalogFilters = {
@@ -43,6 +100,12 @@ export type CatalogFilters = {
   maxPrice?: number;
 };
 
+// Statuses a storefront *list* may show. `sold` and `reserved` keep their detail pages
+// (see supabase/SCHEMA_ROADMAP.md) but must never appear in browse or search results.
+// `draft` and `archived` are additionally blocked by RLS, so this is defence in depth
+// rather than the only guard.
+const LISTABLE_STATUS: ProductStatus = "available";
+
 const productSelection = `
   id,
   slug,
@@ -50,17 +113,48 @@ const productSelection = `
   description,
   price,
   created_at,
+  status,
+  listing_kind,
+  condition_summary,
+  stock_quantity,
+  width_cm,
+  depth_cm,
+  height_cm,
+  seat_height_cm,
+  weight_kg,
+  dimension_note,
+  conditionGrade:condition_grades!products_condition_grade_fkey (code, sort_order, label_ka, label_en, description_ka),
+  conditionAspects:product_condition_aspects (
+    aspect_code,
+    note,
+    aspect:condition_aspects (code, label_ka, description_ka, sort_order),
+    grade:condition_grades (code, sort_order, label_ka, label_en, description_ka)
+  ),
+  flaws:product_flaws (id, image_id, flaw_type, severity, location_ka, note_ka, sort_order),
   category:categories!products_category_id_fkey (id, name, slug, description, images:category_images (id, sort_order, created_at)),
   images:product_images (id, sort_order, created_at)
 `;
 
+// `products(count)` counts every related row regardless of status, so a category whose
+// stock has all sold would still advertise its original count. The !inner hint plus the
+// status filter below restricts the aggregate to listable products.
 const categorySelection = `
   id,
   slug,
   name,
   description,
   images:category_images (id, sort_order, created_at),
-  products(count)
+  products!inner(count)
+`;
+
+// Categories are also fetched where the count is irrelevant (embedded inside a product, or
+// for slug lists). !inner would drop empty categories there, so those paths use this.
+const categorySelectionWithoutCount = `
+  id,
+  slug,
+  name,
+  description,
+  images:category_images (id, sort_order, created_at)
 `;
 
 // Row types are derived from the queries themselves rather than hand-written, so a
@@ -127,6 +221,8 @@ function normalizeCategory(row: CategoryRow): Category {
 function normalizeProduct(row: ProductRow): Product {
   const category = row.category ?? null;
   const images = [...row.images];
+  const status = String(row.status) as ProductStatus;
+  const grade = row.conditionGrade;
   sortImages(images);
   return {
     id: String(row.id),
@@ -135,6 +231,67 @@ function normalizeProduct(row: ProductRow): Product {
     description: row.description ? String(row.description) : null,
     price: Number(row.price),
     created_at: String(row.created_at),
+    status,
+    listingKind: String(row.listing_kind) as ListingKind,
+    conditionGrade: grade
+      ? {
+          code: String(grade.code),
+          sort_order: Number(grade.sort_order),
+          label_ka: String(grade.label_ka),
+          label_en: String(grade.label_en),
+          description_ka: String(grade.description_ka),
+        }
+      : null,
+    conditionSummary: row.condition_summary
+      ? String(row.condition_summary)
+      : null,
+    stockQuantity:
+      row.stock_quantity === null ? null : Number(row.stock_quantity),
+    // A used item is one physical object, so `available` is the whole story. A new item
+    // additionally needs stock on hand — status alone would let a zero-stock row through.
+    isPurchasable:
+      status === "available" &&
+      (row.listing_kind === "used_unique" || Number(row.stock_quantity ?? 0) > 0),
+    conditionAspects: (row.conditionAspects ?? [])
+      .map((rating) => ({
+        aspect_code: String(rating.aspect_code),
+        label_ka: rating.aspect ? String(rating.aspect.label_ka) : String(rating.aspect_code),
+        description_ka: rating.aspect ? String(rating.aspect.description_ka) : "",
+        sort_order: rating.aspect ? Number(rating.aspect.sort_order) : 0,
+        grade: rating.grade
+          ? {
+              code: String(rating.grade.code),
+              sort_order: Number(rating.grade.sort_order),
+              label_ka: String(rating.grade.label_ka),
+              label_en: String(rating.grade.label_en),
+              description_ka: String(rating.grade.description_ka),
+            }
+          : null,
+        note: rating.note ? String(rating.note) : null,
+      }))
+      .sort((a, b) => a.sort_order - b.sort_order),
+    flaws: (row.flaws ?? [])
+      .map((flaw) => ({
+        id: String(flaw.id),
+        image_id: flaw.image_id ? String(flaw.image_id) : null,
+        flaw_type: String(flaw.flaw_type),
+        severity: String(flaw.severity),
+        location_ka: flaw.location_ka ? String(flaw.location_ka) : null,
+        note_ka: String(flaw.note_ka),
+        sort_order: Number(flaw.sort_order),
+      }))
+      .sort((a, b) => a.sort_order - b.sort_order),
+    // Guarded per field: Number(null) is 0, which would turn "not measured" into a
+    // measurement of zero.
+    dimensions: {
+      width_cm: row.width_cm === null ? null : Number(row.width_cm),
+      depth_cm: row.depth_cm === null ? null : Number(row.depth_cm),
+      height_cm: row.height_cm === null ? null : Number(row.height_cm),
+      seat_height_cm:
+        row.seat_height_cm === null ? null : Number(row.seat_height_cm),
+      weight_kg: row.weight_kg === null ? null : Number(row.weight_kg),
+      note: row.dimension_note ? String(row.dimension_note) : null,
+    },
     // The embedded category carries no products(count) aggregate, so it normalizes to a
     // productCount of 0. Callers that need the real count fetch the category directly.
     category: category ? normalizeCategory({ ...category, products: [] }) : null,
@@ -146,6 +303,7 @@ export async function getHomeCategories(): Promise<Category[]> {
   const { data, error } = await publicClient()
     .from("categories")
     .select(categorySelection)
+    .eq("products.status", LISTABLE_STATUS)
     .order("name", { ascending: true });
   if (error)
     throw new Error("კატალოგის ჩატვირთვა ვერ მოხერხდა", { cause: error });
@@ -166,6 +324,7 @@ export async function getNewestProducts(limit = 8): Promise<Product[]> {
   const { data, error } = await publicClient()
     .from("products")
     .select(productSelection)
+    .eq("status", LISTABLE_STATUS)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error)
@@ -173,14 +332,53 @@ export async function getNewestProducts(limit = 8): Promise<Product[]> {
   return (data ?? []).map(normalizeProduct);
 }
 
+// Feeds generateStaticParams. Deliberately available-only: sold products keep working
+// pages, but prerendering every product ever sold would grow without bound. Their pages
+// render on demand instead.
 export async function getProductSlugs(): Promise<string[]> {
   const { data, error } = await publicClient()
     .from("products")
     .select("slug")
+    .eq("status", LISTABLE_STATUS)
     .order("created_at", { ascending: false });
   if (error)
     throw new Error("Product slugs could not be loaded", { cause: error });
   return (data ?? []).map((row) => String(row.slug));
+}
+
+// Sitemap feed. Unlike every other list query this does NOT filter to `available`: sold
+// listings keep their pages and should stay indexed. `draft` and `archived` are excluded
+// by RLS rather than here.
+//
+// Carries the first image so sitemap entries keep their <image:image> tag. Only the
+// lead image is needed, but sort_order/created_at come along because the ordering rule
+// lives in sortImages rather than in the query.
+export async function getSitemapProducts(): Promise<
+  {
+    slug: string;
+    created_at: string;
+    status: ProductStatus;
+    images: ProductImage[];
+  }[]
+> {
+  const { data, error } = await publicClient()
+    .from("products")
+    .select(
+      "slug, created_at, status, images:product_images (id, sort_order, created_at)",
+    )
+    .order("created_at", { ascending: false });
+  if (error)
+    throw new Error("Sitemap products could not be loaded", { cause: error });
+  return (data ?? []).map((row) => {
+    const images = [...row.images];
+    sortImages(images);
+    return {
+      slug: String(row.slug),
+      created_at: String(row.created_at),
+      status: String(row.status) as ProductStatus,
+      images,
+    };
+  });
 }
 
 async function getCategoryIdBySlug(
@@ -211,6 +409,7 @@ export async function getMaxProductPrice(categorySlug = "") {
   let query = supabase
     .from("products")
     .select("price")
+    .eq("status", LISTABLE_STATUS)
     .order("price", { ascending: false })
     .limit(1);
 
@@ -235,7 +434,10 @@ export async function getCatalogProducts({
   const categoryId = await getCategoryIdBySlug(supabase, categorySlug);
   if (categoryId === "") return [];
 
-  let query = supabase.from("products").select(productSelection);
+  let query = supabase
+    .from("products")
+    .select(productSelection)
+    .eq("status", LISTABLE_STATUS);
   const normalizedSearch = search.trim().slice(0, 100);
   const normalizedMinPrice = Number.isFinite(minPrice)
     ? Math.max(0, Number(minPrice))
@@ -262,6 +464,8 @@ export async function getCatalogProducts({
   return (data ?? []).map(normalizeProduct);
 }
 
+// NO status filter, deliberately: a sold or reserved item keeps its page. RLS still hides
+// `draft` and `archived`, which surface here as a null and therefore a 404.
 export const getProductBySlug = cache(
   async (slug: string): Promise<Product | null> => {
     const normalizedSlug = normalizeSlug(slug);
@@ -279,12 +483,14 @@ export const getProductBySlug = cache(
   },
 );
 
+// Uses the count-free selection: !inner would 404 a category whose products are all sold,
+// and the category page must still render (its product grid shows the empty state).
 export const getCategoryBySlug = cache(
   async (slug: string): Promise<Category | null> => {
     const normalizedSlug = normalizeSlug(slug);
     const { data, error } = await publicClient()
       .from("categories")
-      .select(categorySelection)
+      .select(categorySelectionWithoutCount)
       .eq("slug", normalizedSlug)
       .maybeSingle();
 
@@ -292,7 +498,9 @@ export const getCategoryBySlug = cache(
       throw new Error("Category could not be loaded", { cause: error });
     }
 
-    return data ? normalizeCategory(data) : null;
+    // categorySelectionWithoutCount carries no aggregate, so productCount normalizes to 0.
+    // The category page renders its own product grid and never reads this field.
+    return data ? normalizeCategory({ ...data, products: [] }) : null;
   },
 );
 

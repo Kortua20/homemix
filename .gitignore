@@ -43,3 +43,6 @@ next-env.d.ts
 # supabase (local CLI state only — migrations/ and schemas/ MUST stay tracked)
 supabase/.temp/
 supabase/.branches/
+
+# claude code (personal overrides only — .claude/settings.json MUST stay tracked)
+.claude/settings.local.json

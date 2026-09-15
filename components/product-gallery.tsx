@@ -10,14 +10,27 @@ const SWIPE_THRESHOLD = 50;
 export function ProductGallery({
   images,
   productName,
+  // Optional controlled selection. The flaw list sets this so clicking a flaw brings its
+  // close-up into view; left undefined, the gallery owns its own selection as before.
+  selectedImageId,
+  onSelectedImageChange,
 }: {
   images: ProductImage[];
   productName: string;
+  selectedImageId?: string | null;
+  onSelectedImageChange?: (imageId: string) => void;
 }) {
-  const [selectedId, setSelectedId] = useState(images[0]?.id ?? null);
+  const [uncontrolledId, setUncontrolledId] = useState(images[0]?.id ?? null);
+  const isControlled = selectedImageId !== undefined;
+  const selectedId = isControlled ? selectedImageId : uncontrolledId;
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const selectedImage =
     images.find((image) => image.id === selectedId) ?? images[0];
+
+  function selectImage(imageId: string) {
+    if (!isControlled) setUncontrolledId(imageId);
+    onSelectedImageChange?.(imageId);
+  }
   const selectedIndex = selectedImage
     ? images.findIndex((image) => image.id === selectedImage.id)
     : -1;
@@ -27,7 +40,7 @@ export function ProductGallery({
 
     const nextIndex =
       (selectedIndex + direction + images.length) % images.length;
-    setSelectedId(images[nextIndex].id);
+    selectImage(images[nextIndex].id);
   }
 
   if (!selectedImage) {
@@ -108,7 +121,7 @@ export function ProductGallery({
                 type="button"
                 aria-label={`ფოტო ${index + 1}-ის ნახვა`}
                 aria-pressed={isSelected}
-                onClick={() => setSelectedId(image.id)}
+                onClick={() => selectImage(image.id)}
                 className={`relative m-2 h-18 w-24 shrink-0 overflow-hidden rounded-xl bg-[#e8ebe7] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:h-20 sm:w-28 ${
                   isSelected
                     ? "ring-2 ring-[#1d4a38] ring-offset-2 ring-offset-[#f4f2ed]"

@@ -1,5 +1,10 @@
 -- Product image metadata. Bytes live in Cloudflare R2; only the object key is stored.
--- Captured from production 2026-09-11.
+-- Captured from production 2026-09-11; kind/alt_text added 2026-09-14 (roadmap step 2).
+--
+-- NOTE on `id`: the default is gen_random_uuid(), but the admin now supplies the id from
+-- the client when creating a product, so a flaw can reference its photo in the same submit
+-- (see SCHEMA_ROADMAP.md, "client-generated image ids"). The default remains for any
+-- insert that does not care.
 
 create table if not exists "public"."product_images" (
     "id" "uuid" default "gen_random_uuid"() not null,
@@ -10,6 +15,19 @@ create table if not exists "public"."product_images" (
     "size_bytes" bigint not null,
     "sort_order" integer default 0 not null,
     "created_at" timestamp with time zone default "now"() not null,
+    -- What the photo is for. `flaw` photos are the close-ups product_flaws points at;
+    -- separating them lets the gallery show evidence distinctly from presentation shots.
+    "kind" "text" default 'detail'::"text" not null,
+    -- Optional: the storefront falls back to "<product name> — ფოტო <n>". Required alt
+    -- text on every upload would be friction on an eight-photo listing; the value is real
+    -- only where the text carries information the image does not.
+    "alt_text" "text",
+    constraint "product_images_kind_check"
+        check (("kind" = any (array[
+            'primary'::"text", 'detail'::"text",
+            'flaw'::"text", 'dimension_diagram'::"text"]))),
+    constraint "product_images_alt_text_check"
+        check (("char_length"("alt_text") <= 300)),
     constraint "product_images_content_type_check"
         check (("content_type" = any (array[
             'image/jpeg'::"text", 'image/png'::"text", 'image/webp'::"text"]))),

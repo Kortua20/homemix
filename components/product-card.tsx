@@ -12,6 +12,13 @@ export function ProductCard({ product }: { product: Product }) {
       className="group block min-w-0 focus-visible:rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
     >
       <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-[#e8ebe7]">
+        {/* Lists are available-only today, so this only shows on a directly-linked card.
+            It exists so a sold item can never render as purchasable. */}
+        {!product.isPurchasable ? (
+          <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#443a72] px-2.5 py-1 text-xs font-semibold text-white">
+            {product.status === "reserved" ? "დაჯავშნილი" : "გაყიდული"}
+          </span>
+        ) : null}
         {firstImage ? (
           <Image
             src={`/api/product-images/${firstImage.id}`}
@@ -37,6 +44,15 @@ export function ProductCard({ product }: { product: Product }) {
             <p className="truncate text-xs font-semibold text-[#667168]">
               {product.category?.name ?? "კატალოგის გარეშე"}
             </p>
+            {/* `unassessed` is suppressed here: a grid where every card reads "assessment
+                in progress" is noise, and on a card there is no room for the explanation
+                that makes it meaningful. The detail page states it plainly instead. */}
+            {product.conditionGrade &&
+            product.conditionGrade.code !== "unassessed" ? (
+              <p className="truncate text-xs font-medium text-[#1d4a38]">
+                {product.conditionGrade.label_ka}
+              </p>
+            ) : null}
             <h3 className="mt-1.5 line-clamp-2 min-h-12 text-base leading-6 font-semibold text-[#18221d]">
               {product.name}
             </h3>
