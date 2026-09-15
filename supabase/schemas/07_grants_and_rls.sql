@@ -28,6 +28,36 @@ grant usage on schema "public" to "service_role";
 -- anon held DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE on categories,
 -- products and product_images.
 
+-- condition_grades
+-- Reference data. The storefront reads it to render grade labels; only staff change it.
+revoke all on table "public"."condition_grades" from "anon";
+revoke all on table "public"."condition_grades" from "authenticated";
+grant select on table "public"."condition_grades" to "anon";
+grant select, insert, update, delete on table "public"."condition_grades" to "authenticated";
+grant all on table "public"."condition_grades" to "service_role";
+
+-- condition_aspects
+-- Reference data, same shape as condition_grades.
+revoke all on table "public"."condition_aspects" from "anon";
+revoke all on table "public"."condition_aspects" from "authenticated";
+grant select on table "public"."condition_aspects" to "anon";
+grant select, insert, update, delete on table "public"."condition_aspects" to "authenticated";
+grant all on table "public"."condition_aspects" to "service_role";
+
+-- product_condition_aspects
+revoke all on table "public"."product_condition_aspects" from "anon";
+revoke all on table "public"."product_condition_aspects" from "authenticated";
+grant select on table "public"."product_condition_aspects" to "anon";
+grant select, insert, update, delete on table "public"."product_condition_aspects" to "authenticated";
+grant all on table "public"."product_condition_aspects" to "service_role";
+
+-- product_flaws
+revoke all on table "public"."product_flaws" from "anon";
+revoke all on table "public"."product_flaws" from "authenticated";
+grant select on table "public"."product_flaws" to "anon";
+grant select, insert, update, delete on table "public"."product_flaws" to "authenticated";
+grant all on table "public"."product_flaws" to "service_role";
+
 -- categories
 -- DRIFT: production also grants MAINTAIN to anon and authenticated. Omitted here
 -- deliberately; see supabase/migrations/*_tighten_image_table_grants.sql.
@@ -67,16 +97,55 @@ grant all on table "public"."category_images" to "service_role";
 -- ---------------------------------------------------------------------------
 
 alter table "public"."categories" enable row level security;
+alter table "public"."condition_grades" enable row level security;
+alter table "public"."condition_aspects" enable row level security;
 alter table "public"."products" enable row level security;
 alter table "public"."category_images" enable row level security;
 alter table "public"."product_images" enable row level security;
+alter table "public"."product_condition_aspects" enable row level security;
+alter table "public"."product_flaws" enable row level security;
 
 -- Public reads: the storefront queries these anonymously.
 create policy "Categories are publicly readable" on "public"."categories"
     for select to "authenticated", "anon" using (true);
 
-create policy "Products are publicly readable" on "public"."products"
+create policy "Condition grades are publicly readable" on "public"."condition_grades"
     for select to "authenticated", "anon" using (true);
+
+create policy "Condition aspects are publicly readable" on "public"."condition_aspects"
+    for select to "authenticated", "anon" using (true);
+
+-- Condition detail is readable for any product the reader can already see. The products
+-- policy below hides draft/archived rows, but that does NOT cascade to child tables —
+-- without the EXISTS check, a draft product's flaws would be readable with the publishable
+-- key even though the product itself is not. That would leak exactly the half-documented
+-- state this schema exists to prevent showing.
+create policy "Condition aspects of visible products are readable"
+    on "public"."product_condition_aspects"
+    for select to "authenticated", "anon"
+    using (exists (
+        select 1 from "public"."products" "p"
+        where "p"."id" = "product_condition_aspects"."product_id"
+    ));
+
+create policy "Flaws of visible products are readable" on "public"."product_flaws"
+    for select to "authenticated", "anon"
+    using (exists (
+        select 1 from "public"."products" "p"
+        where "p"."id" = "product_flaws"."product_id"
+    ));
+
+-- Unpublished products are hidden at the RLS layer, not merely filtered in the storefront
+-- queries. A `draft` row is a half-documented listing whose flaws have not been
+-- photographed yet; leaking it through the publishable key would undercut the exact
+-- transparency this schema exists to guarantee. `archived` rows are mistakes and
+-- duplicates that should not be reachable at all.
+--
+-- `sold` and `reserved` REMAIN publicly readable: their pages stay live by design.
+-- Excluding them from list views is the storefront's job, not this policy's.
+create policy "Published products are publicly readable" on "public"."products"
+    for select to "authenticated", "anon"
+    using (("status" <> all (array['draft'::"text", 'archived'::"text"])));
 
 create policy "Category images are publicly readable" on "public"."category_images"
     for select to "authenticated", "anon" using (true);
@@ -87,6 +156,77 @@ create policy "Product images are publicly readable" on "public"."product_images
 -- Writes: signed-in, non-anonymous users only.
 -- `is_anonymous` is checked explicitly because anonymous sign-ins also carry the
 -- `authenticated` Postgres role, so `TO authenticated` alone would not exclude them.
+
+create policy "Permanent users can add condition aspects" on "public"."condition_aspects"
+    for insert to "authenticated"
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can edit condition aspects" on "public"."condition_aspects"
+    for update to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can remove condition aspects" on "public"."condition_aspects"
+    for delete to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can add product condition aspects"
+    on "public"."product_condition_aspects"
+    for insert to "authenticated"
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can edit product condition aspects"
+    on "public"."product_condition_aspects"
+    for update to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can remove product condition aspects"
+    on "public"."product_condition_aspects"
+    for delete to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can add product flaws" on "public"."product_flaws"
+    for insert to "authenticated"
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can edit product flaws" on "public"."product_flaws"
+    for update to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can remove product flaws" on "public"."product_flaws"
+    for delete to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can add condition grades" on "public"."condition_grades"
+    for insert to "authenticated"
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can edit condition grades" on "public"."condition_grades"
+    for update to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can remove condition grades" on "public"."condition_grades"
+    for delete to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
 
 create policy "Permanent users can add categories" on "public"."categories"
     for insert to "authenticated"
