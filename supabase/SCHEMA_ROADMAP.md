@@ -259,11 +259,11 @@ Schema:
       aspect for one product **rejected** (composite PK), bogus image `kind` **rejected**
 - [x] **RLS leak test passed**: a flaw attached to the `draft` product is invisible to
       anon (5 flaws as `postgres`, 4 visible as `anon`, draft's flaw count 0)
-- [ ] Applied to production — blocked on step 1 reconciliation
+- [x] Applied to production (2026-09-15)
 
 Application:
 
-- [x] Types regenerated for both repos (from `--local`)
+- [x] Types regenerated for both repos (now from `--linked`)
 - [x] Admin: client-generated image ids threaded through `uploadImages`, paired to files
       **before** empty entries are filtered (pairing after would shift every id by one
       whenever the browser submits a zero-size entry)
@@ -326,8 +326,12 @@ without touching dimensions.
 - [x] Admin detail page dimensions panel
 - [x] Verified through PostgREST as anon: 74.5 round-trips exactly, null seat height on
       the dining table renders as an absent row
-- [ ] Filter by width/height in the catalogue — the reason these are numeric
-- [ ] Applied to production — blocked on step 1 reconciliation
+- [x] Applied to production (2026-09-15)
+- [ ] Filter by width/height in the catalogue — the reason these are numeric. **Deferred
+      for the same reason as 3b**: with ~28 products a customer scrolls rather than
+      filters, and a dimension filter is a control nobody touches until the catalogue is
+      large enough to make browsing worse than searching. The columns are worth capturing
+      now (retrofitting measurements means re-handling furniture); the filter UI is not.
 
 ### 3b — Materials, colours, styles (deferred)
 

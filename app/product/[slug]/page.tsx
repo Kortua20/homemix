@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { ConditionAspectTable } from "@/components/condition-aspect-table";
 import { ProductConditionReport } from "@/components/product-condition-report";
+import { ProductAttributes } from "@/components/product-attributes";
 import { ProductDimensionsTable } from "@/components/product-dimensions-table";
 import {
   formatPrice,
@@ -248,6 +249,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ConditionAspectTable ratings={product.conditionAspects} />
 
             <ProductDimensionsTable dimensions={product.dimensions} />
+
+            <ProductAttributes
+              materials={product.materials}
+              colours={product.colours}
+              styles={product.styles}
+            />
 
             <div className="mt-8 border-t border-[#d8ded8] pt-7">
               <h2 className="text-lg font-semibold text-[#18221d]">

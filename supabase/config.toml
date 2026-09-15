@@ -49,6 +49,7 @@ schema_paths = [
   "./schemas/04_category_images.sql",
   "./schemas/05_product_images.sql",
   "./schemas/05a_condition_detail.sql",
+  "./schemas/05b_product_attributes.sql",
   "./schemas/06_contact_rate_limit.sql",
   "./schemas/07_grants_and_rls.sql",
 ]

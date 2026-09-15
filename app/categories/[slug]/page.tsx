@@ -11,11 +11,13 @@ import {
   getCatalogProducts,
   getCategoryBySlug,
   getCategorySlugs,
+  getFacetAvailability,
   getHomeCategories,
   getMaxProductPrice,
   normalizeSlug,
   type Category,
 } from "@/lib/storefront";
+import type { CatalogQuery } from "@/components/catalog-filter-form";
 import { siteName } from "@/lib/site";
 
 export const revalidate = 60;
@@ -25,13 +27,22 @@ type CategoryPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
+type CategoryFilterValues = {
+  search: string;
+  categorySlug: string;
+  minPrice: number;
+  maxPrice: number;
+  minWidth?: number;
+  maxWidth?: number;
+  minHeight?: number;
+  maxHeight?: number;
+  materials: string[];
+  colours: string[];
+  styles: string[];
+};
+
 type CategoryProductResultsProps = {
-  filters: {
-    search: string;
-    categorySlug: string;
-    minPrice: number;
-    maxPrice: number;
-  };
+  filters: CategoryFilterValues;
   filtersActive: boolean;
 };
 
@@ -39,9 +50,24 @@ function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 }
 
+// Facet params repeat (materials=oak&materials=walnut), so they read as arrays.
+function listValue(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value.map((v) => v.trim()).filter(Boolean);
+  const single = (value ?? "").trim();
+  return single ? [single] : [];
+}
+
 function parsePriceParam(value: string) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
+// undefined, not 0: a blank box means "no bound", while 0 is a real lower bound.
+function parseOptionalNumber(value: string) {
+  const text = value.trim();
+  if (!text) return undefined;
+  const parsed = Number(text);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
 export async function generateStaticParams() {
@@ -59,12 +85,19 @@ function categorySlides(category: Category): HeroSlide[] {
   }));
 }
 
-function resultsKey(filters: CategoryProductResultsProps["filters"]) {
+function resultsKey(filters: CategoryFilterValues) {
   return [
     filters.search,
     filters.categorySlug,
     filters.minPrice,
     filters.maxPrice,
+    filters.minWidth ?? "",
+    filters.maxWidth ?? "",
+    filters.minHeight ?? "",
+    filters.maxHeight ?? "",
+    filters.materials.join(","),
+    filters.colours.join(","),
+    filters.styles.join(","),
   ].join("|");
 }
 
@@ -155,7 +188,10 @@ export default async function CategoryPage({
   const queryParams = searchParams ? await searchParams : {};
   const slug = normalizeSlug(rawSlug);
   const search = firstValue(queryParams.q).trim().slice(0, 100);
-  const availableMaxPrice = await getMaxProductPrice(slug);
+  const [availableMaxPrice, facets] = await Promise.all([
+    getMaxProductPrice(slug),
+    getFacetAvailability(slug),
+  ]);
   const minPrice = Math.min(
     parsePriceParam(firstValue(queryParams.minPrice)),
     availableMaxPrice,
@@ -165,9 +201,59 @@ export default async function CategoryPage({
     submittedMaxPrice > 0
       ? Math.min(submittedMaxPrice, availableMaxPrice)
       : availableMaxPrice;
-  const filters = { search, categorySlug: slug, minPrice, maxPrice };
+
+  // An explicit param is always honoured, even where coverage hides the control — see the
+  // note in app/products/page.tsx. This matters more here than on the catalogue page:
+  // getFacetAvailability is scoped to the category, so a single category drops below
+  // FACET_MIN_PRODUCTS long before the catalogue does, and gating the parse on it silently
+  // discarded every facet param on every category page.
+  const materials = listValue(queryParams.materials);
+  const colours = listValue(queryParams.colours);
+  const styles = listValue(queryParams.styles);
+  const minWidth = parseOptionalNumber(firstValue(queryParams.minWidth));
+  const maxWidth = parseOptionalNumber(firstValue(queryParams.maxWidth));
+  const minHeight = parseOptionalNumber(firstValue(queryParams.minHeight));
+  const maxHeight = parseOptionalNumber(firstValue(queryParams.maxHeight));
+
+  const filters: CategoryFilterValues = {
+    search,
+    categorySlug: slug,
+    minPrice,
+    maxPrice,
+    minWidth,
+    maxWidth,
+    minHeight,
+    maxHeight,
+    materials,
+    colours,
+    styles,
+  };
+
+  const query: CatalogQuery = {
+    q: search,
+    category: "",
+    minPrice: minPrice > 0 ? String(minPrice) : "",
+    maxPrice: maxPrice < availableMaxPrice ? String(maxPrice) : "",
+    minWidth: minWidth === undefined ? "" : String(minWidth),
+    maxWidth: maxWidth === undefined ? "" : String(maxWidth),
+    minHeight: minHeight === undefined ? "" : String(minHeight),
+    maxHeight: maxHeight === undefined ? "" : String(maxHeight),
+    materials,
+    colours,
+    styles,
+  };
+
   const filtersActive = Boolean(
-    search || minPrice > 0 || maxPrice < availableMaxPrice,
+    search ||
+      minPrice > 0 ||
+      maxPrice < availableMaxPrice ||
+      minWidth !== undefined ||
+      maxWidth !== undefined ||
+      minHeight !== undefined ||
+      maxHeight !== undefined ||
+      materials.length > 0 ||
+      colours.length > 0 ||
+      styles.length > 0,
   );
   const [category] = await Promise.all([
     getCategoryBySlug(slug),
@@ -213,10 +299,9 @@ export default async function CategoryPage({
           </div>
           <CatalogFilterForm
             action={`/categories/${encodeURIComponent(category.slug)}`}
-            search={search}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
+            query={query}
             maxAvailablePrice={availableMaxPrice}
+            facets={facets}
             resetHref={`/categories/${encodeURIComponent(category.slug)}`}
             variant="inline"
           />

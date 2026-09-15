@@ -171,6 +171,40 @@ where slug = 'orkariania-karada';
 -- tsignis-taro-maghali deliberately left without dimensions: it is the draft row, and a
 -- half-documented listing is exactly what `draft` is for.
 
+-- Attributes (roadmap step 3b). Deliberately uneven, like the dimensions above: some
+-- products carry material + colour + style, some only a colour, and the draft carries none.
+-- A seed where every product is fully tagged would hide the partial states the facet UI
+-- has to render.
+insert into public.product_materials (product_id, material_code) values
+  ('aaaaaaaa-0001-4000-8000-000000000001', 'linen'),
+  ('aaaaaaaa-0001-4000-8000-000000000001', 'oak'),
+  ('aaaaaaaa-0002-4000-8000-000000000002', 'velvet'),
+  ('aaaaaaaa-0003-4000-8000-000000000003', 'oak'),
+  ('aaaaaaaa-0004-4000-8000-000000000004', 'glass'),
+  ('aaaaaaaa-0004-4000-8000-000000000004', 'metal'),
+  ('aaaaaaaa-0005-4000-8000-000000000005', 'beech'),
+  ('aaaaaaaa-0006-4000-8000-000000000006', 'metal'),
+  ('aaaaaaaa-0007-4000-8000-000000000007', 'mdf')
+on conflict (product_id, material_code) do nothing;
+
+insert into public.product_colours (product_id, colour_code) values
+  ('aaaaaaaa-0001-4000-8000-000000000001', 'grey'),
+  ('aaaaaaaa-0002-4000-8000-000000000002', 'green'),
+  ('aaaaaaaa-0003-4000-8000-000000000003', 'natural'),
+  ('aaaaaaaa-0004-4000-8000-000000000004', 'black'),
+  ('aaaaaaaa-0005-4000-8000-000000000005', 'natural'),
+  ('aaaaaaaa-0006-4000-8000-000000000006', 'black'),
+  ('aaaaaaaa-0007-4000-8000-000000000007', 'white'),
+  ('aaaaaaaa-0008-4000-8000-000000000008', 'brown')
+on conflict (product_id, colour_code) do nothing;
+
+-- Styles are sparser still: only three products carry one.
+insert into public.product_styles (product_id, style_code) values
+  ('aaaaaaaa-0001-4000-8000-000000000001', 'scandinavian'),
+  ('aaaaaaaa-0003-4000-8000-000000000003', 'rustic'),
+  ('aaaaaaaa-0006-4000-8000-000000000006', 'industrial')
+on conflict (product_id, style_code) do nothing;
+
 -- Condition detail for the used products (roadmap step 2).
 --
 -- Every flaw here has image_id NULL. That is not a shortcut: product_images rows are
