@@ -30,7 +30,7 @@ export default async function CategoriesPage() {
             კატალოგი
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-[#5e685f]">
-            რამე ტექსრი აქ
+            აირჩიეთ კატეგორია და დაათვალიერეთ ავეჯი.
           </p>
         </div>
 

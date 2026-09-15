@@ -28,8 +28,14 @@ export default function AboutPage() {
           <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] sm:text-5xl">
             ჩვენ შესახებ
           </h1>
-          <p className="mt-6 text-lg leading-8 text-[#3f3d3a]">ტექსტი აქ</p>
-          <p className="mt-4 text-base leading-7 text-[#5e685f]">და აქ</p>
+          <p className="mt-6 text-lg leading-8 text-[#3f3d3a]">
+            Home Mix არის მეორადი ავეჯის მაღაზია თბილისში — დივნები,
+            მაგიდები, საწოლები და საოჯახო ავეჯი.
+          </p>
+          <p className="mt-4 text-base leading-7 text-[#5e685f]">
+            დაათვალიერეთ კატალოგი და შეარჩიეთ სასურველი. მიტანა თბილისში
+            უფასოა.
+          </p>
           <Link
             href="/products"
             className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1d4a38] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
