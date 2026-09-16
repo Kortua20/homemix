@@ -92,6 +92,46 @@ grant select on table "public"."category_images" to "anon";
 grant select, insert, update, delete on table "public"."category_images" to "authenticated";
 grant all on table "public"."category_images" to "service_role";
 
+-- materials / colours / styles
+-- Reference data, same shape as condition_grades: the storefront reads them to render
+-- facet labels and swatches; only staff change them.
+revoke all on table "public"."materials" from "anon";
+revoke all on table "public"."materials" from "authenticated";
+grant select on table "public"."materials" to "anon";
+grant select, insert, update, delete on table "public"."materials" to "authenticated";
+grant all on table "public"."materials" to "service_role";
+
+revoke all on table "public"."colours" from "anon";
+revoke all on table "public"."colours" from "authenticated";
+grant select on table "public"."colours" to "anon";
+grant select, insert, update, delete on table "public"."colours" to "authenticated";
+grant all on table "public"."colours" to "service_role";
+
+revoke all on table "public"."styles" from "anon";
+revoke all on table "public"."styles" from "authenticated";
+grant select on table "public"."styles" to "anon";
+grant select, insert, update, delete on table "public"."styles" to "authenticated";
+grant all on table "public"."styles" to "service_role";
+
+-- product_materials / product_colours / product_styles
+revoke all on table "public"."product_materials" from "anon";
+revoke all on table "public"."product_materials" from "authenticated";
+grant select on table "public"."product_materials" to "anon";
+grant select, insert, update, delete on table "public"."product_materials" to "authenticated";
+grant all on table "public"."product_materials" to "service_role";
+
+revoke all on table "public"."product_colours" from "anon";
+revoke all on table "public"."product_colours" from "authenticated";
+grant select on table "public"."product_colours" to "anon";
+grant select, insert, update, delete on table "public"."product_colours" to "authenticated";
+grant all on table "public"."product_colours" to "service_role";
+
+revoke all on table "public"."product_styles" from "anon";
+revoke all on table "public"."product_styles" from "authenticated";
+grant select on table "public"."product_styles" to "anon";
+grant select, insert, update, delete on table "public"."product_styles" to "authenticated";
+grant all on table "public"."product_styles" to "service_role";
+
 -- ---------------------------------------------------------------------------
 -- Row Level Security
 -- ---------------------------------------------------------------------------
@@ -295,3 +335,94 @@ create policy "Permanent users can remove product images" on "public"."product_i
     for delete to "authenticated"
     using (((( select "auth"."uid"() as "uid") is not null)
         and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) is false)));
+
+-- ---------------------------------------------------------------------------
+-- Attributes (step 3b) — transcribed from
+-- migrations/20260917000000_add_product_attributes.sql, which is what production actually
+-- ran. Kept verbatim rather than improved: the point of this file is to describe the
+-- database as it is, so any change belongs in a migration first.
+-- ---------------------------------------------------------------------------
+
+alter table "public"."materials" enable row level security;
+alter table "public"."colours" enable row level security;
+alter table "public"."styles" enable row level security;
+alter table "public"."product_materials" enable row level security;
+alter table "public"."product_colours" enable row level security;
+alter table "public"."product_styles" enable row level security;
+
+create policy "Materials are publicly readable" on "public"."materials"
+    for select to "authenticated", "anon" using (true);
+
+create policy "Colours are publicly readable" on "public"."colours"
+    for select to "authenticated", "anon" using (true);
+
+create policy "Styles are publicly readable" on "public"."styles"
+    for select to "authenticated", "anon" using (true);
+
+-- These EXISTS checks match product_flaws and product_condition_aspects above. The absence
+-- of a status test is deliberate and sufficient: a subquery inside a policy is evaluated as
+-- the calling role, so the `products` read policy applies within it — for anon a draft row
+-- is invisible there too, the EXISTS is false, and the child row is filtered out. Verified
+-- 2026-09-16 by tagging the draft product and reading back with the publishable key.
+create policy "Materials of visible products are readable" on "public"."product_materials"
+    for select to "authenticated", "anon"
+    using (exists (
+        select 1 from "public"."products" "p"
+        where "p"."id" = "product_materials"."product_id"
+    ));
+
+create policy "Colours of visible products are readable" on "public"."product_colours"
+    for select to "authenticated", "anon"
+    using (exists (
+        select 1 from "public"."products" "p"
+        where "p"."id" = "product_colours"."product_id"
+    ));
+
+create policy "Styles of visible products are readable" on "public"."product_styles"
+    for select to "authenticated", "anon"
+    using (exists (
+        select 1 from "public"."products" "p"
+        where "p"."id" = "product_styles"."product_id"
+    ));
+
+create policy "Permanent users can manage materials" on "public"."materials"
+    for all to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can manage colours" on "public"."colours"
+    for all to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can manage styles" on "public"."styles"
+    for all to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can manage product materials" on "public"."product_materials"
+    for all to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can manage product colours" on "public"."product_colours"
+    for all to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+create policy "Permanent users can manage product styles" on "public"."product_styles"
+    for all to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
