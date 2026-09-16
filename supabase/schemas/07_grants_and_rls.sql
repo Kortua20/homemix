@@ -187,6 +187,20 @@ create policy "Published products are publicly readable" on "public"."products"
     for select to "authenticated", "anon"
     using (("status" <> all (array['draft'::"text", 'archived'::"text"])));
 
+-- Staff read every status. Without this, the policy above is the ONLY way to read
+-- `products`, and because it names `authenticated` too it hid drafts from the people who
+-- create them: an INSERT or UPDATE that lands on `draft`/`archived` is refused with 42501,
+-- since PostgREST reads the row back and Postgres checks the resulting row against USING.
+-- It also broke every child table, whose read policies resolve `exists (select 1 from
+-- products ...)` as the caller. See migrations/20260918000000_staff_can_read_all_products.sql.
+--
+-- Permissive policies for one command are OR'd, so anon is still limited by the policy
+-- above; this one is `to "authenticated"` only.
+create policy "Permanent users can read all products" on "public"."products"
+    for select to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
 create policy "Category images are publicly readable" on "public"."category_images"
     for select to "authenticated", "anon" using (true);
 
