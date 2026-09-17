@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { CatalogFilterForm } from "@/components/catalog-filter-form";
 import { EmptyState } from "@/components/empty-state";
+import { Pagination } from "@/components/pagination";
 import { ProductCard } from "@/components/product-card";
 import { ProductGridSkeleton } from "@/components/product-card-skeleton";
 import {
@@ -9,8 +10,9 @@ import {
   getFacetAvailability,
   getHomeCategories,
   getMaxProductPrice,
+  parsePageParam,
 } from "@/lib/storefront";
-import type { CatalogQuery } from "@/components/catalog-filter-form";
+import { buildPageHrefFrom, type CatalogQuery } from "@/lib/catalog-query";
 
 type ProductsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -28,11 +30,13 @@ type CatalogFilterValues = {
   materials: string[];
   colours: string[];
   styles: string[];
+  page: number;
 };
 
 type ProductResultsProps = {
   filters: CatalogFilterValues;
   filtersActive: boolean;
+  buildPageHref: (page: number) => string;
 };
 
 function firstValue(value: string | string[] | undefined) {
@@ -73,16 +77,22 @@ function resultsKey(filters: CatalogFilterValues) {
     filters.materials.join(","),
     filters.colours.join(","),
     filters.styles.join(","),
+    // Included so paging re-triggers the Suspense fallback: without it the grid would sit
+    // on the previous page's cards until the new ones resolved, with nothing to say a
+    // navigation happened.
+    filters.page,
   ].join("|");
 }
+
 
 async function CatalogProductResults({
   filters,
   filtersActive,
+  buildPageHref,
 }: ProductResultsProps) {
-  const products = await getCatalogProducts(filters).catch(() => null);
+  const result = await getCatalogProducts(filters).catch(() => null);
 
-  if (!products) {
+  if (!result) {
     return (
       <EmptyState
         title="პროდუქტები ვერ ჩაიტვირთა"
@@ -92,7 +102,20 @@ async function CatalogProductResults({
     );
   }
 
-  if (products.length === 0) {
+  // An empty page with results behind it is a bad `?page=`, not an empty catalogue — a
+  // deep-linked page 9 after stock shrank, or a hand-edited URL. Saying "nothing found"
+  // there would be a lie about the catalogue, so it offers the way back instead.
+  if (result.items.length === 0 && result.total > 0) {
+    return (
+      <EmptyState
+        title="ეს გვერდი აღარ არსებობს"
+        description="შესაძლოა პროდუქტები შეიცვალა. დაბრუნდით პირველ გვერდზე."
+        action={{ href: buildPageHref(1), label: "პირველი გვერდი" }}
+      />
+    );
+  }
+
+  if (result.total === 0) {
     return (
       <EmptyState
         title={
@@ -111,18 +134,28 @@ async function CatalogProductResults({
 
   return (
     <>
+      {/* The total, not items.length: with 24 per page the latter would report "24" on
+          every full page and read as the size of the whole catalogue. */}
       <p
         className="-mt-6 mb-8 text-sm text-[#5e685f]"
         role="status"
         aria-live="polite"
       >
-        ნაპოვნია: {products.length}
+        ნაპოვნია: {result.total}
+        {result.pageCount > 1
+          ? ` — გვერდი ${result.page} / ${result.pageCount}`
+          : ""}
       </p>
       <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
-        {products.map((product) => (
+        {result.items.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
+      <Pagination
+        page={result.page}
+        pageCount={result.pageCount}
+        buildHref={buildPageHref}
+      />
     </>
   );
 }
@@ -136,14 +169,24 @@ export async function generateMetadata({
   const minPrice = parsePriceParam(firstValue(params.minPrice));
   const maxPrice = parsePriceParam(firstValue(params.maxPrice));
   const filtered = Boolean(search || category || minPrice > 0 || maxPrice > 0);
+  const page = parsePageParam(firstValue(params.page));
   const description = search
     ? `Home Mix-ის კატალოგში ძიების შედეგები: ${search}.`
     : "დაათვალიერეთ Home Mix-ის პროდუქტები და გაფილტრეთ ავეჯი კატეგორიისა და ფასის მიხედვით.";
 
   return {
-    title: search ? `${search} — ძიების შედეგები` : "პროდუქტები",
+    // Paging is NOT filtering, so it does not trigger noindex: page 2 of the unfiltered
+    // catalogue is a real page of products that should be discoverable. It gets its own
+    // title and canonical instead, so it is not treated as a duplicate of page 1.
+    title: search
+      ? `${search} — ძიების შედეგები`
+      : page > 1
+        ? `პროდუქტები — გვერდი ${page}`
+        : "პროდუქტები",
     description,
-    alternates: { canonical: "/products" },
+    alternates: {
+      canonical: page > 1 ? `/products?page=${page}` : "/products",
+    },
     robots: filtered ? { index: false, follow: true } : undefined,
     openGraph: {
       title: "ავეჯის კატალოგი | Home Mix",
@@ -193,6 +236,7 @@ export default async function ProductsPage({
   const maxWidth = parseOptionalNumber(firstValue(params.maxWidth));
   const minHeight = parseOptionalNumber(firstValue(params.minHeight));
   const maxHeight = parseOptionalNumber(firstValue(params.maxHeight));
+  const page = parsePageParam(firstValue(params.page));
 
   const filters: CatalogFilterValues = {
     search,
@@ -206,6 +250,7 @@ export default async function ProductsPage({
     materials,
     colours,
     styles,
+    page,
   };
 
   const query: CatalogQuery = {
@@ -221,6 +266,8 @@ export default async function ProductsPage({
     colours,
     styles,
   };
+
+  const buildPageHref = buildPageHrefFrom("/products", query);
 
   const categoriesResult = await getHomeCategories().then(
     (categories) => ({ status: "fulfilled" as const, value: categories }),
@@ -288,6 +335,7 @@ export default async function ProductsPage({
             <CatalogProductResults
               filters={filters}
               filtersActive={filtersActive}
+              buildPageHref={buildPageHref}
             />
           </Suspense>
         </section>

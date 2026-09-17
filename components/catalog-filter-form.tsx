@@ -4,24 +4,13 @@ import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import type { CatalogQuery } from "@/lib/catalog-query";
 import type { Category, FacetAvailability } from "@/lib/storefront";
 
-// Every param the catalogue understands. Each popover is its own <form>, so it must carry
-// hidden inputs for all the OTHER active params — otherwise submitting the colour popover
-// silently clears the search box. This list is the single source of truth for that.
-export type CatalogQuery = {
-  q: string;
-  category: string;
-  minPrice: string;
-  maxPrice: string;
-  minWidth: string;
-  maxWidth: string;
-  minHeight: string;
-  maxHeight: string;
-  materials: string[];
-  colours: string[];
-  styles: string[];
-};
+// CatalogQuery and buildPageHrefFrom live in lib/catalog-query.ts, not here: this file is
+// "use client", which turns every one of its exports into a client reference that a server
+// component cannot call. Re-exported as a type so existing imports keep working.
+export type { CatalogQuery };
 
 function formActionUrl(form: HTMLFormElement) {
   const data = new FormData(form);

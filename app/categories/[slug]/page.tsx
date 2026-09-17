@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CatalogFilterForm } from "@/components/catalog-filter-form";
 import { EmptyState } from "@/components/empty-state";
 import { HeroSlider, type HeroSlide } from "@/components/hero-slider";
+import { Pagination } from "@/components/pagination";
 import { ProductCard } from "@/components/product-card";
 import { ProductGridSkeleton } from "@/components/product-card-skeleton";
 import {
@@ -15,9 +16,10 @@ import {
   getHomeCategories,
   getMaxProductPrice,
   normalizeSlug,
+  parsePageParam,
   type Category,
 } from "@/lib/storefront";
-import type { CatalogQuery } from "@/components/catalog-filter-form";
+import { buildPageHrefFrom, type CatalogQuery } from "@/lib/catalog-query";
 import { siteName } from "@/lib/site";
 
 export const revalidate = 60;
@@ -39,11 +41,13 @@ type CategoryFilterValues = {
   materials: string[];
   colours: string[];
   styles: string[];
+  page: number;
 };
 
 type CategoryProductResultsProps = {
   filters: CategoryFilterValues;
   filtersActive: boolean;
+  buildPageHref: (page: number) => string;
 };
 
 function firstValue(value: string | string[] | undefined) {
@@ -98,16 +102,19 @@ function resultsKey(filters: CategoryFilterValues) {
     filters.materials.join(","),
     filters.colours.join(","),
     filters.styles.join(","),
+    // Paging re-triggers the skeleton rather than leaving the old cards in place.
+    filters.page,
   ].join("|");
 }
 
 async function CategoryProductResults({
   filters,
   filtersActive,
+  buildPageHref,
 }: CategoryProductResultsProps) {
-  const products = await getCatalogProducts(filters).catch(() => null);
+  const result = await getCatalogProducts(filters).catch(() => null);
 
-  if (!products) {
+  if (!result) {
     return (
       <EmptyState
         title="პროდუქტები ვერ ჩაიტვირთა"
@@ -117,7 +124,18 @@ async function CategoryProductResults({
     );
   }
 
-  if (products.length === 0) {
+  // Results exist, just not on this page — a stale deep link rather than an empty category.
+  if (result.items.length === 0 && result.total > 0) {
+    return (
+      <EmptyState
+        title="ეს გვერდი აღარ არსებობს"
+        description="შესაძლოა პროდუქტები შეიცვალა. დაბრუნდით პირველ გვერდზე."
+        action={{ href: buildPageHref(1), label: "პირველი გვერდი" }}
+      />
+    );
+  }
+
+  if (result.total === 0) {
     return (
       <EmptyState
         title={
@@ -135,11 +153,27 @@ async function CategoryProductResults({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
+    <>
+      {result.pageCount > 1 ? (
+        <p
+          className="-mt-6 mb-8 text-sm text-[#5e685f]"
+          role="status"
+          aria-live="polite"
+        >
+          ნაპოვნია: {result.total} — გვერდი {result.page} / {result.pageCount}
+        </p>
+      ) : null}
+      <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
+        {result.items.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+      <Pagination
+        page={result.page}
+        pageCount={result.pageCount}
+        buildHref={buildPageHref}
+      />
+    </>
   );
 }
 
@@ -214,6 +248,7 @@ export default async function CategoryPage({
   const maxWidth = parseOptionalNumber(firstValue(queryParams.maxWidth));
   const minHeight = parseOptionalNumber(firstValue(queryParams.minHeight));
   const maxHeight = parseOptionalNumber(firstValue(queryParams.maxHeight));
+  const page = parsePageParam(firstValue(queryParams.page));
 
   const filters: CategoryFilterValues = {
     search,
@@ -227,6 +262,7 @@ export default async function CategoryPage({
     materials,
     colours,
     styles,
+    page,
   };
 
   const query: CatalogQuery = {
@@ -242,6 +278,13 @@ export default async function CategoryPage({
     colours,
     styles,
   };
+
+  // The category lives in the path, not in a param — `query.category` is deliberately ""
+  // above — so the pager's base is this category's own URL.
+  const buildPageHref = buildPageHrefFrom(
+    `/categories/${encodeURIComponent(slug)}`,
+    query,
+  );
 
   const filtersActive = Boolean(
     search ||
@@ -314,6 +357,7 @@ export default async function CategoryPage({
           <CategoryProductResults
             filters={filters}
             filtersActive={filtersActive}
+            buildPageHref={buildPageHref}
           />
         </Suspense>
       </section>

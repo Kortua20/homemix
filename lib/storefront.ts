@@ -119,6 +119,46 @@ export type ProductDimensions = {
   note: string | null;
 };
 
+// What a grid card renders, and nothing more. A card is not a small Product: it is a
+// different, much cheaper shape that happens to share field names.
+//
+// The full Product drags eight embedded tables (images, flaws, condition aspects,
+// materials, colours, styles, category, category images) through the RSC payload so a grid
+// can print a name, a price and one photo. On a page of 24 that is thousands of joined rows
+// serialized and discarded. ProductCardData is the subset the card actually reads.
+export type ProductCardData = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  compareAtPrice: number | null;
+  discountPercent: number | null;
+  showsDiscount: boolean;
+  isNewArrival: boolean;
+  status: ProductStatus;
+  isPurchasable: boolean;
+  // Label only — the card prints conditionGrade.label_ka and never the description.
+  conditionGrade: { code: string; label_ka: string } | null;
+  // Name only, for the eyebrow line above the title.
+  categoryName: string | null;
+  // The lead image alone. The card renders images[0] and ignores the rest, so the query
+  // orders by (sort_order, created_at) and takes one instead of fetching the gallery.
+  leadImageId: string | null;
+};
+
+// A page of results plus the total matching count.
+//
+// `total` is the count of everything matching the filters, NOT items.length — the two were
+// the same only while the query was unbounded. The results line and the page count both
+// read this.
+export type PaginatedResult<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  perPage: number;
+  pageCount: number;
+};
+
 export type CatalogFilters = {
   search?: string;
   categorySlug?: string;
@@ -131,6 +171,9 @@ export type CatalogFilters = {
   materials?: string[];
   colours?: string[];
   styles?: string[];
+  // 1-based. Clamped by toPageRange rather than validated here, so a junk param degrades to
+  // page 1 instead of throwing.
+  page?: number;
 };
 
 // Which facets are worth showing, and the vocabulary to show in each.
@@ -175,6 +218,21 @@ const LISTABLE_STATUS: ProductStatus = "available";
 const NEW_ARRIVAL_DAYS = 21;
 const NEW_ARRIVAL_MS = NEW_ARRIVAL_DAYS * 24 * 60 * 60 * 1000;
 
+// Grid is 4 across at lg, 2 at min-[520px]. 24 divides by both, so the last row of a full
+// page is never a ragged one or two cards at any breakpoint.
+export const CATALOG_PAGE_SIZE = 24;
+
+// How many product pages to prerender at build time. See getProductSlugs.
+const PRERENDER_SLUG_LIMIT = 500;
+
+// Sitemaps are capped at 50k URLs by the protocol; this is the per-request page size used
+// to walk the table, not a limit on the sitemap itself.
+const SITEMAP_PAGE_SIZE = 1000;
+
+// PostgREST caps rows per request at `db-max-rows` (1000 on Supabase by default) and
+// truncates silently — no error, just fewer products. Every unbounded list query below is
+// written against that ceiling rather than trusting the catalogue to stay small.
+
 // A discount small enough that announcing it looks worse than staying quiet — and rounding
 // makes a 1% cut read as "-1%", which invites the question of why it was worth a badge.
 const MIN_DISCOUNT_PERCENT = 5;
@@ -218,6 +276,27 @@ const productSelection = `
   colours:product_colours (colour:colours (code, label_ka, sort_order, hex)),
   styles:product_styles (style:styles (code, label_ka, sort_order)),
   category:categories!products_category_id_fkey (id, name, slug, description, images:category_images (id, sort_order, created_at)),
+  images:product_images (id, sort_order, created_at)
+`;
+
+// The card query. Same literal-string rule as productSelection above — QueryData derives
+// the row type from what is passed to .select(), so this cannot be built by a function.
+//
+// `images` still comes back as an array because PostgREST has no "limit one embedded row"
+// that also keeps the ordering deterministic; the array is collapsed to its first element
+// in normalizeProductCard. It is the one embed left, and it is three columns wide.
+const productCardSelection = `
+  id,
+  slug,
+  name,
+  price,
+  compare_at_price,
+  published_at,
+  status,
+  listing_kind,
+  stock_quantity,
+  conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka),
+  category:categories!products_category_id_fkey (name),
   images:product_images (id, sort_order, created_at)
 `;
 
@@ -311,11 +390,16 @@ function productQuery(supabase: SupabaseClient<Database>) {
   return supabase.from("products").select(productSelection);
 }
 
+function productCardQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("products").select(productCardSelection);
+}
+
 function categoryQuery(supabase: SupabaseClient<Database>) {
   return supabase.from("categories").select(categorySelection);
 }
 
 type ProductRow = QueryData<ReturnType<typeof productQuery>>[number];
+type ProductCardRow = QueryData<ReturnType<typeof productCardQuery>>[number];
 type CategoryRow = QueryData<ReturnType<typeof categoryQuery>>[number];
 
 function publicClient() {
@@ -330,6 +414,25 @@ function publicClient() {
       detectSessionInUrl: false,
     },
   });
+}
+
+// A `page` query param is whatever the user typed, so it is clamped rather than trusted:
+// "abc", "0", "-3" and "1e9" all have to resolve to a real page. Returns the 1-based page
+// alongside the inclusive .range() bounds Supabase wants.
+//
+// Clamping only at the bottom, not the top: the total is not known until the query runs,
+// so an over-large page returns zero rows and the page component decides what that means.
+export function toPageRange(page: number, perPage = CATALOG_PAGE_SIZE) {
+  const safePage =
+    Number.isFinite(page) && page >= 1 ? Math.floor(page) : 1;
+  const from = (safePage - 1) * perPage;
+  return { page: safePage, from, to: from + perPage - 1 };
+}
+
+// Parses a raw `?page=` value. Kept next to toPageRange so the two rules stay together.
+export function parsePageParam(value: string | undefined) {
+  const parsed = Number((value ?? "").trim());
+  return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
 }
 
 export function normalizeSlug(value: string) {
@@ -377,13 +480,19 @@ function getDiscountPercent(price: number, compareAtPrice: number | null) {
   return percent >= MIN_DISCOUNT_PERCENT ? percent : null;
 }
 
-function normalizeProduct(row: ProductRow): Product {
-  const category = row.category ?? null;
-  const images = [...row.images];
-  const status = String(row.status) as ProductStatus;
-  const grade = row.conditionGrade;
-  sortImages(images);
-
+// The merchandising rules, in one place because two code paths now render badges.
+//
+// Card and detail page must agree on what counts as buyable, discounted or new — a grid
+// that shows "-20%" next to a detail page that does not is worse than either rule alone.
+// Both normalizers call this rather than restating the conditions.
+function deriveMerchandising(row: {
+  price: number | string;
+  compare_at_price: number | string | null;
+  status: string;
+  listing_kind: string;
+  stock_quantity: number | string | null;
+  published_at: string | null;
+}) {
   const price = Number(row.price);
   const compareAtPrice =
     row.compare_at_price === null ? null : Number(row.compare_at_price);
@@ -391,10 +500,73 @@ function normalizeProduct(row: ProductRow): Product {
   // A used item is one physical object, so `available` is the whole story. A new item
   // additionally needs stock on hand — status alone would let a zero-stock row through.
   const isPurchasable =
-    status === "available" &&
+    row.status === "available" &&
     (row.listing_kind === "used_unique" || Number(row.stock_quantity ?? 0) > 0);
   const publishedAt = row.published_at ? String(row.published_at) : null;
   const publishedTime = publishedAt ? new Date(publishedAt).getTime() : NaN;
+
+  return {
+    price,
+    compareAtPrice,
+    discountPercent,
+    isPurchasable,
+    publishedAt,
+    // Suppressed on anything that cannot be bought. A sold listing keeps its page, but
+    // "was 820, now 640" on it advertises an offer that has expired — and the sold notice
+    // sitting next to a saving reads as a taunt rather than as social proof.
+    showsDiscount: discountPercent !== null && isPurchasable,
+    // Only a buyable listing can be a new arrival: a reserved or sold item is not something
+    // that just arrived for the customer, whatever its timestamp says.
+    isNewArrival:
+      isPurchasable &&
+      Number.isFinite(publishedTime) &&
+      Date.now() - publishedTime <= NEW_ARRIVAL_MS,
+  };
+}
+
+function normalizeProductCard(row: ProductCardRow): ProductCardData {
+  const merchandising = deriveMerchandising(row);
+  // Sorted with the same rule as the full product rather than trusting PostgREST's order,
+  // so the card's photo is always the one the gallery leads with.
+  const images = [...row.images];
+  sortImages(images);
+  const grade = row.conditionGrade;
+
+  return {
+    id: String(row.id),
+    slug: String(row.slug),
+    name: String(row.name),
+    price: merchandising.price,
+    compareAtPrice: merchandising.compareAtPrice,
+    discountPercent: merchandising.discountPercent,
+    showsDiscount: merchandising.showsDiscount,
+    isNewArrival: merchandising.isNewArrival,
+    status: String(row.status) as ProductStatus,
+    isPurchasable: merchandising.isPurchasable,
+    conditionGrade: grade
+      ? { code: String(grade.code), label_ka: String(grade.label_ka) }
+      : null,
+    categoryName: row.category ? String(row.category.name) : null,
+    leadImageId: images[0] ? String(images[0].id) : null,
+  };
+}
+
+function normalizeProduct(row: ProductRow): Product {
+  const category = row.category ?? null;
+  const images = [...row.images];
+  const status = String(row.status) as ProductStatus;
+  const grade = row.conditionGrade;
+  sortImages(images);
+
+  const {
+    price,
+    compareAtPrice,
+    discountPercent,
+    isPurchasable,
+    publishedAt,
+    showsDiscount,
+    isNewArrival,
+  } = deriveMerchandising(row);
 
   return {
     id: String(row.id),
@@ -404,18 +576,10 @@ function normalizeProduct(row: ProductRow): Product {
     price,
     compareAtPrice,
     discountPercent,
-    // Suppressed on anything that cannot be bought. A sold listing keeps its page, but
-    // "was 820, now 640" on it advertises an offer that has expired — and the sold notice
-    // sitting next to a saving reads as a taunt rather than as social proof.
-    showsDiscount: discountPercent !== null && isPurchasable,
+    showsDiscount,
     created_at: String(row.created_at),
     publishedAt,
-    // Only a buyable listing can be a new arrival: a reserved or sold item is not something
-    // that just arrived for the customer, whatever its timestamp says.
-    isNewArrival:
-      isPurchasable &&
-      Number.isFinite(publishedTime) &&
-      Date.now() - publishedTime <= NEW_ARRIVAL_MS,
+    isNewArrival,
     status,
     listingKind: String(row.listing_kind) as ListingKind,
     conditionGrade: grade
@@ -531,27 +695,37 @@ export async function getCategorySlugs(): Promise<string[]> {
   return (data ?? []).map((row) => String(row.slug));
 }
 
-export async function getNewestProducts(limit = 8): Promise<Product[]> {
+export async function getNewestProducts(
+  limit = 8,
+): Promise<ProductCardData[]> {
   const { data, error } = await publicClient()
     .from("products")
-    .select(productSelection)
+    .select(productCardSelection)
     .eq("status", LISTABLE_STATUS)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: true })
     .limit(limit);
   if (error)
     throw new Error("პროდუქტების ჩატვირთვა ვერ მოხერხდა", { cause: error });
-  return (data ?? []).map(normalizeProduct);
+  return (data ?? []).map(normalizeProductCard);
 }
 
 // Feeds generateStaticParams. Deliberately available-only: sold products keep working
 // pages, but prerendering every product ever sold would grow without bound. Their pages
 // render on demand instead.
+//
+// Explicitly capped: past this many products, prerendering them all costs more build time
+// than it saves, and the newest are the ones that get traffic. Products beyond the cap
+// still render on demand — this only decides what is built ahead of time. The cap also
+// keeps the request under PostgREST's silent 1000-row ceiling.
 export async function getProductSlugs(): Promise<string[]> {
   const { data, error } = await publicClient()
     .from("products")
     .select("slug")
     .eq("status", LISTABLE_STATUS)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true })
+    .range(0, PRERENDER_SLUG_LIMIT - 1);
   if (error)
     throw new Error("Product slugs could not be loaded", { cause: error });
   return (data ?? []).map((row) => String(row.slug));
@@ -572,24 +746,47 @@ export async function getSitemapProducts(): Promise<
     images: ProductImage[];
   }[]
 > {
-  const { data, error } = await publicClient()
-    .from("products")
-    .select(
-      "slug, created_at, status, images:product_images (id, sort_order, created_at)",
-    )
-    .order("created_at", { ascending: false });
-  if (error)
-    throw new Error("Sitemap products could not be loaded", { cause: error });
-  return (data ?? []).map((row) => {
-    const images = [...row.images];
-    sortImages(images);
-    return {
-      slug: String(row.slug),
-      created_at: String(row.created_at),
-      status: String(row.status) as ProductStatus,
-      images,
-    };
-  });
+  const supabase = publicClient();
+  const rows: {
+    slug: string;
+    created_at: string;
+    status: ProductStatus;
+    images: ProductImage[];
+  }[] = [];
+
+  // Walks the table in pages instead of asking for everything at once. A single unbounded
+  // request is capped at db-max-rows and truncated *silently*, which would drop the oldest
+  // products out of the sitemap with no error to notice. The loop stops on the first short
+  // page, so a small catalogue still costs exactly one request.
+  for (let offset = 0; ; offset += SITEMAP_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("products")
+      .select(
+        "slug, created_at, status, images:product_images (id, sort_order, created_at)",
+      )
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(offset, offset + SITEMAP_PAGE_SIZE - 1);
+
+    if (error)
+      throw new Error("Sitemap products could not be loaded", { cause: error });
+
+    const batch = data ?? [];
+    for (const row of batch) {
+      const images = [...row.images];
+      sortImages(images);
+      rows.push({
+        slug: String(row.slug),
+        created_at: String(row.created_at),
+        status: String(row.status) as ProductStatus,
+        images,
+      });
+    }
+
+    if (batch.length < SITEMAP_PAGE_SIZE) break;
+  }
+
+  return rows;
 }
 
 async function getCategoryIdBySlug(
@@ -761,10 +958,20 @@ export async function getCatalogProducts({
   materials = [],
   colours = [],
   styles = [],
-}: CatalogFilters = {}): Promise<Product[]> {
+  page = 1,
+}: CatalogFilters = {}): Promise<PaginatedResult<ProductCardData>> {
+  const { page: safePage, from, to } = toPageRange(page);
+  const empty: PaginatedResult<ProductCardData> = {
+    items: [],
+    total: 0,
+    page: safePage,
+    perPage: CATALOG_PAGE_SIZE,
+    pageCount: 0,
+  };
+
   const supabase = publicClient();
   const categoryId = await getCategoryIdBySlug(supabase, categorySlug);
-  if (categoryId === "") return [];
+  if (categoryId === "") return empty;
 
   // Facets resolve to a set of ids first, so productSelection can stay a string literal
   // and keep its inferred row type. An empty result here means "nothing matches", which is
@@ -777,49 +984,104 @@ export async function getCatalogProducts({
     styles,
   );
 
-  if (facetIds !== null && facetIds.length === 0) return [];
+  if (facetIds !== null && facetIds.length === 0) return empty;
 
-  let query = supabase
-    .from("products")
-    .select(productSelection)
-    .eq("status", LISTABLE_STATUS);
+  // Every filter except the facet ids, applied to whichever query is passed in. Generic over
+  // the builder type so the same rules serve both the page fetch and the count below — the
+  // two disagreeing about what "matching" means is exactly how a pager ends up advertising
+  // pages that turn out to be empty.
+  const applyFilters = <T extends {
+    gte: (c: string, v: number) => T;
+    lte: (c: string, v: number) => T;
+    ilike: (c: string, v: string) => T;
+    eq: (c: string, v: string) => T;
+    in: (c: string, v: string[]) => T;
+  }>(builder: T): T => {
+    let next = builder;
+    if (facetIds !== null) next = next.in("id", facetIds);
 
-  if (facetIds !== null) query = query.in("id", facetIds);
+    // Dimension ranges exclude unmeasured products by necessity — see FacetAvailability.
+    if (minWidth !== undefined && Number.isFinite(minWidth))
+      next = next.gte("width_cm", minWidth);
+    if (maxWidth !== undefined && Number.isFinite(maxWidth))
+      next = next.lte("width_cm", maxWidth);
+    if (minHeight !== undefined && Number.isFinite(minHeight))
+      next = next.gte("height_cm", minHeight);
+    if (maxHeight !== undefined && Number.isFinite(maxHeight))
+      next = next.lte("height_cm", maxHeight);
 
-  // Dimension ranges exclude unmeasured products by necessity — see FacetAvailability.
-  if (minWidth !== undefined && Number.isFinite(minWidth))
-    query = query.gte("width_cm", minWidth);
-  if (maxWidth !== undefined && Number.isFinite(maxWidth))
-    query = query.lte("width_cm", maxWidth);
-  if (minHeight !== undefined && Number.isFinite(minHeight))
-    query = query.gte("height_cm", minHeight);
-  if (maxHeight !== undefined && Number.isFinite(maxHeight))
-    query = query.lte("height_cm", maxHeight);
+    const normalizedSearch = search.trim().slice(0, 100);
+    const normalizedMinPrice = Number.isFinite(minPrice)
+      ? Math.max(0, Number(minPrice))
+      : 0;
+    const normalizedMaxPrice =
+      maxPrice !== undefined && Number.isFinite(maxPrice)
+        ? Math.max(0, Number(maxPrice))
+        : undefined;
 
-  const normalizedSearch = search.trim().slice(0, 100);
-  const normalizedMinPrice = Number.isFinite(minPrice)
-    ? Math.max(0, Number(minPrice))
-    : 0;
-  const normalizedMaxPrice =
-    maxPrice !== undefined && Number.isFinite(maxPrice)
-      ? Math.max(0, Number(maxPrice))
-      : undefined;
+    if (normalizedSearch) next = next.ilike("name", `%${normalizedSearch}%`);
+    if (categoryId) next = next.eq("category_id", categoryId);
+    if (normalizedMinPrice > 0) next = next.gte("price", normalizedMinPrice);
+    if (normalizedMaxPrice !== undefined)
+      next = next.lte("price", normalizedMaxPrice);
 
-  if (normalizedSearch) query = query.ilike("name", `%${normalizedSearch}%`);
-  if (categoryId) query = query.eq("category_id", categoryId);
-  if (normalizedMinPrice > 0) query = query.gte("price", normalizedMinPrice);
-  if (normalizedMaxPrice !== undefined)
-    query = query.lte("price", normalizedMaxPrice);
+    return next;
+  };
 
-  const { data, error } = await query
+  // `count: "exact"` rather than "planned"/"estimated": the results line states a number to
+  // the customer and the pager derives its last page from it, so an estimate that drifts
+  // would produce pages that do not exist. Exact counts are a sequential scan on the
+  // filtered set, which the partial indexes keep cheap at this catalogue's size.
+  //
+  // The (created_at desc, id asc) pair is a stable total order, which is what makes offset
+  // paging correct: ordering by created_at alone leaves rows sharing a timestamp free to
+  // swap between requests, which duplicates one row onto page 2 and drops another entirely.
+  const { data, error, count } = await applyFilters(
+    supabase
+      .from("products")
+      .select(productCardSelection, { count: "exact" })
+      .eq("status", LISTABLE_STATUS),
+  )
     .order("created_at", { ascending: false })
-    .order("id", { ascending: true });
+    .order("id", { ascending: true })
+    .range(from, to);
 
   if (error) {
-    throw new Error("Products could not be loaded", { cause: error });
+    // PGRST103 ("Requested range not satisfiable") is what PostgREST returns when a counted
+    // query's offset lands past the end of the result set — i.e. a `?page=` beyond the last
+    // page. That is a normal thing for someone to do, not a failure: a bookmarked page 9
+    // after stock shrank, or a hand-edited URL. Reporting "could not load" for what is
+    // really just an empty page would be wrong, so it resolves to zero items instead.
+    //
+    // Verified against PostgREST rather than assumed: the error only fires when a count is
+    // requested AND the range is past the end; the same range without a count returns an
+    // empty array. The count is null on this response, so it is re-fetched head-only to
+    // tell "empty page, results behind it" apart from "nothing matches at all".
+    if (error.code !== "PGRST103") {
+      throw new Error("Products could not be loaded", { cause: error });
+    }
+
+    const { count: fallbackCount, error: countError } = await applyFilters(
+      supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("status", LISTABLE_STATUS),
+    );
+
+    // A failure here only costs the "go back to page 1" wording, so it degrades to the
+    // plain empty state rather than propagating.
+    return { ...empty, total: countError ? 0 : (fallbackCount ?? 0) };
   }
 
-  return (data ?? []).map(normalizeProduct);
+  const total = count ?? 0;
+
+  return {
+    items: (data ?? []).map(normalizeProductCard),
+    total,
+    page: safePage,
+    perPage: CATALOG_PAGE_SIZE,
+    pageCount: Math.ceil(total / CATALOG_PAGE_SIZE),
+  };
 }
 
 // NO status filter, deliberately: a sold or reserved item keeps its page. RLS still hides

@@ -1,10 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ImageIcon } from "lucide-react";
-import { formatPrice, type Product } from "@/lib/storefront";
+import { formatPrice, type ProductCardData } from "@/lib/storefront";
 
-export function ProductCard({ product }: { product: Product }) {
-  const firstImage = product.images[0];
+export function ProductCard({ product }: { product: ProductCardData }) {
 
   return (
     <Link
@@ -35,9 +34,9 @@ export function ProductCard({ product }: { product: Product }) {
             ) : null}
           </>
         )}
-        {firstImage ? (
+        {product.leadImageId ? (
           <Image
-            src={`/api/product-images/${firstImage.id}`}
+            src={`/api/product-images/${product.leadImageId}`}
             alt={`${product.name} — პროდუქტის ფოტო`}
             fill
             sizes="(max-width: 520px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -58,7 +57,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-2">
             <p className="truncate text-xs font-semibold text-[#667168]">
-              {product.category?.name ?? "კატალოგის გარეშე"}
+              {product.categoryName ?? "კატალოგის გარეშე"}
             </p>
             {/* `unassessed` is suppressed here: a grid where every card reads "assessment
                 in progress" is noise, and on a card there is no room for the explanation
