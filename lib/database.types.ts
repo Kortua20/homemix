@@ -431,6 +431,7 @@ export type Database = {
       products: {
         Row: {
           category_id: string
+          compare_at_price: number | null
           condition_grade: string | null
           condition_summary: string | null
           created_at: string
@@ -442,6 +443,7 @@ export type Database = {
           listing_kind: string
           name: string
           price: number
+          published_at: string | null
           seat_height_cm: number | null
           slug: string
           status: string
@@ -452,6 +454,7 @@ export type Database = {
         }
         Insert: {
           category_id: string
+          compare_at_price?: number | null
           condition_grade?: string | null
           condition_summary?: string | null
           created_at?: string
@@ -463,6 +466,7 @@ export type Database = {
           listing_kind?: string
           name: string
           price: number
+          published_at?: string | null
           seat_height_cm?: number | null
           slug: string
           status?: string
@@ -473,6 +477,7 @@ export type Database = {
         }
         Update: {
           category_id?: string
+          compare_at_price?: number | null
           condition_grade?: string | null
           condition_summary?: string | null
           created_at?: string
@@ -484,6 +489,7 @@ export type Database = {
           listing_kind?: string
           name?: string
           price?: number
+          published_at?: string | null
           seat_height_cm?: number | null
           slug?: string
           status?: string

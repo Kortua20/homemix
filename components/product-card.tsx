@@ -18,7 +18,23 @@ export function ProductCard({ product }: { product: Product }) {
           <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#443a72] px-2.5 py-1 text-xs font-semibold text-white">
             {product.status === "reserved" ? "დაჯავშნილი" : "გაყიდული"}
           </span>
-        ) : null}
+        ) : (
+          /* At most one badge. A card carrying both "-20%" and "new arrival" makes the
+             viewer read two claims and trust neither; the discount is the stronger one, so
+             it wins when both apply. Both are already suppressed on unbuyable listings by
+             showsDiscount / isNewArrival. */
+          <>
+            {product.showsDiscount ? (
+              <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#8a2f1f] px-2.5 py-1 text-xs font-semibold text-white">
+                -{product.discountPercent}%
+              </span>
+            ) : product.isNewArrival ? (
+              <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#1d4a38] px-2.5 py-1 text-xs font-semibold text-white">
+                ახალი შემოსული
+              </span>
+            ) : null}
+          </>
+        )}
         {firstImage ? (
           <Image
             src={`/api/product-images/${firstImage.id}`}
@@ -59,9 +75,21 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
           <div className="flex flex-col gap-2 items-end">
             <ArrowUpRight className="size-4" aria-hidden="true" />
-            <p className="text-lg font-bold text-[#173c2f]">
-              {formatPrice(product.price)}
-            </p>
+            <div className="text-right">
+              <p className="text-lg font-bold text-[#173c2f]">
+                {formatPrice(product.price)}
+              </p>
+              {/* The old price is <s> rather than a line-through class: the strike-through
+                  is the meaning here, not decoration, so it has to survive for a screen
+                  reader too. The label says which is which, since two numbers in sequence
+                  are ambiguous read aloud. */}
+              {product.showsDiscount && product.compareAtPrice !== null ? (
+                <p className="mt-0.5 text-xs text-[#667168]">
+                  <span className="sr-only">ძველი ფასი: </span>
+                  <s>{formatPrice(product.compareAtPrice)}</s>
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
         <div className="mt-3 flex items-center justify-end gap-4"></div>

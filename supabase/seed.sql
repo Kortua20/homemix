@@ -171,6 +171,45 @@ where slug = 'orkariania-karada';
 -- tsignis-taro-maghali deliberately left without dimensions: it is the draft row, and a
 -- half-documented listing is exactly what `draft` is for.
 
+-- Pricing and merchandising (roadmap step 4). Uneven for the same reason as above: the
+-- storefront has to render a discounted product, a full-price one, and a discounted product
+-- that is no longer buyable, and a seed where everything is on sale hides two of the three.
+--
+-- compare_at_price must exceed price (products_compare_at_price_check), so these values are
+-- also the local proof that the constraint permits what it should.
+update public.products set compare_at_price = 2990.00
+where slug = 'tbilisi-divani';
+
+-- A sold listing that was discounted. Its page still renders (sold rows keep their URL),
+-- so this row is what proves the storefront suppresses the strike-through and the badge on
+-- something nobody can buy rather than advertising a saving on it.
+update public.products set compare_at_price = 820.00
+where slug = 'zhurnalis-magida-mrgvali';
+
+-- A new stocked item on sale: merchandising is not condition-specific, so this exercises
+-- the non-used branch too.
+update public.products set compare_at_price = 360.00
+where slug = 'sasadilo-skami-natural';
+
+-- published_at drives the "new arrival" badge, and is set only for rows that are actually
+-- available. Deliberately spread across the recency window so the badge boundary is
+-- exercised rather than assumed: two inside it, one just outside.
+update public.products set published_at = now() - interval '3 days'
+where slug = 'kutaisi-kutkhis-divani';
+
+update public.products set published_at = now() - interval '10 days'
+where slug = 'baris-taburetka';
+
+-- Outside the window: present, recent-ish, but must NOT badge. A seed with only fresh
+-- timestamps would pass whatever threshold the code happened to use.
+update public.products set published_at = now() - interval '45 days'
+where slug = 'mukhis-sasadilo-magida';
+
+-- tbilisi-divani keeps published_at NULL on purpose: it is available AND discounted, so it
+-- is the row that shows a sale badge must not depend on a publish timestamp existing.
+-- The draft and reserved rows are left NULL too — a draft was never published, and null is
+-- how every pre-existing production row will read after this migration.
+
 -- Attributes (roadmap step 3b). Deliberately uneven, like the dimensions above: some
 -- products carry material + colour + style, some only a colour, and the draft carries none.
 -- A seed where every product is fully tagged would hide the partial states the facet UI

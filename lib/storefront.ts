@@ -68,7 +68,21 @@ export type Product = {
   name: string;
   description: string | null;
   price: number;
+  // The "was" price, or null when the item is not discounted. `price` is always what the
+  // customer pays, so this is strictly greater when present (enforced by the CHECK).
+  compareAtPrice: number | null;
+  // Derived, never stored: storing it would be a third field that can disagree with the
+  // two it comes from. Null exactly when compareAtPrice is.
+  discountPercent: number | null;
+  // Whether the comparison is safe to advertise. A sold or reserved item keeps its page as
+  // social proof, but a struck-through price on something nobody can buy is a claim about
+  // an offer that no longer exists.
+  showsDiscount: boolean;
   created_at: string;
+  // When the listing first became available — not created_at. See the column comment in
+  // schemas/03_products.sql: a used item sits in `draft` while it is documented.
+  publishedAt: string | null;
+  isNewArrival: boolean;
   status: ProductStatus;
   listingKind: ListingKind;
   conditionGrade: ConditionGrade | null;
@@ -153,6 +167,18 @@ const FACET_MIN_PRODUCTS = 8;
 // rather than the only guard.
 const LISTABLE_STATUS: ProductStatus = "available";
 
+// How long after publication a listing still counts as a new arrival.
+//
+// 21 days rather than 7: this catalogue gains a handful of items a month, so a one-week
+// window would leave the badge absent most of the time and make its appearance read as a
+// glitch rather than as information.
+const NEW_ARRIVAL_DAYS = 21;
+const NEW_ARRIVAL_MS = NEW_ARRIVAL_DAYS * 24 * 60 * 60 * 1000;
+
+// A discount small enough that announcing it looks worse than staying quiet — and rounding
+// makes a 1% cut read as "-1%", which invites the question of why it was worth a badge.
+const MIN_DISCOUNT_PERCENT = 5;
+
 // MUST stay a plain string literal. Supabase's QueryData derives the row type from the
 // literal passed to .select(), so building this with a function collapses every row to
 // GenericStringError and normalizeProduct silently loses its typing — the exact "cast it
@@ -167,7 +193,9 @@ const productSelection = `
   name,
   description,
   price,
+  compare_at_price,
   created_at,
+  published_at,
   status,
   listing_kind,
   condition_summary,
@@ -337,19 +365,57 @@ function normalizeCategory(row: CategoryRow): Category {
   };
 }
 
+// Null unless the comparison is real and worth showing. Guards against a compare-at price
+// that is not above the selling price even though the CHECK forbids it — this function also
+// runs against rows written before that constraint existed, and a negative "discount" would
+// render as a saving.
+function getDiscountPercent(price: number, compareAtPrice: number | null) {
+  if (compareAtPrice === null) return null;
+  if (!Number.isFinite(compareAtPrice) || compareAtPrice <= price) return null;
+
+  const percent = Math.round((1 - price / compareAtPrice) * 100);
+  return percent >= MIN_DISCOUNT_PERCENT ? percent : null;
+}
+
 function normalizeProduct(row: ProductRow): Product {
   const category = row.category ?? null;
   const images = [...row.images];
   const status = String(row.status) as ProductStatus;
   const grade = row.conditionGrade;
   sortImages(images);
+
+  const price = Number(row.price);
+  const compareAtPrice =
+    row.compare_at_price === null ? null : Number(row.compare_at_price);
+  const discountPercent = getDiscountPercent(price, compareAtPrice);
+  // A used item is one physical object, so `available` is the whole story. A new item
+  // additionally needs stock on hand — status alone would let a zero-stock row through.
+  const isPurchasable =
+    status === "available" &&
+    (row.listing_kind === "used_unique" || Number(row.stock_quantity ?? 0) > 0);
+  const publishedAt = row.published_at ? String(row.published_at) : null;
+  const publishedTime = publishedAt ? new Date(publishedAt).getTime() : NaN;
+
   return {
     id: String(row.id),
     slug: String(row.slug),
     name: String(row.name),
     description: row.description ? String(row.description) : null,
-    price: Number(row.price),
+    price,
+    compareAtPrice,
+    discountPercent,
+    // Suppressed on anything that cannot be bought. A sold listing keeps its page, but
+    // "was 820, now 640" on it advertises an offer that has expired — and the sold notice
+    // sitting next to a saving reads as a taunt rather than as social proof.
+    showsDiscount: discountPercent !== null && isPurchasable,
     created_at: String(row.created_at),
+    publishedAt,
+    // Only a buyable listing can be a new arrival: a reserved or sold item is not something
+    // that just arrived for the customer, whatever its timestamp says.
+    isNewArrival:
+      isPurchasable &&
+      Number.isFinite(publishedTime) &&
+      Date.now() - publishedTime <= NEW_ARRIVAL_MS,
     status,
     listingKind: String(row.listing_kind) as ListingKind,
     conditionGrade: grade
@@ -366,11 +432,7 @@ function normalizeProduct(row: ProductRow): Product {
       : null,
     stockQuantity:
       row.stock_quantity === null ? null : Number(row.stock_quantity),
-    // A used item is one physical object, so `available` is the whole story. A new item
-    // additionally needs stock on hand — status alone would let a zero-stock row through.
-    isPurchasable:
-      status === "available" &&
-      (row.listing_kind === "used_unique" || Number(row.stock_quantity ?? 0) > 0),
+    isPurchasable,
     conditionAspects: (row.conditionAspects ?? [])
       .map((rating) => ({
         aspect_code: String(rating.aspect_code),

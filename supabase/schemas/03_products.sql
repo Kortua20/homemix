@@ -40,6 +40,23 @@ create table if not exists "public"."products" (
     "weight_kg" numeric(7,2),
     -- For pieces a bounding box does not describe: an L-shaped corner sofa, a round table.
     "dimension_note" "text",
+    -- Pricing and merchandising (roadmap step 4).
+    --
+    -- The "was" price. `price` above always remains what the customer pays, so a discount
+    -- never overwrites it — and the discount percentage is derived at read time rather than
+    -- stored, because three fields that can disagree is worse than one division.
+    "compare_at_price" numeric(12,2),
+    -- When the listing first became `available`, which is NOT created_at: a used item sits
+    -- in `draft` while it is photographed and documented, so the row exists days before it
+    -- goes on sale. Null means "never published" or "published before this column existed",
+    -- and either way no recency claim is made.
+    "published_at" timestamp with time zone,
+    -- Strictly greater, not >=: an equal compare-at price renders a struck-through number
+    -- identical to the live one, advertising a 0% saving. Rejecting it here means no read
+    -- path has to remember to filter it out.
+    constraint "products_compare_at_price_check"
+        check (("compare_at_price" is null)
+            or (("compare_at_price" > "price") and ("compare_at_price" <= 9999999999.99))),
     -- Bounds reject data-entry mistakes (a misplaced decimal, mm typed as cm) rather than
     -- encoding assumptions about what furniture exists.
     constraint "products_width_cm_check"

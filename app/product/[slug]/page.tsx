@@ -110,6 +110,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
       priceCurrency: "GEL",
       price: product.price,
       availability,
+      // The "was" price, as a StrikethroughPrice-typed UnitPriceSpecification. Verified
+      // against Google's merchant-listing reference rather than guessed, because two things
+      // here are easy to get wrong:
+      //
+      // 1. The active price stays in `offers.price`. Google's precedence rule — "if you use
+      //    both offers.price and offers.priceSpecification to encode an ACTIVE price,
+      //    priceSpecification is ignored" — applies to an active price only. A spec typed
+      //    StrikethroughPrice is not an active price, so the two coexist as intended.
+      // 2. It is emitted only when showsDiscount holds, which is false on sold and reserved
+      //    listings. Claiming a sale price on a SoldOut offer is the same class of
+      //    structured-data violation as claiming InStock for a sold item.
+      ...(product.showsDiscount && product.compareAtPrice !== null
+        ? {
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              priceType: "https://schema.org/StrikethroughPrice",
+              price: product.compareAtPrice,
+              priceCurrency: "GEL",
+            },
+          }
+        : {}),
     },
   };
   const breadcrumbJsonLd = {
@@ -196,9 +217,30 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <h1 className="mt-2 max-w-[18ch] text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] text-balance sm:text-4xl">
               {product.name}
             </h1>
-            <p className="mt-5 text-2xl font-bold text-[#1d4a38] sm:text-3xl">
-              {formatPrice(product.price)}
-            </p>
+            <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+              <p className="text-2xl font-bold text-[#1d4a38] sm:text-3xl">
+                {formatPrice(product.price)}
+              </p>
+              {/* showsDiscount is already false on a sold or reserved item, so the "was"
+                  price disappears with the offer rather than outliving it. */}
+              {product.showsDiscount && product.compareAtPrice !== null ? (
+                <>
+                  <p className="text-base text-[#667168] sm:text-lg">
+                    <span className="sr-only">ძველი ფასი: </span>
+                    <s>{formatPrice(product.compareAtPrice)}</s>
+                  </p>
+                  <span className="inline-flex items-center rounded-full bg-[#8a2f1f] px-2.5 py-1 text-xs font-semibold text-white">
+                    -{product.discountPercent}%
+                  </span>
+                </>
+              ) : null}
+            </div>
+
+            {product.isNewArrival ? (
+              <p className="mt-3 inline-flex items-center rounded-full bg-[#e9eee9] px-3 py-1 text-xs font-semibold text-[#1d4a38]">
+                ახალი შემოსული
+              </p>
+            ) : null}
 
             {!product.isPurchasable ? (
               <p
