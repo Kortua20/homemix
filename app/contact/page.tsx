@@ -21,7 +21,7 @@ export default function ContactPage() {
     <main className="bg-[#f4f2ed]">
       <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="max-w-2xl">
-          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] sm:text-5xl">
+          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-4 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-5xl">
             კონტაქტი
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-[#5e685f]">

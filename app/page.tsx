@@ -34,7 +34,7 @@ export default async function HomePage() {
       <section className="border-b border-[#d8ded8] bg-white py-16 sm:py-20 lg:py-24">
         <div className="mx-auto w-full max-w-384 px-4 sm:px-6 lg:px-10">
           <div className="mb-8 flex items-end justify-between gap-5 sm:mb-10">
-            <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#173c2f] sm:text-4xl">
+            <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#173c2f] after:mt-3 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-4xl">
               კატალოგი
             </h2>
             <Link
@@ -75,7 +75,7 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-384 px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-24">
         <div className="mb-8 flex items-end justify-between gap-5 sm:mb-10">
           <div>
-            <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] sm:text-4xl">
+            <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-3 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-4xl">
               ახალი პროდუქტები
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-[#5e685f] sm:text-base">

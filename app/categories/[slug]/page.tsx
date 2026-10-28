@@ -331,7 +331,7 @@ export default async function CategoryPage({
         <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end sm:mb-10">
           <div>
             <p className="text-sm font-semibold text-[#667168]">Category</p>
-            <h1 className="mt-2 text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] sm:text-5xl">
+            <h1 className="mt-2 text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-4 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-5xl">
               {category.name}
             </h1>
             {category.description ? (

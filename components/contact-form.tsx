@@ -10,6 +10,17 @@ type ContactResponse = {
   remaining?: number;
 };
 
+// Same field treatment as the catalogue filter: the label sits inside the bordered box, and
+// the box carries the hover/focus state for whatever control it wraps.
+const fieldFrameClass =
+  "relative block rounded-xl border border-[#b9c6bd] bg-white transition-colors hover:border-[#1d4a38] focus-within:border-[#1d4a38] focus-within:ring-2 focus-within:ring-[#1d4a38]/20 has-disabled:opacity-65";
+
+const fieldLabelClass =
+  "pointer-events-none absolute top-2.5 left-4 text-xs leading-4 font-semibold text-[#667168]";
+
+const inputClass =
+  "h-16 w-full rounded-xl bg-transparent px-4 pt-6 text-base text-[#18221d] placeholder:text-[#667168]/70 focus:outline-none disabled:cursor-wait";
+
 export function ContactForm() {
   const [submissionState, setSubmissionState] =
     useState<SubmissionState>("idle");
@@ -68,10 +79,10 @@ export function ContactForm() {
       onSubmit={handleSubmit}
       aria-busy={submissionState === "sending"}
       aria-describedby="contact-privacy-note contact-form-notice"
-      className="rounded-2xl bg-white p-5 shadow-[0_10px_28px_rgba(59,40,27,0.06)] sm:p-7 lg:p-8"
+      className="rounded-2xl border border-[#d8ded8] bg-[#ece8e1] p-5 sm:p-7 lg:p-8"
     >
       <div className="flex items-center gap-3">
-        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#e9eee9] text-[#1d4a38]">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-[#1d4a38]">
           <Mail className="size-5" aria-hidden="true" />
         </span>
         <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#18221d]">
@@ -80,10 +91,8 @@ export function ContactForm() {
       </div>
 
       <div className="mt-7 space-y-5">
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#18221d]">
-            თქვენი ელფოსტა
-          </span>
+        <label className={fieldFrameClass}>
+          <span className={fieldLabelClass}>თქვენი ელფოსტა</span>
           <input
             type="email"
             name="email"
@@ -91,14 +100,12 @@ export function ContactForm() {
             required
             disabled={submissionState === "sending"}
             placeholder="name@example.com"
-            className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
+            className={inputClass}
           />
         </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#18221d]">
-            სათაური
-          </span>
+        <label className={fieldFrameClass}>
+          <span className={fieldLabelClass}>სათაური</span>
           <input
             type="text"
             name="subject"
@@ -106,12 +113,14 @@ export function ContactForm() {
             maxLength={120}
             disabled={submissionState === "sending"}
             placeholder="რის შესახებ გვწერთ?"
-            className="min-h-12 w-full rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 text-base text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
+            className={inputClass}
           />
         </label>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-[#18221d]">
+        <label className={fieldFrameClass}>
+          {/* In flow, not absolute: a scrolled textarea would slide its text under an
+              overlaid label. */}
+          <span className="block px-4 pt-2.5 text-xs leading-4 font-semibold text-[#667168]">
             აღწერა
           </span>
           <textarea
@@ -121,7 +130,7 @@ export function ContactForm() {
             rows={6}
             disabled={submissionState === "sending"}
             placeholder="დაწერეთ თქვენი კითხვა ან კომენტარი"
-            className="w-full resize-y rounded-xl border border-[#b9c6bd] bg-[#f4f2ed] px-4 py-3 text-base leading-7 text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
+            className="block w-full resize-y rounded-b-xl bg-transparent px-4 pt-1 pb-3 text-base leading-7 text-[#18221d] placeholder:text-[#667168]/70 focus:outline-none disabled:cursor-wait"
           />
         </label>
       </div>

@@ -125,6 +125,14 @@ function Popover({
 const rangeInputClass =
   "h-10 min-w-0 rounded-lg border border-[#b9c6bd] bg-white px-3 text-sm text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20";
 
+// Search and category: the label sits inside the bordered box, and the control fills the
+// box, so a click anywhere on it focuses the input or opens the select.
+const fieldFrameClass =
+  "relative block h-14 min-w-0 rounded-xl border border-[#b9c6bd] bg-white transition-colors hover:border-[#1d4a38] focus-within:border-[#1d4a38] focus-within:ring-2 focus-within:ring-[#1d4a38]/20";
+
+const fieldLabelClass =
+  "pointer-events-none absolute top-2 text-[11px] leading-4 font-semibold text-[#667168]";
+
 const submitButtonClass =
   "grid size-10 place-items-center rounded-lg bg-[#1d4a38] text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38]";
 
@@ -193,35 +201,29 @@ export function CatalogFilterForm({
           className="contents"
         >
           <CarriedParams query={query} omit={["q", "category"]} />
-          <label className="min-w-0 flex-1">
-            <span className="mb-1.5 block text-xs font-semibold text-[#18221d]">
-              ძიება
-            </span>
-            <span className="relative block">
-              <Search
-                className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#667168]"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                name="q"
-                defaultValue={query.q}
-                maxLength={100}
-                placeholder="პროდუქტის სახელი"
-                className="h-11 w-full rounded-xl border border-[#b9c6bd] bg-white pr-3.5 pl-10 text-sm text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
-              />
-            </span>
+          <label className={cn(fieldFrameClass, "flex-1")}>
+            <span className={cn(fieldLabelClass, "left-10")}>ძიება</span>
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#667168]"
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              name="q"
+              defaultValue={query.q}
+              maxLength={100}
+              placeholder="პროდუქტის სახელი"
+              className="size-full rounded-xl bg-transparent pt-5 pr-3.5 pl-10 text-sm text-[#18221d] placeholder:text-[#667168]/70 focus:outline-none"
+            />
           </label>
 
           {hasCategoryFilter ? (
-            <label className="min-w-0 sm:w-60">
-              <span className="mb-1.5 block text-xs font-semibold text-[#18221d]">
-                კატეგორია
-              </span>
+            <label className={cn(fieldFrameClass, "sm:w-60")}>
+              <span className={cn(fieldLabelClass, "left-3.5")}>კატეგორია</span>
               <select
                 name="category"
                 defaultValue={query.category}
-                className="h-11 w-full rounded-xl border border-[#b9c6bd] bg-white px-3.5 text-sm text-[#18221d] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20"
+                className="size-full cursor-pointer appearance-none rounded-xl bg-transparent pt-5 pr-10 pl-3.5 text-sm text-[#18221d] focus:outline-none"
               >
                 <option value="">ყველა კატეგორია</option>
                 {categories.map((category) => (
@@ -230,13 +232,17 @@ export function CatalogFilterForm({
                   </option>
                 ))}
               </select>
+              <ChevronDown
+                className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-[#1d4a38]"
+                aria-hidden="true"
+              />
             </label>
           ) : null}
         </form>
         <button
           type="submit"
           form="catalog-filter-form"
-          className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1d4a38] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
+          className="flex h-12 shrink-0 sm:h-14 items-center justify-center gap-2 rounded-xl bg-[#1d4a38] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
         >
           <Search className="size-4" aria-hidden="true" />
           ძიება

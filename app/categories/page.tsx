@@ -26,7 +26,7 @@ export default async function CategoriesPage() {
     <main className="bg-[#f4f2ed]">
       <section className="mx-auto w-full max-w-384 px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
         <div className="mb-8 max-w-2xl sm:mb-10">
-          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] sm:text-5xl">
+          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-4 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-5xl">
             კატალოგი
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-[#5e685f]">
