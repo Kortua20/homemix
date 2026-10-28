@@ -69,7 +69,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 -->`;
 
   return (
-    <html lang="ka" className="h-full scroll-smooth">
+    <html lang="ka" className="h-full">
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[#f4f2ed] font-sans text-[#18221d] antialiased">
         <template dangerouslySetInnerHTML={{ __html: directionContract }} />
         <a
