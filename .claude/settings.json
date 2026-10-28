@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(sed 's/=.*/=<value>/' .env.local)"
+      "Bash(sed 's/=.*/=<value>/' .env.local)",
+      "ClaudeInChromeDomain(localhost:3000)"
     ],
     "deny": [
       "Bash(*supabase db push*)",

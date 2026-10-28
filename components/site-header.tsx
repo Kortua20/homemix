@@ -31,7 +31,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 bg-white">
       <div className="bg-[#173c2f] text-white">
-        <div className="mx-auto flex h-9 w-full max-w-384 items-center justify-between px-4 sm:px-6 lg:px-10">
+        <div className="relative mx-auto flex h-9 w-full max-w-384 items-center justify-between px-4 sm:px-6 lg:px-10">
           {contactDetails.phone.href ? (
             <a
               href={contactDetails.phone.href}
@@ -46,6 +46,9 @@ export function SiteHeader() {
               {contactDetails.phone.label}
             </span>
           )}
+          <p className="absolute left-1/2 hidden -translate-x-1/2 text-xs text-white/90 lg:block">
+            მაღაზიაში ხელმისაწვდომია განვადება და ნაწილ-ნაწილ გადახდა
+          </p>
           <span className="flex items-center gap-4 text-white/90">
             {socialLinks.facebook ? (
               <a

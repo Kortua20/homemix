@@ -154,6 +154,47 @@ export function Footer() {
           </div>
         </div>
 
+        <section
+          aria-labelledby="footer-payment-options"
+          className="flex flex-col gap-5 border-b border-white/25 py-8 md:flex-row md:items-center md:justify-between md:gap-10"
+        >
+          <div className="max-w-xl">
+            <h2
+              id="footer-payment-options"
+              className="text-sm font-semibold text-white"
+            >
+              გადახდის შესაძლებლობები
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#e0ebe4]">
+              ჩვენს მაღაზიაში შეგიძლიათ ისარგებლოთ საქართველოს ბანკის
+              განვადებით და ნაწილ-ნაწილ გადახდით.
+            </p>
+          </div>
+          <ul className="flex flex-wrap items-center gap-x-6 gap-y-4">
+            <li className="flex items-center gap-3 text-sm font-semibold text-white">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white">
+                <Image
+                  src="/payments/bog.png"
+                  alt="საქართველოს ბანკი"
+                  width={96}
+                  height={96}
+                  className="size-7 object-contain"
+                />
+              </span>
+              განვადება
+            </li>
+            <li>
+              <Image
+                src="/payments/natsil-natsil-white.png"
+                alt="ნაწილ-ნაწილ"
+                width={738}
+                height={288}
+                className="h-9 w-auto"
+              />
+            </li>
+          </ul>
+        </section>
+
         <div className="flex flex-col gap-2 pt-6 text-xs text-[#bed0c5] sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Home Mix. ყველა უფლება დაცულია.</p>
         </div>
