@@ -22,7 +22,8 @@ type CatalogFilterValues = {
   search: string;
   categorySlug: string;
   minPrice: number;
-  maxPrice: number;
+  // undefined = no ceiling. See where it is set in ProductsPage.
+  maxPrice?: number;
   minWidth?: number;
   maxWidth?: number;
   minHeight?: number;
@@ -69,7 +70,7 @@ function resultsKey(filters: CatalogFilterValues) {
     filters.search,
     filters.categorySlug,
     filters.minPrice,
-    filters.maxPrice,
+    filters.maxPrice ?? "",
     filters.minWidth ?? "",
     filters.maxWidth ?? "",
     filters.minHeight ?? "",
@@ -203,9 +204,15 @@ export default async function ProductsPage({
   const params = await searchParams;
   const search = firstValue(params.q).trim().slice(0, 100);
   const categorySlug = firstValue(params.category).trim();
-  const [availableMaxPrice, facets] = await Promise.all([
+  // Categories are fetched alongside, not after: they never depended on price or facets,
+  // and awaiting them second added a full database round trip to every navigation.
+  const [availableMaxPrice, facets, categoriesResult] = await Promise.all([
     getMaxProductPrice(categorySlug),
     getFacetAvailability(categorySlug),
+    getHomeCategories().then(
+      (categories) => ({ status: "fulfilled" as const, value: categories }),
+      () => ({ status: "rejected" as const, value: [] }),
+    ),
   ]);
   const minPrice = Math.min(
     parsePriceParam(firstValue(params.minPrice)),
@@ -242,7 +249,10 @@ export default async function ProductsPage({
     search,
     categorySlug,
     minPrice,
-    maxPrice,
+    // A ceiling only when the customer narrowed it. availableMaxPrice is cached and can
+    // trail a newly added or repriced product, so using it as an implicit ceiling would
+    // hide that product from the unfiltered grid until the cache refreshed.
+    maxPrice: maxPrice < availableMaxPrice ? maxPrice : undefined,
     minWidth,
     maxWidth,
     minHeight,
@@ -268,11 +278,6 @@ export default async function ProductsPage({
   };
 
   const buildPageHref = buildPageHrefFrom("/products", query);
-
-  const categoriesResult = await getHomeCategories().then(
-    (categories) => ({ status: "fulfilled" as const, value: categories }),
-    () => ({ status: "rejected" as const, value: [] }),
-  );
 
   const filtersActive = Boolean(
     search ||

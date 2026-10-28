@@ -13,7 +13,6 @@ import {
   getCategoryBySlug,
   getCategorySlugs,
   getFacetAvailability,
-  getHomeCategories,
   getMaxProductPrice,
   normalizeSlug,
   parsePageParam,
@@ -33,7 +32,8 @@ type CategoryFilterValues = {
   search: string;
   categorySlug: string;
   minPrice: number;
-  maxPrice: number;
+  // undefined = no ceiling. See where it is set in CategoryPage.
+  maxPrice?: number;
   minWidth?: number;
   maxWidth?: number;
   minHeight?: number;
@@ -94,7 +94,7 @@ function resultsKey(filters: CategoryFilterValues) {
     filters.search,
     filters.categorySlug,
     filters.minPrice,
-    filters.maxPrice,
+    filters.maxPrice ?? "",
     filters.minWidth ?? "",
     filters.maxWidth ?? "",
     filters.minHeight ?? "",
@@ -222,10 +222,15 @@ export default async function CategoryPage({
   const queryParams = searchParams ? await searchParams : {};
   const slug = normalizeSlug(rawSlug);
   const search = firstValue(queryParams.q).trim().slice(0, 100);
-  const [availableMaxPrice, facets] = await Promise.all([
+  // One round, not two: the category was previously fetched only after price and facets
+  // resolved, though nothing here depends on them.
+  const [availableMaxPrice, facets, category] = await Promise.all([
     getMaxProductPrice(slug),
     getFacetAvailability(slug),
+    getCategoryBySlug(slug),
   ]);
+
+  if (!category) notFound();
   const minPrice = Math.min(
     parsePriceParam(firstValue(queryParams.minPrice)),
     availableMaxPrice,
@@ -254,7 +259,10 @@ export default async function CategoryPage({
     search,
     categorySlug: slug,
     minPrice,
-    maxPrice,
+    // A ceiling only when the customer narrowed it. availableMaxPrice is cached and can
+    // trail a newly added or repriced product, so using it as an implicit ceiling would
+    // hide that product from the unfiltered grid until the cache refreshed.
+    maxPrice: maxPrice < availableMaxPrice ? maxPrice : undefined,
     minWidth,
     maxWidth,
     minHeight,
@@ -298,15 +306,7 @@ export default async function CategoryPage({
       colours.length > 0 ||
       styles.length > 0,
   );
-  const [category] = await Promise.all([
-    getCategoryBySlug(slug),
-    getHomeCategories(),
-  ]);
-
-  if (!category) notFound();
-
   const slides = categorySlides(category);
-  console.log(slides);
 
   return (
     <main className="bg-[#f4f2ed]">

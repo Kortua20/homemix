@@ -4,8 +4,15 @@ import {
   type QueryData,
   type SupabaseClient,
 } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import type { Database } from "@/lib/database.types";
+
+// Shared reference data (categories, price ceiling, facet coverage) is read on every
+// catalogue navigation but changes only when the admin edits the catalogue, so it is
+// cached across requests for the same window the routes already revalidate on. The admin
+// app is separate and cannot call revalidateTag here, so staleness is time-bounded only.
+const REFERENCE_DATA_REVALIDATE_SECONDS = 60;
 
 export type CategoryImage = {
   id: string;
@@ -674,7 +681,7 @@ function normalizeProduct(row: ProductRow): Product {
   };
 }
 
-export async function getHomeCategories(): Promise<Category[]> {
+async function loadHomeCategories(): Promise<Category[]> {
   const { data, error } = await publicClient()
     .from("categories")
     .select(categorySelection)
@@ -684,6 +691,12 @@ export async function getHomeCategories(): Promise<Category[]> {
     throw new Error("კატალოგის ჩატვირთვა ვერ მოხერხდა", { cause: error });
   return (data ?? []).map(normalizeCategory);
 }
+
+export const getHomeCategories = unstable_cache(
+  loadHomeCategories,
+  ["home-categories"],
+  { revalidate: REFERENCE_DATA_REVALIDATE_SECONDS },
+);
 
 export async function getCategorySlugs(): Promise<string[]> {
   const { data, error } = await publicClient()
@@ -789,14 +802,13 @@ export async function getSitemapProducts(): Promise<
   return rows;
 }
 
-async function getCategoryIdBySlug(
-  supabase: ReturnType<typeof publicClient>,
-  categorySlug: string,
-) {
+// Per-request dedupe: price, facets and the product list each resolve the same slug, and
+// without this a category page paid for three identical lookups.
+const getCategoryIdBySlug = cache(async (categorySlug: string) => {
   const normalizedCategorySlug = normalizeSlug(categorySlug);
   if (!normalizedCategorySlug) return null;
 
-  const { data: category, error } = await supabase
+  const { data: category, error } = await publicClient()
     .from("categories")
     .select("id")
     .eq("slug", normalizedCategorySlug)
@@ -807,11 +819,11 @@ async function getCategoryIdBySlug(
   }
 
   return category ? String(category.id) : "";
-}
+});
 
-export async function getMaxProductPrice(categorySlug = "") {
+async function loadMaxProductPrice(categorySlug = "") {
   const supabase = publicClient();
-  const categoryId = await getCategoryIdBySlug(supabase, categorySlug);
+  const categoryId = await getCategoryIdBySlug(categorySlug);
   if (categoryId === "") return 0;
 
   let query = supabase
@@ -832,13 +844,23 @@ export async function getMaxProductPrice(categorySlug = "") {
   return data ? Number(data.price) : 0;
 }
 
+// Cached, so this can lag a newly added or repriced product by up to the revalidate
+// window. It only bounds the slider: the pages apply a price ceiling to the product query
+// only when the customer sets one, so a stale value never hides a product from the
+// unfiltered list.
+export const getMaxProductPrice = unstable_cache(
+  loadMaxProductPrice,
+  ["max-product-price"],
+  { revalidate: REFERENCE_DATA_REVALIDATE_SECONDS },
+);
+
 // Reports which facets have enough data behind them to be worth rendering. Runs three
-// small count queries plus the vocabularies; cheap enough to do per page load.
-export async function getFacetAvailability(
+// small count queries plus the vocabularies.
+async function loadFacetAvailability(
   categorySlug = "",
 ): Promise<FacetAvailability> {
   const supabase = publicClient();
-  const categoryId = await getCategoryIdBySlug(supabase, categorySlug);
+  const categoryId = await getCategoryIdBySlug(categorySlug);
 
   const empty: FacetAvailability = {
     totalAvailable: 0,
@@ -946,6 +968,14 @@ export async function getFacetAvailability(
   };
 }
 
+// Eight queries per call, all of them catalogue-wide counts, so this is the main thing the
+// cache saves. A stale result only shows or hides a control a little late.
+export const getFacetAvailability = unstable_cache(
+  loadFacetAvailability,
+  ["facet-availability"],
+  { revalidate: REFERENCE_DATA_REVALIDATE_SECONDS },
+);
+
 export async function getCatalogProducts({
   search = "",
   categorySlug = "",
@@ -970,7 +1000,7 @@ export async function getCatalogProducts({
   };
 
   const supabase = publicClient();
-  const categoryId = await getCategoryIdBySlug(supabase, categorySlug);
+  const categoryId = await getCategoryIdBySlug(categorySlug);
   if (categoryId === "") return empty;
 
   // Facets resolve to a set of ids first, so productSelection can stay a string literal
