@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,8 @@ const defaultSlides: HeroSlide[] = [
     title: "40% -იანი ფასდაკლება სრულ პროდუქციაზე",
     description:
       "ახალი და მეორადი ავეჯი. ლიკვიდაცია ჰოუმ მიქსში, უფასო მიტანის სერვისი თბილისის მასშტაბით. დივნები, მაგიდები და საწოლები - ყველაფერი ერთ სივრცეში",
+    href: "/products",
+    actionLabel: "პროდუქტების ნახვა",
   },
   {
     image: "/hero/living-room.webp",
@@ -28,6 +31,8 @@ const defaultSlides: HeroSlide[] = [
     title: "40% -იანი ფასდაკლება სრულ პროდუქციაზე",
     description:
       "ახალი და მეორადი ავეჯი. ლიკვიდაცია ჰოუმ მიქსში, უფასო მიტანის სერვისი თბილისის მასშტაბით. დივნები, მაგიდები და საწოლები - ყველაფერი ერთ სივრცეში",
+    href: "/products",
+    actionLabel: "პროდუქტების ნახვა",
   },
   {
     image: "/hero/bedroom.webp",
@@ -35,6 +40,8 @@ const defaultSlides: HeroSlide[] = [
     title: "40% -იანი ფასდაკლება სრულ პროდუქციაზე",
     description:
       "ახალი და მეორადი ავეჯი. ლიკვიდაცია ჰოუმ მიქსში, უფასო მიტანის სერვისი თბილისის მასშტაბით. დივნები, მაგიდები და საწოლები - ყველაფერი ერთ სივრცეში",
+    href: "/products",
+    actionLabel: "პროდუქტების ნახვა",
   },
 ];
 
@@ -142,6 +149,20 @@ export function HeroSlider({
             <p className="mt-4 max-w-140 text-base leading-7 text-[#dce7df]">
               {slide.description}
             </p>
+            {/* Needs both: the category hero passes an href to its own page, and a button
+                that reloads the page you are on is not an action. */}
+            {slide.href && slide.actionLabel ? (
+              <Link
+                href={slide.href}
+                className="group mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/70 px-6 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white"
+              >
+                {slide.actionLabel}
+                <ArrowRight
+                  className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+                  aria-hidden="true"
+                />
+              </Link>
+            ) : null}
           </div>
         </div>
 

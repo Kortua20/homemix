@@ -15,7 +15,7 @@ export function CategoryCard({
   return (
     <Link
       href={`/categories/${encodeURIComponent(category.slug)}`}
-      className="group relative block min-h-95 overflow-hidden rounded-xl bg-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38] sm:min-h-107.5 lg:min-h-117.5"
+      className="group relative block min-h-72 overflow-hidden rounded-xl bg-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38] sm:min-h-80 lg:min-h-96"
     >
       {image ? (
         <Image

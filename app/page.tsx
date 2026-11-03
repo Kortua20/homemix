@@ -16,6 +16,45 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+// One header for every homepage section, so the sections differ by their content and
+// surface only — never by heading colour, spacing, or whether a "see all" exists.
+function SectionHeader({
+  title,
+  description,
+  href,
+}: {
+  title: string;
+  description?: string;
+  href: string;
+}) {
+  return (
+    // The hairline closes the header as one unit — it ties the far-right link to its title
+    // and marks where the section's content starts.
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-x-5 gap-y-3 border-b border-[#d8ded8] pb-5 sm:mb-10 sm:pb-6">
+      <div className="min-w-0">
+        <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-3 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-4xl">
+          {title}
+        </h2>
+        {description ? (
+          <p className="mt-3 max-w-xl text-sm leading-6 text-[#5e685f] sm:text-base">
+            {description}
+          </p>
+        ) : null}
+      </div>
+      <Link
+        href={href}
+        className="group flex min-h-11 shrink-0 items-center gap-2 text-sm font-semibold text-[#173c2f] transition-colors hover:text-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
+      >
+        ყველას ნახვა
+        <ArrowRight
+          className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+          aria-hidden="true"
+        />
+      </Link>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   const [categoriesResult, productsResult] = await Promise.allSettled([
     getHomeCategories(),
@@ -31,23 +70,11 @@ export default async function HomePage() {
     <main className="bg-[#f4f2ed]">
       <HeroSlider />
 
-      <section className="border-b border-[#d8ded8] bg-white py-16 sm:py-20 lg:py-24">
+      {/* Stone, not white: the tonal step from the canvas below separates the two sections
+          without a border, and white stays reserved for cards and controls. */}
+      <section className="bg-[#ece8e1] py-16 sm:py-20 lg:py-24">
         <div className="mx-auto w-full max-w-384 px-4 sm:px-6 lg:px-10">
-          <div className="mb-8 flex items-end justify-between gap-5 sm:mb-10">
-            <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#173c2f] after:mt-3 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-4xl">
-              კატალოგი
-            </h2>
-            <Link
-              href="/categories"
-              className="group hidden min-h-11 items-center gap-2 text-sm font-semibold text-[#173c2f] transition-colors hover:text-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38] sm:flex"
-            >
-              ყველას ნახვა
-              <ArrowRight
-                className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
-                aria-hidden="true"
-              />
-            </Link>
-          </div>
+          <SectionHeader title="კატალოგი" href="/categories" />
 
           {categoriesResult.status === "rejected" ? (
             <EmptyState
@@ -61,7 +88,9 @@ export default async function HomePage() {
               description="ახალი კატალოგი მალე გამოჩნდება."
             />
           ) : (
-            <div className="no-scrollbar grid snap-x snap-mandatory auto-cols-[78%] grid-flow-col gap-3 overflow-x-auto pb-2 sm:auto-cols-[45%] lg:auto-cols-[31.5%]">
+            // A swipe rail on touch widths; from lg a plain grid, because a desktop mouse
+            // cannot reach cards in a horizontal rail whose scrollbar is hidden.
+            <div className="no-scrollbar grid snap-x snap-mandatory auto-cols-[78%] grid-flow-col gap-4 overflow-x-auto pb-2 sm:auto-cols-[45%] sm:gap-5 lg:snap-none lg:grid-flow-row lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0">
               {categories.map((category) => (
                 <div key={category.id} className="snap-start">
                   <CategoryCard category={category} />
@@ -73,26 +102,11 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto w-full max-w-384 px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-24">
-        <div className="mb-8 flex items-end justify-between gap-5 sm:mb-10">
-          <div>
-            <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-3 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-4xl">
-              ახალი პროდუქტები
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-[#5e685f] sm:text-base">
-              კატალოგში ბოლოს დამატებული ავეჯი — ნახეთ სიახლეები პირველებმა.
-            </p>
-          </div>
-          <Link
-            href="/products"
-            className="group hidden min-h-11 items-center gap-2 text-sm font-semibold text-[#173c2f] transition-colors hover:text-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38] sm:flex"
-          >
-            ყველას ნახვა
-            <ArrowRight
-              className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
-              aria-hidden="true"
-            />
-          </Link>
-        </div>
+        <SectionHeader
+          title="ახალი პროდუქტები"
+          description="კატალოგში ბოლოს დამატებული ავეჯი — ნახეთ სიახლეები პირველებმა."
+          href="/products"
+        />
 
         {productsResult.status === "rejected" ? (
           <EmptyState
@@ -115,7 +129,7 @@ export default async function HomePage() {
 
         <Link
           href="/products"
-          className="mt-10 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#173c2f] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:hidden"
+          className="mx-auto mt-12 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#173c2f] px-8 text-sm font-semibold text-white transition-colors hover:bg-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:w-fit"
         >
           ყველა პროდუქტის ნახვა
           <ArrowRight className="size-4" aria-hidden="true" />

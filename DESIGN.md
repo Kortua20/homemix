@@ -2,37 +2,43 @@
 name: Home Mix
 description: A warm, familiar Georgian furniture storefront led by real rooms and real products.
 colors:
-  warm-canvas: "#fcf9f8"
-  ink: "#1b1c1c"
-  walnut: "#7f512f"
-  walnut-deep: "#6d4528"
+  canvas: "#f4f2ed"
+  stone: "#ece8e1"
   white: "#ffffff"
-  soft-linen: "#f6f3f2"
-  warm-mist: "#e6e2de"
-  clay-border: "#d6c3b8"
-  quiet-ink: "#605e5b"
-  soft-brown: "#83746b"
-  image-placeholder: "#f0eded"
+  ink: "#18221d"
+  forest: "#1d4a38"
+  forest-deep: "#173c2f"
+  quiet-ink: "#5e685f"
+  meta: "#667168"
+  mint-tint: "#e9eee9"
+  control-border: "#b9c6bd"
+  hairline: "#d8ded8"
+  image-placeholder: "#e8ebe7"
+  skeleton: "#e6e2de"
   destructive: "#a33c32"
+  destructive-border: "#d6a9a4"
 typography:
-  display:
+  hero:
     fontFamily: "Noto Sans Georgian Variable, Manrope Variable, sans-serif"
-    fontSize: "clamp(2.35rem, 5.2vw, 4.75rem)"
+    fontSize: "clamp(2.25rem, 4.2vw, 4rem)"
     fontWeight: 600
-    lineHeight: 1.08
-    letterSpacing: "-0.03em"
-  headline:
+    letterSpacing: "-0.035em"
+  page-title:
     fontFamily: "Noto Sans Georgian Variable, Manrope Variable, sans-serif"
-    fontSize: "clamp(1.875rem, 3vw, 2.25rem)"
+    fontSize: "2.25rem / 3rem from 640px"
     fontWeight: 600
     lineHeight: 1.25
-    letterSpacing: "-0.025em"
-  title:
+    letterSpacing: "-0.03em"
+  section-title:
     fontFamily: "Noto Sans Georgian Variable, Manrope Variable, sans-serif"
-    fontSize: "1.25rem"
+    fontSize: "1.875rem / 2.25rem from 640px"
     fontWeight: 600
-    lineHeight: 1.5
-    letterSpacing: "-0.02em"
+    lineHeight: 1.25
+    letterSpacing: "-0.03em"
+  card-title:
+    fontFamily: "Noto Sans Georgian Variable, Manrope Variable, sans-serif"
+    fontSize: "1rem (product) / 1.25–1.5rem (category)"
+    fontWeight: 600
   body:
     fontFamily: "Noto Sans Georgian Variable, Manrope Variable, sans-serif"
     fontSize: "1rem"
@@ -42,201 +48,209 @@ typography:
     fontFamily: "Noto Sans Georgian Variable, Manrope Variable, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 600
-    lineHeight: 1.25
+  meta:
+    fontFamily: "Noto Sans Georgian Variable, Manrope Variable, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 600
 rounded:
   lg: "0.75rem"
   xl: "1.05rem"
   2xl: "1.35rem"
 spacing:
-  card-inset: "0.625rem"
-  control-x: "1.5rem"
   page-gutter-mobile: "1rem"
   page-gutter-tablet: "1.5rem"
-  page-gutter-desktop: "2rem"
-  section-mobile: "4rem"
-  section-tablet: "5rem"
-  section-desktop: "6rem"
+  page-gutter-desktop: "2.5rem"
+  home-section: "4rem / 5rem / 6rem"
+  page-section: "3rem / 4rem / 5rem"
+  section-header-to-content: "2rem / 2.5rem"
+  grid-gap: "1rem / 1.25rem / 1.5rem"
 components:
   button-primary:
-    backgroundColor: "{colors.walnut}"
+    backgroundColor: "{colors.forest-deep}"
     textColor: "{colors.white}"
     typography: "{typography.label}"
     rounded: "{rounded.xl}"
-    padding: "0.75rem 1.5rem"
     height: "3rem"
   button-primary-hover:
-    backgroundColor: "{colors.walnut-deep}"
+    backgroundColor: "{colors.forest}"
+  button-on-photo:
+    border: "1px white/70"
     textColor: "{colors.white}"
-  button-icon:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.ink}"
     rounded: "{rounded.xl}"
-    size: "2.75rem"
-  card-product:
+    height: "3rem"
+  heading-accent:
+    backgroundColor: "{colors.forest}"
+    size: "3rem × 0.25rem, fully rounded"
+  field:
     backgroundColor: "{colors.white}"
-    textColor: "{colors.ink}"
+    border: "{colors.control-border}"
+    rounded: "{rounded.xl}"
+  panel:
+    backgroundColor: "{colors.stone}"
+    border: "{colors.hairline}"
     rounded: "{rounded.2xl}"
-    padding: "{spacing.card-inset}"
-  card-category:
-    backgroundColor: "{colors.white}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.2xl}"
-    padding: "1.25rem"
-  nav-link:
-    textColor: "{colors.quiet-ink}"
-    typography: "{typography.label}"
-    height: "2.75rem"
-  nav-link-active:
-    textColor: "{colors.walnut}"
-    typography: "{typography.label}"
-    height: "2.75rem"
 ---
 
 # Design System: Home Mix
+
+> Updated 2026-11-03 to match the shipped forest-green direction ("Cinematic room", approved
+> 2026-08-06 — see `.impeccable/surfaces/app-page-tsx.md`). The earlier walnut palette in this
+> file was never built and has been removed.
 
 ## Overview
 
 **Creative North Star: "The Welcoming Living Room"**
 
-Home Mix feels like entering a comfortable, well-kept home: warm, calm, and immediately understandable. Natural furniture photography carries the atmosphere, while a restrained off-white, white, and walnut palette keeps the interface familiar and lets real products remain the point.
+Home Mix feels like entering a comfortable, well-kept home: warm, calm, and immediately understandable. Natural furniture photography carries the atmosphere. A warm canvas, a stone secondary surface, white cards and controls, and a single forest-green accent keep the interface familiar and let real products remain the point.
 
-The system is polished through proportion, spacing, legible Georgian typography, and quiet interaction states rather than decorative concepts. It favors straightforward storefront patterns and moderate density; experimental grids, technical annotations, oversized display treatments, and visually complicated compositions are outside this world.
+The system is polished through proportion, spacing, legible Georgian typography, and quiet interaction states rather than decorative concepts. It favors straightforward storefront patterns and moderate density.
 
 **Key Characteristics:**
 
-- Warm neutral canvas with walnut-brown actions
+- Warm canvas with forest-green actions and accents
 - Natural room and product photography as the main visual voice
-- Real products presented before category navigation
+- Separation by tone (canvas / stone / white), not by borders or shadows
 - Familiar cards, navigation, and controls with soft corners
 - Restrained motion and clearly visible keyboard focus
 
 ## Colors
 
-The palette moves through warm off-whites and pale upholstery neutrals, anchored by dark ink and a single walnut-brown action color.
+### Accent
 
-### Primary
+- **Forest:** The accent for focus outlines, the heading accent bar, active states, and hover text.
+- **Forest Deep:** Filled primary buttons, the hero and category-card base, and the footer field.
 
-- **Walnut:** The brand and action color for primary buttons, prices, active navigation, arrows, and focus outlines.
-- **Deep Walnut:** The darker hover state for filled actions and emphasized text links.
+### Surfaces
 
-### Neutral
+- **Canvas:** The page background everywhere.
+- **Stone:** The secondary surface — a homepage section band, the catalogue filter panel, the contact form panel. One step darker than Canvas.
+- **White:** Contained controls (fields, filter chips) and content cards. Never a full-width section.
+- **Mint Tint:** Hover and active fills for chips and quiet controls.
 
-- **Warm Canvas:** The persistent page and drawer background, keeping large surfaces softer than pure white.
-- **White:** The clean surface for product cards, category cards, the footer, and compact controls.
-- **Ink:** The default high-contrast text color for headings, names, and control glyphs.
-- **Quiet Ink:** Supporting copy and inactive navigation labels.
-- **Soft Brown:** Low-emphasis metadata such as product categories and the footer label.
-- **Soft Linen:** A secondary section surface and quiet control background.
-- **Warm Mist:** A subdued loading or transitional surface.
-- **Clay Border:** The warmer structural border for compact controls and understated link decoration.
-- **Image Placeholder:** A neutral fallback behind product imagery.
-- **Destructive:** Reserved for genuine error semantics rather than general emphasis.
+### Text
+
+- **Ink:** Headings, names, values.
+- **Quiet Ink:** Descriptions and supporting copy.
+- **Meta:** Product categories, field labels, placeholders (placeholders at 70% opacity so they never read as entered values).
+
+### Lines
+
+- **Control Border:** Fields and chips.
+- **Hairline:** Panel outlines and dividers.
 
 ### Named Rules
 
-**The One Walnut Rule.** Walnut is the only chromatic accent for ordinary actions and emphasis; the rest of the interface stays neutral so furniture imagery remains dominant.
+**The One Accent Rule.** Forest is the only chromatic accent for ordinary actions and emphasis. Discount red and status colours on product badges are semantic, not decorative.
 
-**The Warm Canvas Rule.** Large page surfaces use Warm Canvas or Soft Linen, while pure white is reserved for contained cards and controls.
+**The Surface Rule.** Large surfaces are Canvas or Stone. White is reserved for things you touch or read as a unit — fields, chips, cards. Controls inside a Stone panel are white, so they are always the brightest layer.
 
 ## Typography
 
-**Display Font:** Noto Sans Georgian Variable (with Manrope Variable and sans-serif fallback)  
-**Body Font:** Noto Sans Georgian Variable (with Manrope Variable and sans-serif fallback)
-
-**Character:** A single humanist sans stack gives Georgian and Latin text the same calm, practical voice. Weight and scale provide hierarchy; there is no decorative display face.
+One Georgian-first humanist sans (Noto Sans Georgian Variable) for everything; hierarchy comes from size, weight, and spacing.
 
 ### Hierarchy
 
-- **Display** (semibold, fluid 2.35rem–4.75rem, 1.08): Concise hero headlines over photography, capped at roughly 13 characters per line.
-- **Headline** (semibold, 1.875rem–2.25rem, 1.25): Major section headings with slight negative tracking.
-- **Title** (semibold, 1.25rem, 1.5): Category-card titles and prominent contained headings.
-- **Body** (regular, 1rem, 1.75): Supporting copy, usually kept to a compact measure of about 32–36rem.
-- **Label** (semibold, 0.875rem, 1.25): Navigation and actions; product metadata steps down to 0.75rem.
+| Level | Use | Size |
+| --- | --- | --- |
+| Hero | Headline over photography | clamp(2.25rem, 4.2vw, 4rem) |
+| Page title (H1) | Top of inner pages | 2.25rem → 3rem |
+| Section title (H2) | Homepage sections | 1.875rem → 2.25rem |
+| Sub-section title (H2) | Sections under a page title (e.g. results on `/products`) | 1.5rem → 1.875rem |
+| Card title | Product name 1rem; category name 1.25 → 1.5rem | |
+| Body | Descriptions, 0.875 → 1rem, relaxed leading | |
+| Label | Buttons, nav, links: 0.875rem semibold | |
+| Meta | Card metadata, field labels: 0.75rem semibold | |
 
-### Named Rules
+### Heading accent
 
-**The One Voice Rule.** Use the Georgian-first sans stack everywhere and create hierarchy with size, weight, and spacing rather than introducing a contrasting display typeface.
+Page titles and section titles that sit on a page surface carry a short forest bar beneath them (48 × 4px, rounded, an `after:` pseudo-element — no extra markup). Gap: 1rem under page titles, 0.75rem under section titles.
 
-**The Furniture Leads Rule.** Headlines are concise and controlled; typography never competes with room or product imagery for attention.
+Headings framed by something else do **not** get the bar: titles inside cards or panels, subheadings after a divider, the product name, error/404 headings, and footer headings.
+
+Never underline headings: underlines mean "link" here (see navigation), and Georgian descenders break text underlines.
 
 ## Layout
 
-Primary content sits in a centered 80rem container; the hero may expand to 90rem. Page gutters progress from 1rem on mobile to 1.5rem at 640px and 2rem at 1024px. Homepage sections use a steady vertical rhythm of 4rem, 5rem, and 6rem across the same responsive range.
+- **Containers:** homepage, header, and footer use a 96rem container; inner pages use 80rem.
+- **Gutters:** 1rem → 1.5rem at 640px → 2.5rem at 1024px.
+- **Section rhythm:** homepage sections 4rem / 5rem / 6rem; inner pages 3rem / 4rem / 5rem.
+- **Section header → content:** 2rem → 2.5rem.
+- **Grid gaps:** 1rem / 1.25rem / 1.5rem columns across breakpoints; product rows add 2.5rem vertical gap for their text block.
 
-The homepage sequence is fixed by intent: immersive room photography, newest products, then category navigation. Product cards form one column by default, two from 520px, and four from 1024px; categories move from one to two columns at 640px and three at 1024px. The header changes from a 68px mobile bar to an 80px desktop bar, with desktop navigation appearing at 768px.
+### Homepage sequence
 
-**The Product-First Rule.** On discovery surfaces, show real products before category navigation unless the task has a stronger product reason to change the sequence.
+Hero (dark photograph) → categories (Stone band) → newest products (Canvas) → footer (Forest Deep). Categories come first as **compact** navigation (288 / 320 / 384px cards), so products still arrive quickly; they swipe on touch widths and become a plain 4-column grid from 1024px, because a desktop mouse cannot reach cards in a horizontal rail with a hidden scrollbar.
+
+Every homepage section uses the same header: title + accent bar, optional description, and a "ყველას ნახვა" link on the right at every width (it wraps under the title on narrow screens). A full-width Hairline closes the header, tying the link to its title and marking where the section content starts. The products section closes with the primary "ყველა პროდუქტის ნახვა" button.
 
 ## Elevation & Depth
 
-The system is flat by default and uses tonal layering for most separation. Cards receive only warm, low-opacity ambient shadows; stronger elevation is reserved for the temporary mobile navigation drawer. Photography gains readable depth through dark transparent gradients rather than floating text panels.
+Flat. Separation comes from tone. Shadows exist only on temporary overlays:
 
-### Shadow Vocabulary
+- **Drawer:** `-18px 0 50px rgba(12,34,25,0.18)` — mobile navigation panel.
+- **Popover:** `0 16px 40px rgba(12,34,25,0.16)` — filter dropdowns.
 
-- **Product lift** (`0 10px 28px rgba(59,40,27,0.06)`): A soft resting shadow beneath product cards.
-- **Category lift** (`0 8px 24px rgba(59,40,27,0.05)`): A slightly quieter resting shadow beneath category links.
-- **Drawer elevation** (`-18px 0 50px rgba(36,25,19,0.16)`): A directional shadow used only by the open mobile navigation panel.
-
-### Named Rules
-
-**The Quiet Depth Rule.** Resting cards use warm ambient shadows below 0.07 opacity; pronounced elevation belongs only to temporary overlays.
+Photography gains readable depth through dark gradients, never floating text panels.
 
 ## Shapes
 
-The form language is softly rectangular rather than pill-shaped. Large image frames and cards use the 2xl radius; buttons, image insets, and square icon controls use the xl radius. The consistent nested relationship—soft card outside, slightly tighter image or control inside—creates polish without ornamental geometry.
-
-Thin warm borders are reserved for controls, section dividers, empty states, and the sticky header. Hero and product imagery are clipped cleanly to their containers.
+Softly rectangular, never pill-shaped (count badges excepted). Panels use the 2xl radius; controls, buttons, and image frames use xl.
 
 ## Components
 
-Components feel familiar, quiet, and comfortably touchable. Interactive controls maintain a minimum dimension of 44px and use explicit focus outlines.
+All interactive controls are at least 44px and have an explicit 2px focus outline (white on photography).
 
 ### Buttons
 
-- **Shape:** Soft rectangle using the xl radius, typically 48px tall with 24px horizontal padding.
-- **Primary:** Walnut background, white semibold label, and a small directional arrow where navigation benefits from it.
-- **Hover / Focus:** Darken to Deep Walnut on hover; use a 2px visible outline with separation from the control. On photography, the focus outline switches to white.
-- **Icon:** Square 44px controls use white or translucent dark surfaces, thin borders, and centered 16–20px icons.
+- **Primary:** Forest Deep fill, white semibold label, 48px tall, optional trailing arrow that nudges right on hover. Hover lightens to Forest.
+- **On photography:** 1px white/70 outline, white label; inverts to white fill on hover.
+- **Text link with arrow:** "ყველას ნახვა" pattern for section-level navigation.
 
-### Cards / Containers
+### Fields
 
-- **Corner Style:** Soft 2xl outer corners with xl image or icon insets.
-- **Background:** White cards on Warm Canvas or Soft Linen sections.
-- **Shadow Strategy:** Warm, ambient, and low-opacity; product cards stay still while category cards may rise by 2px on hover.
-- **Border:** Usually none on content cards; borders define structural and empty-state containers.
-- **Internal Padding:** Product cards use a compact 10px shell plus an inset text block; category cards use 20–24px.
+The label sits **inside** the white bordered box, small and muted at the top-left; the value sits below it. The box carries hover (Forest border) and focus (`focus-within` ring) for whatever it wraps, and the whole box is the click target. Textareas keep the label in flow so it never covers typed text. Text in fields should be 1rem so iOS does not zoom on focus; the contact form follows this, the catalogue filter (0.875rem) does not yet.
+
+### Panels
+
+Stone fill, Hairline border, 2xl radius, white controls inside. Used for the catalogue filter and the contact form.
 
 ### Navigation
 
-- **Desktop:** Logo and wordmark on the left, four semibold links on the right. The active and hover states use Walnut text and a 2px underline.
-- **Mobile:** A 44px bordered menu control opens a right-side Warm Canvas drawer. Links are full-width, at least 56px tall, and separated by quiet dividers.
+Logo left, route links centre, search and outlined catalogue action right. Active and hover links use Forest text and a 1px underline that grows from the left.
 
 ### Hero Slider
 
-A single clipped room photograph fills a 540–600px frame. A dark warm gradient supports short white copy and one primary catalog action. Pagination and previous/next controls remain near the lower edge, pause during direct interaction, and remove transitions when reduced motion is requested.
+Full-bleed room photograph, dark gradient from the lower left, short white copy and one outlined action (rendered only when a slide has both `href` and `actionLabel`). Hairline pagination and outlined previous/next controls sit near the lower edge; autoplay pauses off-screen, in hidden tabs, and under reduced motion.
 
 ### Product Card
 
-The 4:3 product image leads. Category metadata is small and quiet, the product name is limited to two lines, and the Walnut price closes the card with the strongest text weight. Hover motion is limited to a 1.025 image scale.
+The 4:3 image leads; no card shell, border, or shadow — the rows are told apart by type and colour alone:
+
+1. **Meta:** category in Meta grey; condition in Forest with a small Forest dot (a state indicator, so it never reads as a second category).
+2. **Name:** Ink, semibold, at most two lines; no reserved height, so a one-line name sits 12px above the divider.
+3. **Price row:** below a Hairline divider, pinned to the card bottom so dividers still align across a grid row. Price is the strongest text (Forest Deep, bold, tabular), the old price sits beside it struck through in Meta, and a Forest arrow on the right nudges up-right on hover.
+
+At most one image badge (discount beats "new"). Hover scales the image and nudges the arrow. `ProductCardSkeleton` mirrors these rows.
 
 ### Category Card
 
-Category navigation is compact and secondary: a title paired with one 44px arrow tile. The tile inverts from Soft Linen and Walnut to Walnut and white on hover while the card rises only 2px.
+A photographic panel with a dark bottom gradient, the category name, and a 44px outlined arrow tile that inverts on hover.
 
 ## Do's and Don'ts
 
-### Do:
+### Do
 
-- **Do** let real room and product photography carry the first impression.
-- **Do** keep products ahead of categories on storefront discovery pages.
-- **Do** use Warm Canvas for the page and white for contained product or navigation surfaces.
-- **Do** preserve 44px minimum controls, visible focus outlines, and reduced-motion behavior.
-- **Do** use straightforward responsive grids and the established 1rem / 1.5rem / 2rem page gutters.
+- **Do** let room and product photography carry the first impression.
+- **Do** separate sections and groups by tone before reaching for borders or shadows.
+- **Do** keep controls white and brighter than the surface they sit on.
+- **Do** reuse the section header and heading accent instead of inventing per-section styling.
+- **Do** preserve 44px controls, visible focus outlines, and reduced-motion behaviour.
 
-### Don't:
+### Don't
 
-- **Don't** add drafting grids, measurements, registration marks, numbered metadata, or technical-looking navigation devices.
-- **Don't** introduce dark catalog sections or decorative color fields that overpower product photography.
-- **Don't** use oversized compressed headlines, ornamental display type, or copy-heavy layouts.
-- **Don't** turn categories into the primary homepage story ahead of real products.
-- **Don't** add speculative commerce UI or fabricated proof to make the storefront feel fuller.
+- **Don't** add drafting grids, measurements, numbered metadata, or technical-looking devices.
+- **Don't** add a second accent colour or decorative colour fields.
+- **Don't** put full-width white sections on the page; white is for contained elements.
+- **Don't** add resting shadows to cards.
+- **Don't** let categories grow into the main homepage story ahead of real products.
+- **Don't** add speculative commerce UI or fabricated proof.
