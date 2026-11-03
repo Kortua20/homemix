@@ -8,7 +8,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   return (
     <Link
       href={`/product/${encodeURIComponent(product.slug)}`}
-      className="group block min-w-0 focus-visible:rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
+      className="group flex min-w-0 flex-col focus-visible:rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
     >
       <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-[#e8ebe7]">
         {/* Lists are available-only today, so this only shows on a directly-linked card.
@@ -53,45 +53,54 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </div>
         )}
       </div>
-      <div className="pt-4">
-        <div className="flex items-start justify-between">
-          <div className="flex flex-col gap-2">
-            <p className="truncate text-xs font-semibold text-[#667168]">
-              {product.categoryName ?? "კატალოგის გარეშე"}
+      {/* No surface: the rows are told apart by type and colour alone, and one hairline
+          splits "what it is" from "what it costs". Same rows as ProductCardSkeleton. */}
+      <div className="flex flex-1 flex-col pt-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <p className="truncate text-xs font-semibold text-[#667168]">
+            {product.categoryName ?? "კატალოგის გარეშე"}
+          </p>
+          {/* `unassessed` is suppressed here: a grid where every card reads "assessment
+              in progress" is noise, and on a card there is no room for the explanation
+              that makes it meaningful. The detail page states it plainly instead. */}
+          {product.conditionGrade &&
+          product.conditionGrade.code !== "unassessed" ? (
+            <p className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-[#1d4a38]">
+              <span
+                className="size-1.5 rounded-full bg-[#1d4a38]"
+                aria-hidden="true"
+              />
+              {product.conditionGrade.label_ka}
             </p>
-            {/* `unassessed` is suppressed here: a grid where every card reads "assessment
-                in progress" is noise, and on a card there is no room for the explanation
-                that makes it meaningful. The detail page states it plainly instead. */}
-            {product.conditionGrade &&
-            product.conditionGrade.code !== "unassessed" ? (
-              <p className="truncate text-xs font-medium text-[#1d4a38]">
-                {product.conditionGrade.label_ka}
+          ) : null}
+        </div>
+        <h3 className="mt-2 mb-3 line-clamp-2 text-base leading-6 font-semibold text-[#18221d]">
+          {product.name}
+        </h3>
+        {/* mt-auto instead of reserving two name lines: a one-line name sits 12px (the h3's
+            mb-3) above the divider, yet dividers still line up across a grid row — cards
+            stretch to the tallest neighbour — when the card beside it has a two-line name. */}
+        <div className="mt-auto flex items-center justify-between gap-4 border-t border-[#d8ded8] pt-3">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+            <p className="text-lg font-bold text-[#173c2f] tabular-nums">
+              {formatPrice(product.price)}
+            </p>
+            {/* The old price is <s> rather than a line-through class: the strike-through
+                is the meaning here, not decoration, so it has to survive for a screen
+                reader too. The label says which is which, since two numbers in sequence
+                are ambiguous read aloud. */}
+            {product.showsDiscount && product.compareAtPrice !== null ? (
+              <p className="text-sm text-[#667168] tabular-nums">
+                <span className="sr-only">ძველი ფასი: </span>
+                <s>{formatPrice(product.compareAtPrice)}</s>
               </p>
             ) : null}
-            <h3 className="mt-1.5 line-clamp-2 min-h-12 text-base leading-6 font-semibold text-[#18221d]">
-              {product.name}
-            </h3>
           </div>
-          <div className="flex flex-col gap-2 items-end">
-            <ArrowUpRight className="size-4" aria-hidden="true" />
-            <div className="text-right">
-              <p className="text-lg font-bold text-[#173c2f]">
-                {formatPrice(product.price)}
-              </p>
-              {/* The old price is <s> rather than a line-through class: the strike-through
-                  is the meaning here, not decoration, so it has to survive for a screen
-                  reader too. The label says which is which, since two numbers in sequence
-                  are ambiguous read aloud. */}
-              {product.showsDiscount && product.compareAtPrice !== null ? (
-                <p className="mt-0.5 text-xs text-[#667168]">
-                  <span className="sr-only">ძველი ფასი: </span>
-                  <s>{formatPrice(product.compareAtPrice)}</s>
-                </p>
-              ) : null}
-            </div>
-          </div>
+          <ArrowUpRight
+            className="size-4 shrink-0 text-[#1d4a38] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+            aria-hidden="true"
+          />
         </div>
-        <div className="mt-3 flex items-center justify-end gap-4"></div>
       </div>
     </Link>
   );

@@ -8,7 +8,7 @@ export function ProductCardSkeleton() {
         <div className="mt-2 h-5 w-2/3 animate-pulse rounded-full bg-[#e6e2de] motion-reduce:animate-none" />
         <div className="mt-3 flex items-center justify-between gap-4 border-t border-[#d8ded8] pt-3">
           <div className="h-6 w-20 animate-pulse rounded-full bg-[#e6e2de] motion-reduce:animate-none" />
-          <div className="size-9 animate-pulse rounded-xl bg-[#e6e2de] motion-reduce:animate-none" />
+          <div className="size-4 animate-pulse rounded bg-[#e6e2de] motion-reduce:animate-none" />
         </div>
       </div>
     </div>
