@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Clock3, ExternalLink, MapPin, Phone } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
+import { BrandIcon } from "@/components/brand-icons";
 import { PageBanner } from "@/components/page-banner";
-import { contactDetails } from "@/lib/contact-details";
+import { contactDetails, socialLinks } from "@/lib/contact-details";
 
 export const metadata: Metadata = {
   title: "კონტაქტი",
@@ -61,6 +62,29 @@ export default function ContactPage() {
                     </dd>
                   </div>
                 </div>
+
+                {socialLinks.whatsapp ? (
+                  <div className="flex gap-4">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-mint text-forest">
+                      <BrandIcon glyph="whatsapp" className="size-5.5" />
+                    </span>
+                    <div>
+                      <dt className="text-sm font-semibold text-ink">
+                        WhatsApp
+                      </dt>
+                      <dd className="mt-1 text-sm leading-6 text-ink-muted">
+                        <a
+                          className="underline decoration-control underline-offset-4 hover:text-forest"
+                          href={socialLinks.whatsapp}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          მოგვწერეთ WhatsApp-ში
+                        </a>
+                      </dd>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="flex gap-4">
                   <span className="grid size-11 shrink-0 place-items-center rounded-full bg-mint text-forest">

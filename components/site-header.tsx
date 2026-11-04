@@ -19,6 +19,7 @@ import { useId, useState } from "react";
 import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { contactDetails, socialLinks } from "@/lib/contact-details";
+import { BrandIcon } from "@/components/brand-icons";
 
 export type NavCategory = { id: string; name: string; slug: string };
 
@@ -33,6 +34,9 @@ const navigation = [
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
+
+const topBarIconClass =
+  "grid size-7 place-items-center rounded-full text-white/90 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white";
 
 const navLinkClass =
   "relative flex min-h-11 items-center gap-1 px-1 text-sm font-semibold transition-colors after:absolute after:inset-x-1 after:bottom-1.5 after:h-0.5 after:origin-left after:rounded-full after:bg-brass after:transition-transform hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest";
@@ -115,17 +119,41 @@ export function SiteHeader({ categories = [] }: { categories?: NavCategory[] }) 
               <CreditCard className="size-3.5" aria-hidden="true" />
               მაღაზიაში ხელმისაწვდომია განვადება და ნაწილ-ნაწილ გადახდა
             </p>
-            {socialLinks.facebook ? (
-              <a
-                href={socialLinks.facebook}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Facebook"
-                className="grid size-7 place-items-center rounded-full text-white/90 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
-              >
-                <Facebook className="size-4" aria-hidden="true" />
-              </a>
-            ) : null}
+            <div className="flex items-center gap-1">
+              {socialLinks.whatsapp ? (
+                <a
+                  href={socialLinks.whatsapp}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="WhatsApp"
+                  className={topBarIconClass}
+                >
+                  <BrandIcon glyph="whatsapp" className="size-4" />
+                </a>
+              ) : null}
+              {socialLinks.messenger ? (
+                <a
+                  href={socialLinks.messenger}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Messenger"
+                  className={topBarIconClass}
+                >
+                  <BrandIcon glyph="messenger" className="size-4" />
+                </a>
+              ) : null}
+              {socialLinks.facebook ? (
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook"
+                  className={topBarIconClass}
+                >
+                  <Facebook className="size-4" aria-hidden="true" />
+                </a>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

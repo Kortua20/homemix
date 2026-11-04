@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Facebook, Mail, MapPin, Phone } from "lucide-react";
+import { BrandIcon } from "@/components/brand-icons";
 import { contactDetails, socialLinks } from "@/lib/contact-details";
 
 const footerLinks = [
@@ -16,6 +17,9 @@ const footerLinkClass =
 
 const iconTileClass =
   "grid size-10 shrink-0 place-items-center rounded-full bg-white/10 text-white";
+
+const socialButtonClass =
+  "grid size-11 place-items-center rounded-full border border-white/30 text-white transition-colors hover:bg-white hover:text-forest-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 export function Footer() {
   return (
@@ -58,7 +62,9 @@ export function Footer() {
 
           <div>
             <h2 className="text-sm font-bold text-white">დაგვიკავშირდით</h2>
-            <div className="mt-4 space-y-3">
+            {/* flex-col, not space-y: the rows are inline-flex links, which would otherwise
+                sit side by side whenever two short ones fit on one line. */}
+            <div className="mt-4 flex flex-col items-start gap-3">
               {contactDetails.phone.href ? (
                 <a href={contactDetails.phone.href} className={footerLinkClass}>
                   <span className={iconTileClass}>
@@ -74,6 +80,40 @@ export function Footer() {
                   {contactDetails.phone.label}
                 </p>
               )}
+              {socialLinks.whatsapp ? (
+                <a
+                  href={socialLinks.whatsapp}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={footerLinkClass}
+                >
+                  <span className={iconTileClass}>
+                    <BrandIcon glyph="whatsapp" className="size-4.5" />
+                  </span>
+                  WhatsApp
+                  <ArrowUpRight
+                    className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
+                </a>
+              ) : null}
+              {socialLinks.messenger ? (
+                <a
+                  href={socialLinks.messenger}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={footerLinkClass}
+                >
+                  <span className={iconTileClass}>
+                    <BrandIcon glyph="messenger" className="size-4.5" />
+                  </span>
+                  Messenger
+                  <ArrowUpRight
+                    className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
+                </a>
+              ) : null}
               <a
                 href={contactDetails.mapUrl}
                 target="_blank"
@@ -111,9 +151,20 @@ export function Footer() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Facebook"
-                  className="grid size-11 place-items-center rounded-full border border-white/30 text-white transition-colors hover:bg-white hover:text-forest-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className={socialButtonClass}
                 >
                   <Facebook className="size-4.5" aria-hidden="true" />
+                </a>
+              ) : null}
+              {socialLinks.whatsapp ? (
+                <a
+                  href={socialLinks.whatsapp}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="WhatsApp"
+                  className={socialButtonClass}
+                >
+                  <BrandIcon glyph="whatsapp" className="size-5" />
                 </a>
               ) : null}
             </div>

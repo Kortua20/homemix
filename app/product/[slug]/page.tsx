@@ -10,8 +10,9 @@ import { ProductConditionReport } from "@/components/product-condition-report";
 import { ProductAttributes } from "@/components/product-attributes";
 import { ProductDimensionsTable } from "@/components/product-dimensions-table";
 import { ProductRail } from "@/components/product-rail";
+import { BrandIcon } from "@/components/brand-icons";
 import { ShareLinks } from "@/components/share-links";
-import { contactDetails } from "@/lib/contact-details";
+import { contactDetails, socialLinks } from "@/lib/contact-details";
 import {
   formatPrice,
   getProductBySlug,
@@ -312,6 +313,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <a href={contactDetails.phone.href} className={primaryActionClass}>
                   <Phone className="size-4" aria-hidden="true" />
                   დარეკვა: {contactDetails.phone.label}
+                </a>
+              ) : null}
+              {/* Pre-filled with the product, so the shop knows which item is asked about
+                  without a back-and-forth. */}
+              {product.isPurchasable && socialLinks.whatsapp ? (
+                <a
+                  href={`${socialLinks.whatsapp}?text=${encodeURIComponent(
+                    `გამარჯობა, მაინტერესებს: ${product.name}\n${productUrl}`,
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#25d366] px-6 text-sm font-semibold text-[#0b3d20] transition-colors hover:bg-[#1fbe5a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest"
+                >
+                  <BrandIcon glyph="whatsapp" className="size-5" />
+                  მოგვწერეთ WhatsApp-ში
                 </a>
               ) : null}
               <Link
