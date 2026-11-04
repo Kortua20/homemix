@@ -4,6 +4,7 @@ import "./globals.css";
 import { Footer } from "@/components/footer";
 import { SiteHeader } from "@/components/site-header";
 import { getSiteUrl, siteDescription, siteName } from "@/lib/site";
+import { getHomeCategories } from "@/lib/storefront";
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -56,29 +57,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const directionContract = `<!--
-THESIS: Home Mix turns the homepage into a cinematic Georgian showroom, refusing both cluttered promotion walls and generic beige card grids.
-OWN-WORLD: Forest green fields, chalk-white space, charcoal type, fine brass details, image-led surfaces, crisp 12–16px corners, and line-based controls.
-STORY: A visitor enters a real furnished room, browses live categories and products, then continues through the unchanged catalog, about, and contact routes.
-FIRST VIEWPORT: A two-tier retail header opens directly onto a wide room photograph with lower-left Georgian copy, one outlined catalog action, and quiet slider controls.
-FORM: Approved composition B, Cinematic room, first presented in .impeccable/mocks/homepage-b-cinematic.png; user approval recorded 2026-08-06.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
--->`;
+  // Feeds the header's catalogue dropdown. Cached in storefront.ts, and a failure only
+  // costs the dropdown — never the page — so the header falls back to the plain link.
+  const categories = await getHomeCategories().catch(() => []);
+  const navCategories = categories.map(({ id, name, slug }) => ({
+    id,
+    name,
+    slug,
+  }));
 
   return (
     <html lang="ka" className="h-full">
-      <body className="flex min-h-full flex-col overflow-x-hidden bg-[#f4f2ed] font-sans text-[#18221d] antialiased">
-        <template dangerouslySetInnerHTML={{ __html: directionContract }} />
+      <body className="flex min-h-full flex-col overflow-x-hidden bg-canvas font-sans text-ink antialiased">
         <a
           href="#main-content"
-          className="fixed top-3 left-3 z-100 -translate-y-24 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-[#173c2f] shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
+          className="fixed top-3 left-3 z-100 -translate-y-24 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-forest-deep shadow-lg transition-transform focus:translate-y-0 motion-reduce:transition-none"
         >
           მთავარ შინაარსზე გადასვლა
         </a>
-        <SiteHeader />
+        <SiteHeader categories={navCategories} />
         <div id="main-content" tabIndex={-1} className="flex-1 outline-none">
           {children}
         </div>

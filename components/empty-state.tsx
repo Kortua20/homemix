@@ -18,14 +18,26 @@ export function EmptyState({
   const Icon = tone === "error" ? AlertCircle : Armchair;
 
   return (
-    <div className={cn("flex min-h-52 flex-col items-center justify-center rounded-xl border bg-white px-5 py-10 text-center", tone === "error" ? "border-[#d6a9a4]" : "border-[#d8ded8]") }>
-      <Icon className="size-8 text-[#748078]" strokeWidth={1.5} aria-hidden="true" />
-      <h3 className="mt-4 text-lg font-semibold text-[#18221d]">{title}</h3>
-      <p className="mt-2 max-w-md text-sm leading-6 text-[#5e685f]">{description}</p>
+    <div
+      className={cn(
+        "flex min-h-52 flex-col items-center justify-center rounded-lg bg-white px-5 py-10 text-center shadow-card",
+        tone === "error" ? "ring-1 ring-danger-line" : "",
+      )}
+    >
+      <span
+        className={cn(
+          "grid size-14 place-items-center rounded-full",
+          tone === "error" ? "bg-[#f6e7e5] text-danger" : "bg-mint text-forest",
+        )}
+      >
+        <Icon className="size-7" strokeWidth={1.5} aria-hidden="true" />
+      </span>
+      <h3 className="mt-4 text-lg font-bold text-ink">{title}</h3>
+      <p className="mt-2 max-w-md text-sm leading-6 text-ink-muted">{description}</p>
       {action ? (
         <Link
           href={action.href}
-          className="mt-5 inline-flex h-10 items-center justify-center rounded-lg bg-[#1d4a38] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38]"
+          className="mt-5 inline-flex min-h-11 items-center justify-center rounded-md bg-forest-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
         >
           {action.label}
         </Link>

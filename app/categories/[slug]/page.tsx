@@ -1,13 +1,17 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogFilterForm } from "@/components/catalog-filter-form";
 import { EmptyState } from "@/components/empty-state";
 import { HeroSlider, type HeroSlide } from "@/components/hero-slider";
+import { Breadcrumbs, PageBanner } from "@/components/page-banner";
 import { Pagination } from "@/components/pagination";
 import { ProductCard } from "@/components/product-card";
-import { ProductGridSkeleton } from "@/components/product-card-skeleton";
+import {
+  ProductGridSkeleton,
+  productGridClass,
+} from "@/components/product-card-skeleton";
+import { SectionHeader } from "@/components/section-header";
 import {
   getCatalogProducts,
   getCategoryBySlug,
@@ -156,14 +160,14 @@ async function CategoryProductResults({
     <>
       {result.pageCount > 1 ? (
         <p
-          className="-mt-6 mb-8 text-sm text-[#5e685f]"
+          className="-mt-3 mb-6 text-sm text-ink-muted"
           role="status"
           aria-live="polite"
         >
           ნაპოვნია: {result.total} — გვერდი {result.page} / {result.pageCount}
         </p>
       ) : null}
-      <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
+      <div className={productGridClass}>
         {result.items.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
@@ -307,60 +311,56 @@ export default async function CategoryPage({
       styles.length > 0,
   );
   const slides = categorySlides(category);
+  const crumbs = [
+    { label: "კატალოგი", href: "/categories" },
+    { label: category.name },
+  ];
 
   return (
-    <main className="bg-[#f4f2ed]">
-      {slides.length !== 0 ? <HeroSlider slides={slides} /> : null}
+    <main>
+      {/* With photos, the category keeps its own slider (its h1 is the category name);
+          without, it gets the standard inner-page banner. */}
+      {slides.length !== 0 ? (
+        <HeroSlider slides={slides} />
+      ) : (
+        <PageBanner
+          title={category.name}
+          description={category.description?.trim() || undefined}
+          crumbs={crumbs}
+        />
+      )}
 
-      <section className="mx-auto w-full max-w-384 px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
-        <nav className="mb-7 flex flex-wrap items-center gap-2 text-sm text-[#5e685f]">
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center rounded-lg font-semibold transition-colors hover:text-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
-          >
-            Home
-          </Link>
-          <span aria-hidden="true" className="text-[#b3aaa4]">
-            /
-          </span>
-          <span aria-current="page" className="text-[#667168]">
-            {category.name}
-          </span>
-        </nav>
+      <div className="page-container pb-12 sm:pb-16">
+        {slides.length !== 0 ? (
+          <Breadcrumbs crumbs={crumbs} className="pt-4" />
+        ) : null}
 
-        <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end sm:mb-10">
-          <div>
-            <p className="text-sm font-semibold text-[#667168]">Category</p>
-            <h1 className="mt-2 text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-4 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-5xl">
-              {category.name}
-            </h1>
-            {category.description ? (
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[#5e685f]">
-                {category.description}
-              </p>
-            ) : null}
-          </div>
-          <CatalogFilterForm
-            action={`/categories/${encodeURIComponent(category.slug)}`}
-            query={query}
-            maxAvailablePrice={availableMaxPrice}
-            facets={facets}
-            resetHref={`/categories/${encodeURIComponent(category.slug)}`}
-            variant="inline"
-          />
-        </div>
+        <CatalogFilterForm
+          action={`/categories/${encodeURIComponent(category.slug)}`}
+          query={query}
+          maxAvailablePrice={availableMaxPrice}
+          facets={facets}
+          resetHref={`/categories/${encodeURIComponent(category.slug)}`}
+          className={slides.length !== 0 ? "mt-3" : undefined}
+        />
 
-        <Suspense
-          key={resultsKey(filters)}
-          fallback={<ProductGridSkeleton count={4} />}
+        <section
+          className="pt-8 sm:pt-10"
+          aria-labelledby="category-results-heading"
         >
-          <CategoryProductResults
-            filters={filters}
-            filtersActive={filtersActive}
-            buildPageHref={buildPageHref}
-          />
-        </Suspense>
-      </section>
+          <SectionHeader id="category-results-heading" title="პროდუქტები" />
+          <Suspense
+            key={resultsKey(filters)}
+            fallback={<ProductGridSkeleton count={4} />}
+          >
+            <CategoryProductResults
+              filters={filters}
+              filtersActive={filtersActive}
+              buildPageHref={buildPageHref}
+            />
+          </Suspense>
+        </section>
+      </div>
     </main>
   );
 }

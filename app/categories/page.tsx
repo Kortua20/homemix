@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CategoryCard } from "@/components/category-card";
 import { EmptyState } from "@/components/empty-state";
+import { PageBanner } from "@/components/page-banner";
 import { getHomeCategories } from "@/lib/storefront";
 
 export const revalidate = 60;
@@ -23,30 +24,22 @@ export default async function CategoriesPage() {
   const categories = await getHomeCategories();
 
   return (
-    <main className="bg-[#f4f2ed]">
-      <section className="mx-auto w-full max-w-384 px-4 py-12 sm:px-6 sm:py-16 lg:px-10 lg:py-20">
-        <div className="mb-8 max-w-2xl sm:mb-10">
-          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-4 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-5xl">
-            კატალოგი
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-[#5e685f]">
-            აირჩიეთ კატეგორია და დაათვალიერეთ ავეჯი.
-          </p>
-        </div>
-
+    <main>
+      <PageBanner
+        title="კატალოგი"
+        description="აირჩიეთ კატეგორია და დაათვალიერეთ ავეჯი."
+        crumbs={[{ label: "კატალოგი" }]}
+      />
+      <section aria-label="კატეგორიები" className="page-container section-y">
         {categories.length === 0 ? (
           <EmptyState
             title="კატალოგი ჯერ არ არის დამატებული"
             description="ახალი კატალოგი მალე გამოჩნდება."
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
             {categories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                showProductCount
-              />
+              <CategoryCard key={category.id} category={category} size="large" />
             ))}
           </div>
         )}

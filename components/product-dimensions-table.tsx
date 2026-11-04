@@ -33,24 +33,24 @@ export function ProductDimensionsTable({
   return (
     <section
       aria-labelledby="product-dimensions-heading"
-      className="mt-6 rounded-2xl border border-[#d8ded8] bg-white p-5"
+      className="mt-6 rounded-md bg-canvas p-4 sm:p-5"
     >
       <h2
         id="product-dimensions-heading"
-        className="text-lg font-semibold text-[#18221d]"
+        className="text-base font-bold text-ink sm:text-lg"
       >
         ზომები
       </h2>
 
       {rows.length > 0 ? (
-        <dl className="mt-4 divide-y divide-[#e4e8e4]">
+        <dl className="mt-4 divide-y divide-line">
           {rows.map((row) => (
             <div
               key={row.label}
               className="flex items-baseline justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
             >
-              <dt className="text-sm text-[#5e685f]">{row.label}</dt>
-              <dd className="text-sm font-semibold text-[#18221d]">
+              <dt className="text-sm text-ink-muted">{row.label}</dt>
+              <dd className="text-sm font-semibold text-ink">
                 {formatCm(row.value)} {row.unit}
               </dd>
             </div>
@@ -60,8 +60,8 @@ export function ProductDimensionsTable({
 
       {dimensions.note ? (
         <p
-          className={`max-w-[60ch] text-sm leading-6 text-[#5e685f] ${
-            rows.length > 0 ? "mt-4 border-t border-[#e4e8e4] pt-4" : "mt-3"
+          className={`max-w-[60ch] text-sm leading-6 text-ink-muted ${
+            rows.length > 0 ? "mt-4 border-t border-line pt-4" : "mt-3"
           }`}
         >
           {dimensions.note}

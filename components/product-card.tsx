@@ -1,105 +1,91 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, ImageIcon } from "lucide-react";
+import { ArrowRight, ImageIcon } from "lucide-react";
 import { formatPrice, type ProductCardData } from "@/lib/storefront";
 
-export function ProductCard({ product }: { product: ProductCardData }) {
+const badgeClass =
+  "absolute top-2.5 left-2.5 z-10 inline-flex items-center rounded-md px-2 py-1 text-xs leading-none font-semibold text-white";
 
+export function ProductCard({ product }: { product: ProductCardData }) {
   return (
     <Link
       href={`/product/${encodeURIComponent(product.slug)}`}
-      className="group flex min-w-0 flex-col focus-visible:rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
+      className="group flex h-full min-w-0 flex-col rounded-lg bg-white p-2.5 shadow-card transition-shadow duration-300 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest motion-reduce:transition-none"
     >
-      <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-[#e8ebe7]">
+      <div className="relative aspect-4/3 overflow-hidden rounded-md bg-placeholder">
         {/* Lists are available-only today, so this only shows on a directly-linked card.
             It exists so a sold item can never render as purchasable. */}
         {!product.isPurchasable ? (
-          <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#443a72] px-2.5 py-1 text-xs font-semibold text-white">
+          <span className={`${badgeClass} bg-sold`}>
             {product.status === "reserved" ? "დაჯავშნილი" : "გაყიდული"}
           </span>
-        ) : (
-          /* At most one badge. A card carrying both "-20%" and "new arrival" makes the
-             viewer read two claims and trust neither; the discount is the stronger one, so
-             it wins when both apply. Both are already suppressed on unbuyable listings by
-             showsDiscount / isNewArrival. */
-          <>
-            {product.showsDiscount ? (
-              <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#8a2f1f] px-2.5 py-1 text-xs font-semibold text-white">
-                -{product.discountPercent}%
-              </span>
-            ) : product.isNewArrival ? (
-              <span className="absolute left-3 top-3 z-10 inline-flex items-center rounded-full bg-[#1d4a38] px-2.5 py-1 text-xs font-semibold text-white">
-                ახალი შემოსული
-              </span>
-            ) : null}
-          </>
-        )}
+        ) : product.showsDiscount ? (
+          /* At most one badge: the discount is the stronger claim, so it wins over "new".
+             Both are already suppressed on unbuyable listings. */
+          <span className={`${badgeClass} bg-forest-deep tabular-nums`}>
+            -{product.discountPercent}%
+          </span>
+        ) : product.isNewArrival ? (
+          <span className={`${badgeClass} bg-forest`}>ახალი</span>
+        ) : null}
         {product.leadImageId ? (
           <Image
             src={`/api/product-images/${product.leadImageId}`}
             alt={`${product.name} — პროდუქტის ფოტო`}
             fill
-            sizes="(max-width: 520px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035] motion-reduce:transition-none"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none"
           />
         ) : (
-          <div className="grid size-full place-items-center text-[#748078]">
-            <ImageIcon
-              className="size-9"
-              strokeWidth={1.4}
-              aria-hidden="true"
-            />
+          <div className="grid size-full place-items-center text-meta">
+            <ImageIcon className="size-9" strokeWidth={1.4} aria-hidden="true" />
             <span className="sr-only">ფოტო არ არის</span>
           </div>
         )}
       </div>
-      {/* No surface: the rows are told apart by type and colour alone, and one hairline
-          splits "what it is" from "what it costs". Same rows as ProductCardSkeleton. */}
-      <div className="flex flex-1 flex-col pt-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <p className="truncate text-xs font-semibold text-[#667168]">
+
+      {/* Same rows as ProductCardSkeleton. */}
+      <div className="flex flex-1 flex-col px-1 pt-3 pb-0.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
+          <p className="max-w-full truncate text-xs font-medium text-meta">
             {product.categoryName ?? "კატალოგის გარეშე"}
           </p>
-          {/* `unassessed` is suppressed here: a grid where every card reads "assessment
-              in progress" is noise, and on a card there is no room for the explanation
-              that makes it meaningful. The detail page states it plainly instead. */}
+          {/* `unassessed` is suppressed on cards: the detail page explains it instead. */}
           {product.conditionGrade &&
           product.conditionGrade.code !== "unassessed" ? (
-            <p className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-[#1d4a38]">
-              <span
-                className="size-1.5 rounded-full bg-[#1d4a38]"
-                aria-hidden="true"
-              />
+            <p className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-forest">
+              <span className="size-1.5 rounded-full bg-forest" aria-hidden="true" />
               {product.conditionGrade.label_ka}
             </p>
           ) : null}
         </div>
-        <h3 className="mt-2 mb-3 line-clamp-2 text-base leading-6 font-semibold text-[#18221d]">
+        <h3 className="mt-1.5 mb-3 line-clamp-2 text-sm leading-5 font-semibold text-ink sm:text-[0.9375rem]">
           {product.name}
         </h3>
-        {/* mt-auto instead of reserving two name lines: a one-line name sits 12px (the h3's
-            mb-3) above the divider, yet dividers still line up across a grid row — cards
-            stretch to the tallest neighbour — when the card beside it has a two-line name. */}
-        <div className="mt-auto flex items-center justify-between gap-4 border-t border-[#d8ded8] pt-3">
+
+        {/* mt-auto pins the price row to the bottom, so rows align across a grid line. */}
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-            <p className="text-lg font-bold text-[#173c2f] tabular-nums">
+            <p className="text-base font-bold text-ink tabular-nums sm:text-lg">
               {formatPrice(product.price)}
             </p>
-            {/* The old price is <s> rather than a line-through class: the strike-through
-                is the meaning here, not decoration, so it has to survive for a screen
-                reader too. The label says which is which, since two numbers in sequence
-                are ambiguous read aloud. */}
+            {/* <s>, not a class: the strike-through is meaning, so it must reach a screen
+                reader too, and the label says which number is which. */}
             {product.showsDiscount && product.compareAtPrice !== null ? (
-              <p className="text-sm text-[#667168] tabular-nums">
+              <p className="text-xs text-meta tabular-nums">
                 <span className="sr-only">ძველი ფასი: </span>
                 <s>{formatPrice(product.compareAtPrice)}</s>
               </p>
             ) : null}
           </div>
-          <ArrowUpRight
-            className="size-4 shrink-0 text-[#1d4a38] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+          {/* Visual affordance only — the whole card is the link. */}
+          <span
             aria-hidden="true"
-          />
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md bg-forest-deep px-3 text-xs font-semibold text-white transition-colors group-hover:bg-forest"
+          >
+            ნახვა
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
+          </span>
         </div>
       </div>
     </Link>

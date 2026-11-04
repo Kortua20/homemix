@@ -19,28 +19,28 @@ export function ConditionAspectTable({
   return (
     <section
       aria-labelledby="condition-aspects-heading"
-      className="mt-6 rounded-2xl border border-[#d8ded8] bg-white p-5"
+      className="mt-6 rounded-md bg-canvas p-4 sm:p-5"
     >
       <h2
         id="condition-aspects-heading"
-        className="text-lg font-semibold text-[#18221d]"
+        className="text-base font-bold text-ink sm:text-lg"
       >
         მდგომარეობა დეტალურად
       </h2>
 
-      <dl className="mt-4 divide-y divide-[#e4e8e4]">
+      <dl className="mt-4 divide-y divide-line">
         {ratings.map((rating) => (
           <div key={rating.aspect_code} className="py-3 first:pt-0 last:pb-0">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <dt className="text-sm font-semibold text-[#18221d]">
+              <dt className="text-sm font-semibold text-ink">
                 {rating.label_ka}
               </dt>
-              <dd className="text-sm font-semibold text-[#1d4a38]">
+              <dd className="text-sm font-semibold text-forest">
                 {rating.grade?.label_ka ?? "—"}
               </dd>
             </div>
             {rating.note ? (
-              <p className="mt-1 max-w-[60ch] text-sm leading-6 text-[#5e685f]">
+              <p className="mt-1 max-w-[60ch] text-sm leading-6 text-ink-muted">
                 {rating.note}
               </p>
             ) : null}

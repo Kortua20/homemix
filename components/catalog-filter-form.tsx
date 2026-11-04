@@ -93,15 +93,15 @@ function Popover({
     <details className="group static shrink-0 lg:relative">
       <summary
         className={cn(
-          "flex h-10 min-w-27 cursor-pointer list-none items-center justify-between gap-2 rounded-xl border px-3.5 text-sm font-semibold text-[#1d4a38] transition-colors hover:border-[#1d4a38] hover:bg-[#e9eee9] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] group-open:border-[#1d4a38] [&::-webkit-details-marker]:hidden",
+          "flex h-11 min-w-27 cursor-pointer list-none items-center justify-between gap-2 rounded-md border px-3.5 text-sm font-semibold text-forest transition-colors hover:border-forest hover:bg-mint focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest group-open:border-forest [&::-webkit-details-marker]:hidden",
           activeCount > 0
-            ? "border-[#1d4a38] bg-[#e9eee9]"
-            : "border-[#b9c6bd] bg-white",
+            ? "border-forest bg-mint"
+            : "border-control bg-white",
         )}
       >
         {label}
         {activeCount > 0 ? (
-          <span className="grid size-5 place-items-center rounded-full bg-[#1d4a38] text-[11px] font-bold text-white">
+          <span className="grid size-5 place-items-center rounded-full bg-forest text-[11px] font-bold text-white">
             {activeCount}
           </span>
         ) : null}
@@ -112,7 +112,7 @@ function Popover({
       </summary>
       <div
         className={cn(
-          "absolute left-1/2 z-30 mt-2 w-[min(calc(100vw-2rem),310px)] -translate-x-1/2 rounded-xl border border-[#d8ded8] bg-white p-3 shadow-[0_16px_40px_rgba(12,34,25,0.16)] lg:translate-x-0",
+          "absolute left-1/2 z-30 mt-2 w-[min(calc(100vw-2rem),310px)] -translate-x-1/2 rounded-lg border border-line bg-white p-3 shadow-popover lg:translate-x-0",
           align === "start" ? "lg:left-0" : "lg:right-0 lg:left-auto",
         )}
       >
@@ -123,18 +123,18 @@ function Popover({
 }
 
 const rangeInputClass =
-  "h-10 min-w-0 rounded-lg border border-[#b9c6bd] bg-white px-3 text-sm text-[#18221d] placeholder:text-[#667168] focus:border-[#1d4a38] focus:outline-none focus:ring-2 focus:ring-[#1d4a38]/20";
+  "h-10 min-w-0 rounded-md border border-control bg-white px-3 text-base sm:text-sm text-ink placeholder:text-meta focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20";
 
 // Search and category: the label sits inside the bordered box, and the control fills the
 // box, so a click anywhere on it focuses the input or opens the select.
 const fieldFrameClass =
-  "relative block h-14 min-w-0 rounded-xl border border-[#b9c6bd] bg-white transition-colors hover:border-[#1d4a38] focus-within:border-[#1d4a38] focus-within:ring-2 focus-within:ring-[#1d4a38]/20";
+  "relative block h-14 min-w-0 rounded-md border border-control bg-white transition-colors hover:border-forest focus-within:border-forest focus-within:ring-2 focus-within:ring-forest/20";
 
 const fieldLabelClass =
-  "pointer-events-none absolute top-2 text-[11px] leading-4 font-semibold text-[#667168]";
+  "pointer-events-none absolute top-2 text-[11px] leading-4 font-semibold text-meta";
 
 const submitButtonClass =
-  "grid size-10 place-items-center rounded-lg bg-[#1d4a38] text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38]";
+  "grid size-10 place-items-center rounded-md bg-forest-deep text-white transition-colors hover:bg-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest";
 
 export function CatalogFilterForm({
   action,
@@ -187,7 +187,7 @@ export function CatalogFilterForm({
       className={cn(
         "relative",
         variant === "panel"
-          ? "mt-8 rounded-2xl border border-[#d8ded8] bg-[#ece8e1] p-4 sm:p-5"
+          ? "mt-6 rounded-lg bg-white p-4 shadow-card sm:p-5"
           : "",
         className,
       )}
@@ -204,7 +204,7 @@ export function CatalogFilterForm({
           <label className={cn(fieldFrameClass, "flex-1")}>
             <span className={cn(fieldLabelClass, "left-10")}>ძიება</span>
             <Search
-              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#667168]"
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-meta"
               aria-hidden="true"
             />
             <input
@@ -213,7 +213,7 @@ export function CatalogFilterForm({
               defaultValue={query.q}
               maxLength={100}
               placeholder="პროდუქტის სახელი"
-              className="size-full rounded-xl bg-transparent pt-5 pr-3.5 pl-10 text-sm text-[#18221d] placeholder:text-[#667168]/70 focus:outline-none"
+              className="size-full rounded-md bg-transparent pt-5 pr-3.5 pl-10 text-base sm:text-sm text-ink placeholder:text-meta/70 focus:outline-none"
             />
           </label>
 
@@ -223,7 +223,7 @@ export function CatalogFilterForm({
               <select
                 name="category"
                 defaultValue={query.category}
-                className="size-full cursor-pointer appearance-none rounded-xl bg-transparent pt-5 pr-10 pl-3.5 text-sm text-[#18221d] focus:outline-none"
+                className="size-full cursor-pointer appearance-none rounded-md bg-transparent pt-5 pr-10 pl-3.5 text-base sm:text-sm text-ink focus:outline-none"
               >
                 <option value="">ყველა კატეგორია</option>
                 {categories.map((category) => (
@@ -233,7 +233,7 @@ export function CatalogFilterForm({
                 ))}
               </select>
               <ChevronDown
-                className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-[#1d4a38]"
+                className="pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 text-forest"
                 aria-hidden="true"
               />
             </label>
@@ -242,7 +242,7 @@ export function CatalogFilterForm({
         <button
           type="submit"
           form="catalog-filter-form"
-          className="flex h-12 shrink-0 sm:h-14 items-center justify-center gap-2 rounded-xl bg-[#1d4a38] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
+          className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-md bg-forest-deep px-6 sm:h-14 text-sm font-semibold text-white transition-colors hover:bg-forest-deep focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest"
         >
           <Search className="size-4" aria-hidden="true" />
           ძიება
@@ -252,7 +252,7 @@ export function CatalogFilterForm({
       <div
         className={cn(
           "mt-3 flex flex-wrap items-center gap-2",
-          variant === "panel" ? "mt-4 border-t border-[#d8ded8] pt-4" : "",
+          variant === "panel" ? "mt-4 border-t border-line pt-4" : "",
         )}
       >
         <Popover
@@ -278,7 +278,7 @@ export function CatalogFilterForm({
               placeholder="Min."
               className={rangeInputClass}
             />
-            <span className="text-sm text-[#667168]" aria-hidden="true">
+            <span className="text-sm text-meta" aria-hidden="true">
               -
             </span>
             <input
@@ -313,10 +313,10 @@ export function CatalogFilterForm({
                 query={query}
                 omit={["minWidth", "maxWidth", "minHeight", "maxHeight"]}
               />
-              <p className="text-xs leading-5 text-[#667168]">
+              <p className="text-xs leading-5 text-meta">
                 მხოლოდ გაზომილი ნივთები გამოჩნდება.
               </p>
-              <span className="text-xs font-semibold text-[#18221d]">სიგანე (სმ)</span>
+              <span className="text-xs font-semibold text-ink">სიგანე (სმ)</span>
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <input
                   type="number"
@@ -328,7 +328,7 @@ export function CatalogFilterForm({
                   placeholder="Min."
                   className={rangeInputClass}
                 />
-                <span className="text-sm text-[#667168]" aria-hidden="true">
+                <span className="text-sm text-meta" aria-hidden="true">
                   -
                 </span>
                 <input
@@ -342,7 +342,7 @@ export function CatalogFilterForm({
                   className={rangeInputClass}
                 />
               </div>
-              <span className="text-xs font-semibold text-[#18221d]">სიმაღლე (სმ)</span>
+              <span className="text-xs font-semibold text-ink">სიმაღლე (სმ)</span>
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
                 <input
                   type="number"
@@ -354,7 +354,7 @@ export function CatalogFilterForm({
                   placeholder="Min."
                   className={rangeInputClass}
                 />
-                <span className="text-sm text-[#667168]" aria-hidden="true">
+                <span className="text-sm text-meta" aria-hidden="true">
                   -
                 </span>
                 <input
@@ -370,7 +370,7 @@ export function CatalogFilterForm({
               </div>
               <button
                 type="submit"
-                className="mt-1 h-10 rounded-lg bg-[#1d4a38] text-sm font-semibold text-white transition-colors hover:bg-[#15382a]"
+                className="mt-1 h-10 rounded-md bg-forest-deep text-sm font-semibold text-white transition-colors hover:bg-forest"
               >
                 ძიება
               </button>
@@ -386,14 +386,14 @@ export function CatalogFilterForm({
                 {facets.materials.map((material) => (
                   <label
                     key={material.code}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-[#18221d] hover:bg-[#f0f3f0]"
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-ink hover:bg-mint"
                   >
                     <input
                       type="checkbox"
                       name="materials"
                       value={material.code}
                       defaultChecked={query.materials.includes(material.code)}
-                      className="size-4 accent-[#1d4a38]"
+                      className="size-4 accent-forest"
                     />
                     {material.label_ka}
                   </label>
@@ -401,7 +401,7 @@ export function CatalogFilterForm({
               </div>
               <button
                 type="submit"
-                className="h-10 rounded-lg bg-[#1d4a38] text-sm font-semibold text-white transition-colors hover:bg-[#15382a]"
+                className="h-10 rounded-md bg-forest-deep text-sm font-semibold text-white transition-colors hover:bg-forest"
               >
                 ძიება
               </button>
@@ -417,14 +417,14 @@ export function CatalogFilterForm({
                 {facets.colours.map((colour) => (
                   <label
                     key={colour.code}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-[#18221d] hover:bg-[#f0f3f0]"
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-ink hover:bg-mint"
                   >
                     <input
                       type="checkbox"
                       name="colours"
                       value={colour.code}
                       defaultChecked={query.colours.includes(colour.code)}
-                      className="size-4 accent-[#1d4a38]"
+                      className="size-4 accent-forest"
                     />
                     {colour.hex ? (
                       <span
@@ -439,7 +439,7 @@ export function CatalogFilterForm({
               </div>
               <button
                 type="submit"
-                className="h-10 rounded-lg bg-[#1d4a38] text-sm font-semibold text-white transition-colors hover:bg-[#15382a]"
+                className="h-10 rounded-md bg-forest-deep text-sm font-semibold text-white transition-colors hover:bg-forest"
               >
                 ძიება
               </button>
@@ -455,14 +455,14 @@ export function CatalogFilterForm({
                 {facets.styles.map((style) => (
                   <label
                     key={style.code}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-[#18221d] hover:bg-[#f0f3f0]"
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-ink hover:bg-mint"
                   >
                     <input
                       type="checkbox"
                       name="styles"
                       value={style.code}
                       defaultChecked={query.styles.includes(style.code)}
-                      className="size-4 accent-[#1d4a38]"
+                      className="size-4 accent-forest"
                     />
                     {style.label_ka}
                   </label>
@@ -470,7 +470,7 @@ export function CatalogFilterForm({
               </div>
               <button
                 type="submit"
-                className="h-10 rounded-lg bg-[#1d4a38] text-sm font-semibold text-white transition-colors hover:bg-[#15382a]"
+                className="h-10 rounded-md bg-forest-deep text-sm font-semibold text-white transition-colors hover:bg-forest"
               >
                 ძიება
               </button>
@@ -482,7 +482,7 @@ export function CatalogFilterForm({
           <a
             href={resetHref}
             onClick={handleReset}
-            className="ml-auto flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-[#1d4a38] underline-offset-4 transition-colors hover:bg-[#e9eee9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
+            className="ml-auto flex h-11 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-forest underline-offset-4 transition-colors hover:bg-mint hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest"
           >
             <X className="size-4" aria-hidden="true" />
             გასუფთავება

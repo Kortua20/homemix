@@ -32,14 +32,43 @@
   --radius-3xl: calc(var(--radius) * 2.2);
 }
 
+/* Home Mix brand tokens — the one place colours, shadows and the page frame are defined.
+   Use these names (bg-canvas, text-ink, shadow-card, page-container …) instead of raw hex
+   values in components. See DESIGN.md for what each one is for. */
+@theme {
+  --color-canvas: #f6f3ee;
+  --color-sand: #ede6db;
+  --color-ink: #1a2420;
+  --color-ink-muted: #56615a;
+  --color-meta: #646d66;
+  --color-forest: #1d4a38;
+  --color-forest-deep: #173c2f;
+  --color-forest-night: #10291f;
+  --color-mint: #e8eee9;
+  --color-line: #e4dfd6;
+  --color-control: #c9d1ca;
+  --color-brass: #c39a3e;
+  --color-placeholder: #e7e2d9;
+  --color-danger: #a33c32;
+  --color-danger-line: #d6a9a4;
+  --color-sold: #443a72;
+
+  --shadow-card:
+    0 1px 2px rgb(26 36 32 / 0.05), 0 8px 24px -12px rgb(26 36 32 / 0.18);
+  --shadow-card-hover:
+    0 2px 4px rgb(26 36 32 / 0.06), 0 16px 32px -14px rgb(26 36 32 / 0.28);
+  --shadow-popover: 0 16px 40px rgb(12 34 25 / 0.16);
+  --shadow-drawer: -18px 0 50px rgb(12 34 25 / 0.18);
+}
+
 :root {
   --radius: 0.75rem;
-  --background: #f4f2ed;
-  --foreground: #18221d;
+  --background: #f6f3ee;
+  --foreground: #1a2420;
   --card: #ffffff;
-  --card-foreground: #18221d;
+  --card-foreground: #1a2420;
   --popover: #ffffff;
-  --popover-foreground: #18221d;
+  --popover-foreground: #1a2420;
   --primary: #1d4a38;
   --primary-foreground: #ffffff;
   --secondary: #e9eee9;
@@ -71,6 +100,48 @@
   button,
   a {
     -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* The single page frame: every section, header and footer aligns to this edge. */
+@utility page-container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Vertical rhythm between page sections — dense, like the reference storefront. */
+@utility section-y {
+  padding-block: 2rem;
+
+  @media (width >= 40rem) {
+    padding-block: 2.5rem;
+  }
+
+  @media (width >= 64rem) {
+    padding-block: 3rem;
+  }
+}
+
+/* Short forest bar under section and page titles. Pseudo-element, so no extra markup. */
+@utility accent-bar {
+  &::after {
+    content: "";
+    display: block;
+    margin-top: 0.625rem;
+    height: 3px;
+    width: 2.75rem;
+    border-radius: 9999px;
+    background: var(--color-forest);
   }
 }
 

@@ -1,50 +1,71 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, ImageIcon } from "lucide-react";
+import { ImageIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Category } from "@/lib/storefront";
 
+// "tile": the compact homepage row from the reference — photo, bottom gradient, centred
+// white label. "large": the /categories grid, same language, with the product count.
 export function CategoryCard({
   category,
-  showProductCount = false,
+  size = "tile",
+  className,
 }: {
   category: Category;
-  showProductCount?: boolean;
+  size?: "tile" | "large";
+  className?: string;
 }) {
   const image = category.images[0];
+  const isLarge = size === "large";
 
   return (
     <Link
       href={`/categories/${encodeURIComponent(category.slug)}`}
-      className="group relative block min-h-72 overflow-hidden rounded-xl bg-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38] sm:min-h-80 lg:min-h-96"
+      className={cn(
+        "group relative block overflow-hidden rounded-lg bg-forest-deep shadow-card focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest",
+        isLarge ? "aspect-4/3" : "aspect-square",
+        className,
+      )}
     >
       {image ? (
         <Image
           src={`/api/category-images/${image.id}`}
           alt=""
           fill
-          sizes="(max-width: 639px) 78vw, (max-width: 1023px) 45vw, 25vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035] motion-reduce:transition-none"
+          sizes={
+            isLarge
+              ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              : "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 16vw"
+          }
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05] motion-reduce:transition-none"
         />
       ) : (
-        <span className="absolute inset-0 grid place-items-center text-white/70">
-          <ImageIcon className="size-10" strokeWidth={1.4} aria-hidden="true" />
+        <span className="absolute inset-0 grid place-items-center text-white/60">
+          <ImageIcon className="size-9" strokeWidth={1.4} aria-hidden="true" />
         </span>
       )}
-      <span className="absolute inset-0 bg-[linear-gradient(0deg,rgba(7,24,16,.82)_0%,rgba(7,24,16,.12)_62%)]" />
-      <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 text-white sm:p-6">
-        <span className="min-w-0">
-          <h3 className="text-xl font-semibold tracking-tight sm:text-2xl">
-            {category.name}
-          </h3>
-          {showProductCount && category.productCount > 0 ? (
-            <span className="mt-2 block text-sm font-semibold text-white/78">
-              {category.productCount} პროდუქტი
-            </span>
-          ) : null}
-        </span>
-        <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-white/55 transition-colors group-hover:bg-white group-hover:text-[#173c2f]">
-          <ArrowUpRight className="size-4" aria-hidden="true" />
-        </span>
+      <span className="absolute inset-0 bg-[linear-gradient(0deg,rgba(20,18,14,.78)_0%,rgba(20,18,14,.28)_45%,rgba(20,18,14,0)_70%)]" />
+      <span
+        className={cn(
+          "absolute inset-x-0 bottom-0 text-white",
+          isLarge ? "p-5 sm:p-6" : "px-2 pb-3 text-center sm:pb-3.5",
+        )}
+      >
+        <h3
+          className={cn(
+            "font-semibold text-balance",
+            isLarge
+              ? "text-xl tracking-[-0.01em] sm:text-2xl"
+              : "text-sm leading-5 sm:text-[0.9375rem]",
+          )}
+        >
+          {category.name}
+        </h3>
+        {isLarge && category.productCount > 0 ? (
+          <span className="mt-1.5 block text-sm font-medium text-white/80">
+            {category.productCount} პროდუქტი
+          </span>
+        ) : null}
       </span>
     </Link>
   );

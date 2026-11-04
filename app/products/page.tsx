@@ -4,7 +4,12 @@ import { CatalogFilterForm } from "@/components/catalog-filter-form";
 import { EmptyState } from "@/components/empty-state";
 import { Pagination } from "@/components/pagination";
 import { ProductCard } from "@/components/product-card";
-import { ProductGridSkeleton } from "@/components/product-card-skeleton";
+import {
+  ProductGridSkeleton,
+  productGridClass,
+} from "@/components/product-card-skeleton";
+import { PageBanner } from "@/components/page-banner";
+import { SectionHeader } from "@/components/section-header";
 import {
   getCatalogProducts,
   getFacetAvailability,
@@ -138,7 +143,7 @@ async function CatalogProductResults({
       {/* The total, not items.length: with 24 per page the latter would report "24" on
           every full page and read as the size of the whole catalogue. */}
       <p
-        className="-mt-6 mb-8 text-sm text-[#5e685f]"
+        className="-mt-3 mb-6 text-sm text-ink-muted"
         role="status"
         aria-live="polite"
       >
@@ -147,7 +152,7 @@ async function CatalogProductResults({
           ? ` — გვერდი ${result.page} / ${result.pageCount}`
           : ""}
       </p>
-      <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
+      <div className={productGridClass}>
         {result.items.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
@@ -294,17 +299,13 @@ export default async function ProductsPage({
   );
 
   return (
-    <main className="bg-[#f4f2ed]">
-      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <div className="max-w-2xl">
-          <h1 className="text-4xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-4 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-5xl">
-            პროდუქტები
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-[#5e685f]">
-            მოძებნეთ პროდუქტი სახელით, კატეგორიით ან ფასის დიაპაზონით.
-          </p>
-        </div>
-
+    <main>
+      <PageBanner
+        title="პროდუქტები"
+        description="მოძებნეთ პროდუქტი სახელით, კატეგორიით ან ფასის დიაპაზონით."
+        crumbs={[{ label: "პროდუქტები" }]}
+      />
+      <div className="page-container pb-12 sm:pb-16">
         <CatalogFilterForm
           action="/products"
           query={query}
@@ -315,23 +316,16 @@ export default async function ProductsPage({
         />
 
         {categoriesResult.status === "rejected" ? (
-          <p className="mt-3 text-xs text-[#a33c32]">
+          <p className="mt-3 text-xs text-danger">
             კატეგორიები ვერ ჩაიტვირთა.
           </p>
         ) : null}
 
         <section
-          className="pt-12 sm:pt-16"
+          className="pt-8 sm:pt-10"
           aria-labelledby="catalog-results-heading"
         >
-          <div className="mb-8">
-            <h2
-              id="catalog-results-heading"
-              className="text-2xl font-semibold tracking-[-0.02em] text-[#18221d] after:mt-3 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-3xl"
-            >
-              კატალოგი
-            </h2>
-          </div>
+          <SectionHeader id="catalog-results-heading" title="კატალოგი" />
 
           <Suspense
             key={resultsKey(filters)}
