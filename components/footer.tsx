@@ -156,17 +156,6 @@ export function Footer() {
                   <Facebook className="size-4.5" aria-hidden="true" />
                 </a>
               ) : null}
-              {socialLinks.whatsapp ? (
-                <a
-                  href={socialLinks.whatsapp}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="WhatsApp"
-                  className={socialButtonClass}
-                >
-                  <BrandIcon glyph="whatsapp" className="size-5" />
-                </a>
-              ) : null}
             </div>
           </div>
         </div>

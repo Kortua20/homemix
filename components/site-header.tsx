@@ -35,8 +35,12 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-const topBarIconClass =
-  "grid size-7 place-items-center rounded-full text-white/90 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white";
+// Messaging links in the top bar: a 36px round icon button on phones (so it is easy to
+// tap), and an icon + label link from md up.
+const topBarChannelClass =
+  "grid size-9 shrink-0 place-items-center rounded-full font-semibold text-white/90 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white md:flex md:size-auto md:gap-2 md:rounded-sm md:hover:bg-transparent";
+
+const topBarDividerClass = "hidden h-3.5 w-px bg-white/25 md:block";
 
 const navLinkClass =
   "relative flex min-h-11 items-center gap-1 px-1 text-sm font-semibold transition-colors after:absolute after:inset-x-1 after:bottom-1.5 after:h-0.5 after:origin-left after:rounded-full after:bg-brass after:transition-transform hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest";
@@ -88,72 +92,85 @@ export function SiteHeader({ categories = [] }: { categories?: NavCategory[] }) 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-[0_1px_0_var(--color-line)]">
       <div className="bg-forest-deep text-white">
-        <div className="page-container flex h-9 items-center justify-between gap-4 text-xs">
-          <div className="flex min-w-0 items-center gap-5">
+        {/* Contact channels (call, WhatsApp, Messenger) are grouped on the left, as one
+            "talk to us" cluster. Information (payment, address) and "follow us"
+            (Facebook) sit on the right, as less important. */}
+        <div className="page-container flex h-10 items-center justify-between gap-4 text-xs md:h-9">
+          <div className="flex min-w-0 items-center gap-1 md:gap-4">
             {contactDetails.phone.href ? (
               <a
                 href={contactDetails.phone.href}
-                className="flex shrink-0 items-center gap-2 font-semibold focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="mr-2 flex shrink-0 items-center gap-2 font-semibold md:mr-0 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 <Phone className="size-3.5" aria-hidden="true" />
                 {contactDetails.phone.label}
               </a>
             ) : (
-              <span className="flex shrink-0 items-center gap-2 font-semibold">
+              <span className="mr-2 flex shrink-0 items-center gap-2 font-semibold md:mr-0">
                 <Phone className="size-3.5" aria-hidden="true" />
                 {contactDetails.phone.label}
               </span>
             )}
-            <a
-              href={contactDetails.mapUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden min-w-0 items-center gap-2 text-white/85 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:flex"
-            >
-              <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
-              <span className="truncate">{contactDetails.address}</span>
-            </a>
+            {socialLinks.whatsapp ? (
+              <>
+                <span className={topBarDividerClass} aria-hidden="true" />
+                <a
+                  href={socialLinks.whatsapp}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="WhatsApp"
+                  className={topBarChannelClass}
+                >
+                  <BrandIcon glyph="whatsapp" className="size-4.5 md:size-4" />
+                  <span className="hidden md:inline">WhatsApp</span>
+                </a>
+              </>
+            ) : null}
+            {socialLinks.messenger ? (
+              <>
+                <span className={topBarDividerClass} aria-hidden="true" />
+                <a
+                  href={socialLinks.messenger}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Messenger"
+                  className={topBarChannelClass}
+                >
+                  <BrandIcon glyph="messenger" className="size-4.5 md:size-4" />
+                  <span className="hidden md:inline">Messenger</span>
+                </a>
+              </>
+            ) : null}
           </div>
           <div className="flex items-center gap-5">
             <p className="hidden items-center gap-2 text-white/85 lg:flex">
               <CreditCard className="size-3.5" aria-hidden="true" />
               მაღაზიაში ხელმისაწვდომია განვადება და ნაწილ-ნაწილ გადახდა
             </p>
-            <div className="flex items-center gap-1">
-              {socialLinks.whatsapp ? (
-                <a
-                  href={socialLinks.whatsapp}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="WhatsApp"
-                  className={topBarIconClass}
-                >
-                  <BrandIcon glyph="whatsapp" className="size-4" />
-                </a>
-              ) : null}
-              {socialLinks.messenger ? (
-                <a
-                  href={socialLinks.messenger}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Messenger"
-                  className={topBarIconClass}
-                >
-                  <BrandIcon glyph="messenger" className="size-4" />
-                </a>
-              ) : null}
-              {socialLinks.facebook ? (
-                <a
-                  href={socialLinks.facebook}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Facebook"
-                  className={topBarIconClass}
-                >
-                  <Facebook className="size-4" aria-hidden="true" />
-                </a>
-              ) : null}
-            </div>
+            {/* Hidden at lg only: next to the payment note and the labelled channels it
+                would not fit until xl. */}
+            <a
+              href={contactDetails.mapUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="hidden min-w-0 items-center gap-2 text-white/85 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:flex lg:hidden xl:flex"
+            >
+              <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+              <span className="truncate">{contactDetails.address}</span>
+            </a>
+            {/* Desktop only: on phones the bar keeps to the contact channels, and
+                Facebook stays reachable in the footer. */}
+            {socialLinks.facebook ? (
+              <a
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Facebook"
+                className="hidden size-7 place-items-center rounded-full text-white/90 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white md:grid"
+              >
+                <Facebook className="size-4" aria-hidden="true" />
+              </a>
+            ) : null}
           </div>
         </div>
       </div>
