@@ -144,7 +144,7 @@ export function SiteHeader({ categories = [] }: { categories?: NavCategory[] }) 
             width={500}
             height={500}
             preload
-            className="size-16 object-contain sm:size-[4.5rem]"
+            className="size-16 object-contain sm:size-18"
           />
           <span className="hidden text-[11px] leading-tight font-semibold text-meta xl:block">
             ახალი და მეორადი ავეჯი

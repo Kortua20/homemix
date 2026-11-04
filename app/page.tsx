@@ -87,7 +87,7 @@ export default async function HomePage() {
               <div key={category.id} className="snap-start">
                 <CategoryCard
                   category={category}
-                  className={categories.length < 6 ? "lg:aspect-[5/3]" : undefined}
+                  className={categories.length < 6 ? "lg:aspect-5/3" : undefined}
                 />
               </div>
             ))}

@@ -279,7 +279,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
             <span
               aria-hidden="true"
-              className="mt-3 block h-[3px] w-11 rounded-full bg-forest"
+              className="mt-3 block h-0.75 w-11 rounded-full bg-forest"
             />
 
             {!product.isPurchasable ? (

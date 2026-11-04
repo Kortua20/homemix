@@ -120,7 +120,7 @@ export function HeroSlider({
       }}
       className="relative w-full bg-forest-deep"
     >
-      <div className="relative min-h-88 overflow-hidden bg-forest-deep sm:min-h-96 lg:min-h-100">
+      <div className="relative min-h-72 overflow-hidden bg-forest-deep sm:min-h-96 lg:min-h-100">
         {slides.map((item, index) => (
           <Image
             key={item.image}
@@ -142,12 +142,14 @@ export function HeroSlider({
         {/* Warm, dark left-side wash: the copy sits on the room, never on a panel. */}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,18,14,.78)_0%,rgba(20,18,14,.55)_34%,rgba(20,18,14,.12)_66%,rgba(20,18,14,0)_100%),linear-gradient(0deg,rgba(20,18,14,.45)_0%,transparent_40%)]" />
 
-        <div className="page-container relative z-10 flex min-h-88 items-end pt-10 pb-20 sm:min-h-96 sm:items-center sm:pb-24 lg:min-h-100">
+        <div className="page-container relative z-10 flex min-h-72 items-end pt-8 pb-18 sm:min-h-96 sm:items-center sm:pt-10 sm:pb-24 lg:min-h-100">
           <div className="max-w-180 text-white">
-            <h1 className="max-w-[20ch] text-[clamp(2.25rem,4.6vw,4.25rem)] leading-[1.12] font-bold tracking-[-0.025em] text-balance">
+            <h1 className="max-w-[20ch] text-[1.75rem] leading-[1.15] font-bold tracking-tight text-balance sm:text-[clamp(2.25rem,4.6vw,4.25rem)] sm:leading-[1.12]">
               {slide.title}
             </h1>
-            <p className="mt-5 max-w-130 text-base leading-7 text-white/88 sm:text-lg sm:leading-8">
+            {/* Hidden on phones: four lines of body copy doubled the hero's height there,
+                and the title plus the button already carry the slide. */}
+            <p className="mt-5 hidden max-w-130 text-lg leading-8 text-white/88 sm:block">
               {slide.description}
             </p>
             {/* Needs both: the category hero passes an href to its own page, and a button
@@ -155,7 +157,7 @@ export function HeroSlider({
             {slide.href && slide.actionLabel ? (
               <Link
                 href={slide.href}
-                className="group mt-8 inline-flex min-h-12 items-center gap-2 rounded-full border border-white/80 px-7 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-forest-deep focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white"
+                className="group mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-white/80 px-6 text-sm sm:mt-8 sm:min-h-12 sm:px-7 font-semibold text-white transition-colors hover:bg-white hover:text-forest-deep focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white"
               >
                 {slide.actionLabel}
                 <ArrowRight

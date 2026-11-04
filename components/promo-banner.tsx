@@ -52,7 +52,7 @@ export function PromoBanner({
       {/* Photo slot: the right ~72%. The mask fades the photo's own left edge to
           transparent, so it melts into the surface instead of starting on a hard line;
           the wash on top only keeps the title readable. */}
-      <div className="absolute inset-y-0 right-0 -z-10 w-[72%] [mask-image:linear-gradient(90deg,transparent_0%,#000_55%)]">
+      <div className="absolute inset-y-0 right-0 -z-10 w-[72%] mask-[linear-gradient(90deg,transparent_0%,#000_55%)]">
         {image ? (
           <Image
             src={image.src}
