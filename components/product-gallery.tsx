@@ -1,11 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { ImageIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import type { ProductImage } from "@/lib/storefront";
 
 const SWIPE_THRESHOLD = 50;
+
+const arrowClass =
+  "absolute top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-ink shadow-card transition-colors hover:bg-white hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest";
 
 export function ProductGallery({
   images,
@@ -45,7 +48,7 @@ export function ProductGallery({
 
   if (!selectedImage) {
     return (
-      <div className="grid aspect-4/3 place-items-center rounded-2xl bg-[#e8ebe7] text-[#748078]">
+      <div className="grid aspect-4/3 place-items-center rounded-lg bg-placeholder text-meta">
         <div className="text-center">
           <ImageIcon
             className="mx-auto size-12"
@@ -64,7 +67,7 @@ export function ProductGallery({
       className="min-w-0 max-w-full"
     >
       <div
-        className="relative aspect-4/3 w-full max-w-full touch-pan-y overflow-hidden rounded-2xl bg-[#e8ebe7] select-none focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
+        className="relative aspect-4/3 w-full max-w-full touch-pan-y overflow-hidden rounded-lg bg-placeholder select-none focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest"
         role="group"
         tabIndex={images.length > 1 ? 0 : -1}
         aria-label={`${productName} — ფოტო ${selectedIndex + 1} / ${images.length}. გაასრიალეთ მარცხნივ ან მარჯვნივ.`}
@@ -104,11 +107,31 @@ export function ProductGallery({
           sizes="(max-width: 1024px) 100vw, 58vw"
           className="object-cover"
         />
+        {images.length > 1 ? (
+          <>
+            <button
+              type="button"
+              aria-label="წინა ფოტო"
+              onClick={() => selectRelativeImage(-1)}
+              className={`${arrowClass} left-3`}
+            >
+              <ChevronLeft className="size-5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="შემდეგი ფოტო"
+              onClick={() => selectRelativeImage(1)}
+              className={`${arrowClass} right-3`}
+            >
+              <ChevronRight className="size-5" aria-hidden="true" />
+            </button>
+          </>
+        ) : null}
       </div>
 
       {images.length > 1 ? (
         <div
-          className="mt-2 flex w-full max-w-full overflow-x-auto overscroll-x-contain pb-2"
+          className="no-scrollbar -mx-1.5 mt-1.5 flex w-[calc(100%+0.75rem)] overflow-x-auto overscroll-x-contain"
           role="group"
           aria-label="პროდუქტის ფოტოები"
         >
@@ -122,17 +145,17 @@ export function ProductGallery({
                 aria-label={`ფოტო ${index + 1}-ის ნახვა`}
                 aria-pressed={isSelected}
                 onClick={() => selectImage(image.id)}
-                className={`relative m-2 h-18 w-24 shrink-0 overflow-hidden rounded-xl bg-[#e8ebe7] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:h-20 sm:w-28 ${
+                className={`relative m-1.5 aspect-4/3 w-[calc(25%-0.75rem)] min-w-20 shrink-0 overflow-hidden rounded-md bg-placeholder focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest ${
                   isSelected
-                    ? "ring-2 ring-[#1d4a38] ring-offset-2 ring-offset-[#f4f2ed]"
-                    : "opacity-75 hover:opacity-100"
+                    ? "ring-2 ring-forest ring-offset-2 ring-offset-white"
+                    : "opacity-70 transition-opacity hover:opacity-100"
                 }`}
               >
                 <Image
                   src={`/api/product-images/${image.id}`}
                   alt=""
                   fill
-                  sizes="112px"
+                  sizes="160px"
                   className="object-cover"
                 />
               </button>

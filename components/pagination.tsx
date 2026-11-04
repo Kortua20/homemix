@@ -46,7 +46,9 @@ function pageItems(page: number, pageCount: number): (number | null)[] {
 }
 
 const baseLinkClass =
-  "inline-flex h-10 min-w-10 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38]";
+  "inline-flex size-10 sm:size-11 items-center justify-center rounded-full text-sm font-semibold tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest";
+
+const idleLinkClass = "bg-white text-ink shadow-card hover:bg-mint hover:text-forest";
 
 export function Pagination({
   page,
@@ -65,7 +67,7 @@ export function Pagination({
   return (
     <nav
       aria-label="გვერდების ნავიგაცია"
-      className={cn("mt-12 flex items-center justify-center gap-1", className)}
+      className={cn("mt-10 flex flex-wrap items-center justify-center gap-1.5", className)}
     >
       {/* The disabled edges render as spans rather than links: there is no page 0 to point
           at, and a link that goes nowhere is worse than an absent one for a keyboard or
@@ -75,14 +77,14 @@ export function Pagination({
           href={buildHref(page - 1)}
           rel="prev"
           aria-label="წინა გვერდი"
-          className={cn(baseLinkClass, "text-[#18221d] hover:bg-[#e8ebe7]")}
+          className={cn(baseLinkClass, idleLinkClass)}
         >
           <ChevronLeft className="size-4" aria-hidden="true" />
         </Link>
       ) : (
         <span
           aria-hidden="true"
-          className={cn(baseLinkClass, "text-[#a8b0a8]")}
+          className={cn(baseLinkClass, "text-control")}
         >
           <ChevronLeft className="size-4" />
         </span>
@@ -95,7 +97,7 @@ export function Pagination({
             // positions are stable for a given render and there is nothing to preserve.
             key={`gap-${index}`}
             aria-hidden="true"
-            className="inline-flex h-10 w-6 items-center justify-center text-sm text-[#748078]"
+            className="inline-flex h-10 w-6 items-center justify-center text-sm text-meta"
           >
             …
           </span>
@@ -103,7 +105,7 @@ export function Pagination({
           <span
             key={item}
             aria-current="page"
-            className={cn(baseLinkClass, "bg-[#1d4a38] text-white")}
+            className={cn(baseLinkClass, "bg-forest-deep text-white shadow-card")}
           >
             {item}
           </span>
@@ -112,7 +114,7 @@ export function Pagination({
             key={item}
             href={buildHref(item)}
             aria-label={`გვერდი ${item}`}
-            className={cn(baseLinkClass, "text-[#18221d] hover:bg-[#e8ebe7]")}
+            className={cn(baseLinkClass, idleLinkClass)}
           >
             {item}
           </Link>
@@ -124,14 +126,14 @@ export function Pagination({
           href={buildHref(page + 1)}
           rel="next"
           aria-label="შემდეგი გვერდი"
-          className={cn(baseLinkClass, "text-[#18221d] hover:bg-[#e8ebe7]")}
+          className={cn(baseLinkClass, idleLinkClass)}
         >
           <ChevronRight className="size-4" aria-hidden="true" />
         </Link>
       ) : (
         <span
           aria-hidden="true"
-          className={cn(baseLinkClass, "text-[#a8b0a8]")}
+          className={cn(baseLinkClass, "text-control")}
         >
           <ChevronRight className="size-4" />
         </span>

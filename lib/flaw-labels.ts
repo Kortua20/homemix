@@ -29,7 +29,7 @@ export const FLAW_SEVERITY_LABELS: Record<string, string> = {
 // existing greens and warm neutrals rather than a red/amber alarm scale: these are honest
 // disclosures on an item worth buying, not warnings.
 export const FLAW_SEVERITY_STYLES: Record<string, string> = {
-  minor: "bg-[#e9eee9] text-[#3c5a49]",
+  minor: "bg-mint text-[#3c5a49]",
   moderate: "bg-[#f3ead9] text-[#7a5312]",
   significant: "bg-[#f2e3e0] text-[#8c3a2e]",
 };

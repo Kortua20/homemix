@@ -1,10 +1,13 @@
-import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { ArrowRight } from "lucide-react";
 import { CategoryCard } from "@/components/category-card";
 import { EmptyState } from "@/components/empty-state";
 import { HeroSlider } from "@/components/hero-slider";
 import { ProductCard } from "@/components/product-card";
+import { productGridClass } from "@/components/product-card-skeleton";
+import { PromoBanner, type PromoBannerProps } from "@/components/promo-banner";
+import { SectionHeader } from "@/components/section-header";
+import { TrustStrip } from "@/components/trust-strip";
 import { getHomeCategories, getNewestProducts } from "@/lib/storefront";
 
 export const revalidate = 60;
@@ -16,44 +19,29 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-// One header for every homepage section, so the sections differ by their content and
-// surface only — never by heading colour, spacing, or whether a "see all" exists.
-function SectionHeader({
-  title,
-  description,
-  href,
-}: {
-  title: string;
-  description?: string;
-  href: string;
-}) {
-  return (
-    // The hairline closes the header as one unit — it ties the far-right link to its title
-    // and marks where the section's content starts.
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-x-5 gap-y-3 border-b border-[#d8ded8] pb-5 sm:mb-10 sm:pb-6">
-      <div className="min-w-0">
-        <h2 className="text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] after:mt-3 after:block after:h-1 after:w-12 after:rounded-full after:bg-[#1d4a38] sm:text-4xl">
-          {title}
-        </h2>
-        {description ? (
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[#5e685f] sm:text-base">
-            {description}
-          </p>
-        ) : null}
-      </div>
-      <Link
-        href={href}
-        className="group flex min-h-11 shrink-0 items-center gap-2 text-sm font-semibold text-[#173c2f] transition-colors hover:text-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1d4a38]"
-      >
-        ყველას ნახვა
-        <ArrowRight
-          className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
-          aria-hidden="true"
-        />
-      </Link>
-    </div>
-  );
-}
+// Photos live under /public/promo/ (1200×800 WebP; the banner crops them to its right side).
+const promoBanners: PromoBannerProps[] = [
+  {
+    title: "თბილისში მიწოდება უფასოა",
+    href: "/contact",
+    actionLabel: "დეტალურად",
+    tone: "forest",
+    image: {
+      src: "/promo/delivery-tbilisi.webp",
+      alt: "თბილისის ძველი ქუჩა ხის აივნებით",
+    },
+  },
+  {
+    title: "მაღალი ხარისხი და კომფორტი",
+    href: "/about",
+    actionLabel: "ჩვენ შესახებ",
+    tone: "sand",
+    image: {
+      src: "/promo/quality-comfort.webp",
+      alt: "რბილი ბალიშები და პლედი ღია ფერის დივანზე",
+    },
+  },
+];
 
 export default async function HomePage() {
   const [categoriesResult, productsResult] = await Promise.allSettled([
@@ -67,42 +55,52 @@ export default async function HomePage() {
     productsResult.status === "fulfilled" ? productsResult.value : [];
 
   return (
-    <main className="bg-[#f4f2ed]">
+    <main>
       <HeroSlider />
 
-      {/* Stone, not white: the tonal step from the canvas below separates the two sections
-          without a border, and white stays reserved for cards and controls. */}
-      <section className="bg-[#ece8e1] py-16 sm:py-20 lg:py-24">
-        <div className="mx-auto w-full max-w-384 px-4 sm:px-6 lg:px-10">
-          <SectionHeader title="კატალოგი" href="/categories" />
-
-          {categoriesResult.status === "rejected" ? (
-            <EmptyState
-              title="კატალოგი ვერ ჩაიტვირთა"
-              description="გთხოვთ, ცოტა ხანში სცადოთ თავიდან."
-              tone="error"
-            />
-          ) : categories.length === 0 ? (
-            <EmptyState
-              title="კატალოგი ჯერ არ დამატებულა"
-              description="ახალი კატალოგი მალე გამოჩნდება."
-            />
-          ) : (
-            // A swipe rail on touch widths; from lg a plain grid, because a desktop mouse
-            // cannot reach cards in a horizontal rail whose scrollbar is hidden.
-            <div className="no-scrollbar grid snap-x snap-mandatory auto-cols-[78%] grid-flow-col gap-4 overflow-x-auto pb-2 sm:auto-cols-[45%] sm:gap-5 lg:snap-none lg:grid-flow-row lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0">
-              {categories.map((category) => (
-                <div key={category.id} className="snap-start">
-                  <CategoryCard category={category} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* Categories sit straight under the hero as quick navigation, without a header —
+          the labelled tiles are self-explanatory, as in the reference. */}
+      <section aria-label="კატალოგი" className="page-container pt-6 sm:pt-8">
+        {categoriesResult.status === "rejected" ? (
+          <EmptyState
+            title="კატალოგი ვერ ჩაიტვირთა"
+            description="გთხოვთ, ცოტა ხანში სცადოთ თავიდან."
+            tone="error"
+          />
+        ) : categories.length === 0 ? (
+          <EmptyState
+            title="კატალოგი ჯერ არ დამატებულა"
+            description="ახალი კატალოგი მალე გამოჩნდება."
+          />
+        ) : (
+          // A swipe rail on phones; a plain grid from sm, because a desktop mouse cannot
+          // reach cards in a horizontal rail whose scrollbar is hidden.
+          // From lg, one row of up to six that always spans the container — fewer
+          // categories get wider (and slightly shorter) tiles rather than a gap.
+          <div
+            style={
+              { "--category-cols": Math.min(categories.length, 6) } as CSSProperties
+            }
+            className="no-scrollbar -mx-4 grid snap-x snap-mandatory auto-cols-[38%] grid-flow-col gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:snap-none sm:grid-flow-row sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-[repeat(var(--category-cols),minmax(0,1fr))]"
+          >
+            {categories.map((category) => (
+              <div key={category.id} className="snap-start">
+                <CategoryCard
+                  category={category}
+                  className={categories.length < 6 ? "lg:aspect-[5/3]" : undefined}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      <section className="mx-auto w-full max-w-384 px-4 py-16 sm:px-6 sm:py-20 lg:px-10 lg:py-24">
+      <section
+        aria-labelledby="home-products-heading"
+        className="page-container section-y"
+      >
         <SectionHeader
+          id="home-products-heading"
           title="ახალი პროდუქტები"
           description="კატალოგში ბოლოს დამატებული ავეჯი — ნახეთ სიახლეები პირველებმა."
           href="/products"
@@ -120,20 +118,24 @@ export default async function HomePage() {
             description="ჩვენ ვამზადებთ ახალ კოლექციას თქვენი სახლისთვის."
           />
         ) : (
-          <div className="grid grid-cols-1 gap-x-5 gap-y-10 min-[520px]:grid-cols-2 lg:grid-cols-4 lg:gap-x-6">
+          <div className={productGridClass}>
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
+      </section>
 
-        <Link
-          href="/products"
-          className="mx-auto mt-12 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#173c2f] px-8 text-sm font-semibold text-white transition-colors hover:bg-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] sm:w-fit"
-        >
-          ყველა პროდუქტის ნახვა
-          <ArrowRight className="size-4" aria-hidden="true" />
-        </Link>
+      <section aria-label="შეთავაზებები" className="page-container">
+        <div className="grid gap-4 md:grid-cols-2 lg:gap-5">
+          {promoBanners.map((banner) => (
+            <PromoBanner key={banner.title} {...banner} />
+          ))}
+        </div>
+      </section>
+
+      <section className="page-container section-y">
+        <TrustStrip />
       </section>
     </main>
   );

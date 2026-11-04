@@ -19,12 +19,12 @@ function AttributeRow({
 
   return (
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0">
-      <dt className="min-w-24 text-sm text-[#5e685f]">{label}</dt>
+      <dt className="min-w-24 text-sm text-ink-muted">{label}</dt>
       <dd className="flex flex-wrap gap-2">
         {items.map((item) => (
           <span
             key={item.code}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#eef1ee] px-2.5 py-1 text-xs font-semibold text-[#18221d]"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-ink"
           >
             {withSwatch && item.hex ? (
               <span
@@ -61,15 +61,15 @@ export function ProductAttributes({
   return (
     <section
       aria-labelledby="product-attributes-heading"
-      className="mt-6 rounded-2xl border border-[#d8ded8] bg-white p-5"
+      className="mt-6 rounded-md bg-canvas p-4 sm:p-5"
     >
       <h2
         id="product-attributes-heading"
-        className="text-lg font-semibold text-[#18221d]"
+        className="text-base font-bold text-ink sm:text-lg"
       >
         მასალა და ფერი
       </h2>
-      <dl className="mt-4 divide-y divide-[#e4e8e4]">
+      <dl className="mt-4 divide-y divide-line">
         <AttributeRow label="მასალა" items={materials} />
         <AttributeRow label="ფერი" items={colours} withSwatch />
         <AttributeRow label="სტილი" items={styles} />

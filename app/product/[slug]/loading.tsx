@@ -1,18 +1,29 @@
+import { PageBannerSkeleton } from "@/components/page-skeletons";
+
+const block = "animate-pulse bg-placeholder motion-reduce:animate-none";
+
 export default function ProductLoading() {
   return (
-    <main aria-live="polite" aria-busy="true" className="bg-[#f4f2ed]">
+    <main aria-live="polite" aria-busy="true">
       <span className="sr-only">პროდუქტი იტვირთება</span>
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-        <div className="mb-9 h-6 w-44 animate-pulse rounded-lg bg-[#e6e2de] motion-reduce:animate-none" />
-        <div className="grid gap-9 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:gap-14">
-          <div className="aspect-4/3 animate-pulse rounded-2xl bg-[#e6e2de] motion-reduce:animate-none" />
-          <div className="space-y-5 pt-2">
-            <div className="h-5 w-28 animate-pulse rounded-lg bg-[#e6e2de] motion-reduce:animate-none" />
-            <div className="h-12 w-4/5 animate-pulse rounded-xl bg-[#e6e2de] motion-reduce:animate-none" />
-            <div className="h-9 w-32 animate-pulse rounded-lg bg-[#e6e2de] motion-reduce:animate-none" />
-            <div className="mt-8 h-px bg-[#d8ded8]" />
-            <div className="h-5 w-40 animate-pulse rounded-lg bg-[#e6e2de] motion-reduce:animate-none" />
-            <div className="h-24 animate-pulse rounded-xl bg-[#e6e2de] motion-reduce:animate-none" />
+      <PageBannerSkeleton />
+      <div className="page-container py-6 sm:py-8">
+        <div className="grid gap-8 rounded-lg bg-white p-4 shadow-card sm:p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-12 lg:p-8">
+          <div>
+            <div className={`aspect-4/3 rounded-lg ${block}`} />
+            <div className="mt-3 grid grid-cols-4 gap-3">
+              {Array.from({ length: 4 }, (_, index) => (
+                <div key={index} className={`aspect-4/3 rounded-md ${block}`} />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4 pt-1">
+            <div className={`h-4 w-24 rounded-md ${block}`} />
+            <div className={`h-9 w-4/5 rounded-md ${block}`} />
+            <div className={`h-9 w-32 rounded-md ${block}`} />
+            <div className={`mt-6 h-12 rounded-md ${block}`} />
+            <div className={`h-12 rounded-md ${block}`} />
+            <div className={`mt-6 h-28 rounded-md ${block}`} />
           </div>
         </div>
       </div>

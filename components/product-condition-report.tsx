@@ -47,15 +47,15 @@ export function ProductConditionReport({
       {flaws.length > 0 ? (
         <section
           aria-labelledby="product-flaws-heading"
-          className="mt-8 rounded-2xl border border-[#d8ded8] bg-white p-5"
+          className="mt-8 rounded-md bg-canvas p-4 sm:p-5"
         >
           <h2
             id="product-flaws-heading"
-            className="text-lg font-semibold text-[#18221d]"
+            className="text-base font-bold text-ink sm:text-lg"
           >
             ნაკლოვანებები ({flaws.length})
           </h2>
-          <p className="mt-1.5 text-sm leading-6 text-[#5e685f]">
+          <p className="mt-1.5 text-sm leading-6 text-ink-muted">
             ყველა ნაკლი ღიად არის ჩამოთვლილი. ფოტოს ნიშნით მონიშნულზე დაჭერით
             იხილავთ შესაბამის ფოტოს.
           </p>
@@ -71,7 +71,7 @@ export function ProductConditionReport({
               const content = (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-semibold text-[#18221d]">
+                    <span className="text-sm font-semibold text-ink">
                       {flawTypeLabel(flaw.flaw_type)}
                     </span>
                     <span
@@ -80,18 +80,18 @@ export function ProductConditionReport({
                       {flawSeverityLabel(flaw.severity)}
                     </span>
                     {flaw.location_ka ? (
-                      <span className="text-xs text-[#667168]">
+                      <span className="text-xs text-meta">
                         {flaw.location_ka}
                       </span>
                     ) : null}
                     {hasPhoto ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#1d4a38]">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-forest">
                         <Camera aria-hidden="true" className="size-3.5" />
                         ფოტო
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1.5 text-sm leading-6 text-[#5e685f]">
+                  <p className="mt-1.5 text-sm leading-6 text-ink-muted">
                     {flaw.note_ka}
                   </p>
                 </>
@@ -106,16 +106,16 @@ export function ProductConditionReport({
                       type="button"
                       onClick={() => setSelectedImageId(flaw.image_id)}
                       aria-pressed={isSelected}
-                      className={`w-full rounded-xl border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4a38] ${
+                      className={`w-full rounded-md border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest ${
                         isSelected
-                          ? "border-[#1d4a38] bg-[#eef3ee]"
-                          : "border-[#e4e8e4] bg-[#f8faf8] hover:border-[#b9c6bd]"
+                          ? "border-forest bg-mint"
+                          : "border-line bg-white hover:border-control"
                       }`}
                     >
                       {content}
                     </button>
                   ) : (
-                    <div className="rounded-xl border border-[#e4e8e4] bg-[#f8faf8] p-3">
+                    <div className="rounded-md border border-line bg-white p-3">
                       {content}
                     </div>
                   )}
@@ -125,7 +125,7 @@ export function ProductConditionReport({
           </ul>
 
           {anchoredFlaws.length === 0 ? (
-            <p className="mt-4 text-xs leading-5 text-[#667168]">
+            <p className="mt-4 text-xs leading-5 text-meta">
               ამ ნაკლოვანებებს ჯერ ფოტო არ აქვს მიბმული.
             </p>
           ) : null}

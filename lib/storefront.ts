@@ -723,6 +723,29 @@ export async function getNewestProducts(
   return (data ?? []).map(normalizeProductCard);
 }
 
+// "Similar products" on a product page: other available items from the same category,
+// newest first. One query, card-shaped rows only, same ordering as getNewestProducts.
+export async function getRelatedProducts(
+  categoryId: string,
+  excludeProductId: string,
+  limit = 8,
+): Promise<ProductCardData[]> {
+  const { data, error } = await publicClient()
+    .from("products")
+    .select(productCardSelection)
+    .eq("status", LISTABLE_STATUS)
+    .eq("category_id", categoryId)
+    .neq("id", excludeProductId)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: true })
+    .limit(limit);
+  if (error)
+    throw new Error("მსგავსი პროდუქტების ჩატვირთვა ვერ მოხერხდა", {
+      cause: error,
+    });
+  return (data ?? []).map(normalizeProductCard);
+}
+
 // Feeds generateStaticParams. Deliberately available-only: sold products keep working
 // pages, but prerendering every product ever sold would grow without bound. Their pages
 // render on demand instead.

@@ -118,9 +118,9 @@ export function HeroSlider({
         if (Math.abs(distance) > 45) goTo(active + (distance < 0 ? 1 : -1));
         touchStart.current = null;
       }}
-      className="relative w-full bg-[#173c2f]"
+      className="relative w-full bg-forest-deep"
     >
-      <div className="relative min-h-120 overflow-hidden bg-[#173c2f] sm:min-h-125 lg:min-h-130">
+      <div className="relative min-h-88 overflow-hidden bg-forest-deep sm:min-h-96 lg:min-h-100">
         {slides.map((item, index) => (
           <Image
             key={item.image}
@@ -139,14 +139,15 @@ export function HeroSlider({
           />
         ))}
 
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,24,17,.88)_0%,rgba(8,24,17,.63)_32%,rgba(8,24,17,.14)_68%,rgba(8,24,17,.04)_100%),linear-gradient(0deg,rgba(8,24,17,.42)_0%,transparent_42%)]" />
+        {/* Warm, dark left-side wash: the copy sits on the room, never on a panel. */}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,18,14,.78)_0%,rgba(20,18,14,.55)_34%,rgba(20,18,14,.12)_66%,rgba(20,18,14,0)_100%),linear-gradient(0deg,rgba(20,18,14,.45)_0%,transparent_40%)]" />
 
-        <div className="relative z-10 mx-auto flex min-h-120 w-full max-w-384 items-end px-5 pb-20 pt-12 sm:min-h-125 sm:items-center sm:px-8 sm:pb-20 lg:min-h-130 lg:px-12 xl:px-16">
-          <div className="max-w-172.5 text-white">
-            <h1 className="max-w-[15ch] text-[clamp(2.25rem,4.2vw,4rem)] md:leading-20 font-semibold tracking-[-0.035em] text-balance">
+        <div className="page-container relative z-10 flex min-h-88 items-end pt-10 pb-20 sm:min-h-96 sm:items-center sm:pb-24 lg:min-h-100">
+          <div className="max-w-180 text-white">
+            <h1 className="max-w-[20ch] text-[clamp(2.25rem,4.6vw,4.25rem)] leading-[1.12] font-bold tracking-[-0.025em] text-balance">
               {slide.title}
             </h1>
-            <p className="mt-4 max-w-140 text-base leading-7 text-[#dce7df]">
+            <p className="mt-5 max-w-130 text-base leading-7 text-white/88 sm:text-lg sm:leading-8">
               {slide.description}
             </p>
             {/* Needs both: the category hero passes an href to its own page, and a button
@@ -154,7 +155,7 @@ export function HeroSlider({
             {slide.href && slide.actionLabel ? (
               <Link
                 href={slide.href}
-                className="group mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/70 px-6 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white"
+                className="group mt-8 inline-flex min-h-12 items-center gap-2 rounded-full border border-white/80 px-7 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-forest-deep focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white"
               >
                 {slide.actionLabel}
                 <ArrowRight
@@ -166,9 +167,9 @@ export function HeroSlider({
           </div>
         </div>
 
-        <div className="absolute inset-x-0 bottom-3 z-20 mx-auto flex w-full max-w-384 items-center justify-between gap-4 px-5 sm:bottom-5 sm:px-8 lg:px-12 xl:px-16">
+        <div className="page-container absolute inset-x-0 bottom-3 z-20 flex items-center justify-between gap-4 sm:bottom-5">
           <div
-            className="flex items-center gap-1"
+            className="-ml-3.5 flex items-center"
             role="tablist"
             aria-label="სლაიდის არჩევა"
           >
@@ -180,12 +181,12 @@ export function HeroSlider({
                 aria-selected={active === index}
                 aria-label={`${index + 1} სლაიდის ჩვენება`}
                 onClick={() => goTo(index)}
-                className="grid size-11 place-items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="-mx-1 grid size-11 place-items-center rounded-full focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white"
               >
                 <span
                   className={cn(
-                    "h-px bg-white transition-all",
-                    active === index ? "w-10" : "w-5 opacity-45",
+                    "size-2.5 rounded-full border-[1.5px] border-white transition-colors",
+                    active === index ? "bg-white" : "bg-transparent opacity-80",
                   )}
                 />
               </button>
@@ -197,7 +198,7 @@ export function HeroSlider({
               type="button"
               onClick={() => goTo(active - 1)}
               aria-label="წინა სლაიდი"
-              className="grid size-11 place-items-center rounded-xl border border-white/55 bg-[#173c2f]/40 text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="grid size-11 place-items-center rounded-full border border-white/25 bg-forest-deep/85 text-white transition-colors hover:bg-white hover:text-forest-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
@@ -205,7 +206,7 @@ export function HeroSlider({
               type="button"
               onClick={() => goTo(active + 1)}
               aria-label="შემდეგი სლაიდი"
-              className="grid size-11 place-items-center rounded-xl border border-white/55 bg-[#173c2f]/40 text-white transition-colors hover:bg-white hover:text-[#173c2f] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="grid size-11 place-items-center rounded-full border border-white/25 bg-forest-deep/85 text-white transition-colors hover:bg-white hover:text-forest-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <ChevronRight className="size-5" aria-hidden="true" />
             </button>

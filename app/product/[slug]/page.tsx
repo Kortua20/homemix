@@ -1,20 +1,55 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MessageCircle, Phone } from "lucide-react";
 import { ConditionAspectTable } from "@/components/condition-aspect-table";
+import { PageBanner } from "@/components/page-banner";
+import { ProductCard } from "@/components/product-card";
 import { ProductConditionReport } from "@/components/product-condition-report";
 import { ProductAttributes } from "@/components/product-attributes";
 import { ProductDimensionsTable } from "@/components/product-dimensions-table";
+import { ProductRail } from "@/components/product-rail";
+import { ShareLinks } from "@/components/share-links";
+import { contactDetails } from "@/lib/contact-details";
 import {
   formatPrice,
   getProductBySlug,
   getProductSlugs,
+  getRelatedProducts,
   normalizeSlug,
 } from "@/lib/storefront";
 import { absoluteUrl, siteName } from "@/lib/site";
 
 export const revalidate = 60;
+
+const primaryActionClass =
+  "inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-forest-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-forest focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest";
+
+// Streams in after the product: a slow or failed lookup must never hold up or break the
+// page itself, so errors render nothing rather than an error state.
+async function RelatedProducts({
+  categoryId,
+  productId,
+}: {
+  categoryId: string;
+  productId: string;
+}) {
+  const products = await getRelatedProducts(categoryId, productId, 8).catch(
+    () => [],
+  );
+  if (products.length === 0) return null;
+
+  return (
+    <div className="mt-6 sm:mt-8">
+      <ProductRail title="მსგავსი პროდუქტები">
+        {products.map((related) => (
+          <ProductCard key={related.id} product={related} />
+        ))}
+      </ProductRail>
+    </div>
+  );
+}
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -158,8 +193,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ],
   };
 
+  const bannerImage = product.category?.images[0];
+
   return (
-    <main className="bg-[#f4f2ed]">
+    <main>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -172,86 +209,123 @@ export default async function ProductPage({ params }: ProductPageProps) {
           __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-        <nav
-          aria-label="გვერდის გზა"
-          className="mb-7 flex flex-wrap items-center gap-2 text-sm text-[#5e685f] sm:mb-9"
-        >
-          <Link
-            href="/products"
-            className="inline-flex min-h-11 items-center rounded-lg font-semibold transition-colors hover:text-[#1d4a38] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
-          >
-            მთავარი
-          </Link>
-          <span aria-hidden="true" className="text-[#b3aaa4]">
-            /
-          </span>
-          <span
-            aria-current="page"
-            className="max-w-60 truncate text-[#667168]"
-          >
-            {product.name}
-          </span>
-        </nav>
+      <PageBanner
+        title={product.category?.name ?? "პროდუქტები"}
+        crumbs={[
+          { label: "პროდუქტები", href: "/products" },
+          ...(product.category
+            ? [
+                {
+                  label: product.category.name,
+                  href: `/categories/${encodeURIComponent(product.category.slug)}`,
+                },
+              ]
+            : []),
+          { label: product.name },
+        ]}
+        image={
+          bannerImage
+            ? `/api/category-images/${bannerImage.id}`
+            : undefined
+        }
+      />
 
-        <div className="grid gap-9 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-start lg:gap-14">
+      <div className="page-container py-6 sm:py-8">
+        <div className="grid gap-8 rounded-lg bg-white p-4 shadow-card sm:p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start lg:gap-12 lg:p-8">
           <ProductConditionReport
             images={product.images}
             productName={product.name}
             flaws={product.flaws}
           />
 
-          <section className="lg:sticky lg:top-28">
-            <div className="flex flex-wrap items-center gap-3">
+          <section className="min-w-0 lg:sticky lg:top-36">
+            <div className="flex flex-wrap items-center gap-2.5">
               {product.category ? (
-                <p className="text-sm font-semibold text-[#667168]">
+                <p className="text-sm font-medium text-meta">
                   {product.category.name}
                 </p>
               ) : null}
               {product.listingKind === "used_unique" ? (
-                <span className="inline-flex items-center rounded-full bg-[#e9eee9] px-2.5 py-1 text-xs font-semibold text-[#1d4a38]">
+                <span className="inline-flex items-center rounded-md bg-mint px-2 py-1 text-xs leading-none font-semibold text-forest">
                   მეორადი
                 </span>
               ) : null}
+              {product.isNewArrival ? (
+                <span className="inline-flex items-center rounded-md bg-forest px-2 py-1 text-xs leading-none font-semibold text-white">
+                  ახალი შემოსული
+                </span>
+              ) : null}
             </div>
-            <h1 className="mt-2 max-w-[18ch] text-3xl leading-tight font-semibold tracking-[-0.03em] text-[#18221d] text-balance sm:text-4xl">
+            <h1 className="mt-2 text-2xl leading-tight font-bold tracking-[-0.02em] text-ink text-balance sm:text-3xl">
               {product.name}
             </h1>
-            <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-2">
-              <p className="text-2xl font-bold text-[#1d4a38] sm:text-3xl">
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+              <p className="text-3xl font-bold text-ink tabular-nums">
                 {formatPrice(product.price)}
               </p>
               {/* showsDiscount is already false on a sold or reserved item, so the "was"
                   price disappears with the offer rather than outliving it. */}
               {product.showsDiscount && product.compareAtPrice !== null ? (
                 <>
-                  <p className="text-base text-[#667168] sm:text-lg">
+                  <p className="text-lg text-meta tabular-nums">
                     <span className="sr-only">ძველი ფასი: </span>
                     <s>{formatPrice(product.compareAtPrice)}</s>
                   </p>
-                  <span className="inline-flex items-center rounded-full bg-[#8a2f1f] px-2.5 py-1 text-xs font-semibold text-white">
+                  <span className="inline-flex items-center self-center rounded-md bg-forest-deep px-2 py-1 text-xs leading-none font-semibold text-white tabular-nums">
                     -{product.discountPercent}%
                   </span>
                 </>
               ) : null}
             </div>
-
-            {product.isNewArrival ? (
-              <p className="mt-3 inline-flex items-center rounded-full bg-[#e9eee9] px-3 py-1 text-xs font-semibold text-[#1d4a38]">
-                ახალი შემოსული
-              </p>
-            ) : null}
+            <span
+              aria-hidden="true"
+              className="mt-3 block h-[3px] w-11 rounded-full bg-forest"
+            />
 
             {!product.isPurchasable ? (
               <p
                 role="status"
-                className="mt-5 inline-flex items-center rounded-xl bg-[#e8e6f3] px-4 py-3 text-sm font-semibold text-[#443a72]"
+                className="mt-5 inline-flex items-center rounded-md bg-[#e8e6f3] px-4 py-3 text-sm font-semibold text-sold"
               >
                 {product.status === "reserved"
                   ? "ეს ნივთი დაჯავშნილია."
                   : "ეს ნივთი გაყიდულია."}
               </p>
             ) : null}
+
+            {/* No cart: a purchase happens by phone or in the shop, so the primary action
+                is the call. A sold or reserved item points to available alternatives. */}
+            <div className="mt-6 grid gap-3">
+              {!product.isPurchasable ? (
+                <Link
+                  href={
+                    product.category
+                      ? `/categories/${encodeURIComponent(product.category.slug)}`
+                      : "/products"
+                  }
+                  className={primaryActionClass}
+                >
+                  მსგავსი ხელმისაწვდომი ნივთები
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              ) : contactDetails.phone.href ? (
+                <a href={contactDetails.phone.href} className={primaryActionClass}>
+                  <Phone className="size-4" aria-hidden="true" />
+                  დარეკვა: {contactDetails.phone.label}
+                </a>
+              ) : null}
+              <Link
+                href="/contact"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-ink/70 px-6 text-sm font-semibold text-ink transition-colors hover:border-forest hover:bg-mint hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest"
+              >
+                <MessageCircle className="size-4" aria-hidden="true" />
+                კონსულტანტთან დაკავშირება
+              </Link>
+            </div>
+
+            <div className="mt-6 border-t border-line pt-5">
+              <ShareLinks url={productUrl} title={product.name} />
+            </div>
 
             {/* The condition block is the reason this schema exists: it comes before the
                 general description so the real state of a used item is not buried.
@@ -261,27 +335,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 dressing it up like a rating would undo the honesty the grade exists for. */}
             {product.conditionGrade ? (
               <div
-                className={`mt-8 rounded-2xl border p-5 ${
+                className={`mt-6 rounded-md p-4 sm:p-5 ${
                   isUnassessed
-                    ? "border-dashed border-[#c9c4ba] bg-[#f6f5f1]"
-                    : "border-[#d8ded8] bg-white"
+                    ? "border border-dashed border-[#c9c4ba] bg-white"
+                    : "bg-canvas"
                 }`}
               >
-                <h2 className="text-lg font-semibold text-[#18221d]">
+                <h2 className="text-base font-bold text-ink sm:text-lg">
                   მდგომარეობა
                 </h2>
                 <p
                   className={`mt-3 text-base font-semibold ${
-                    isUnassessed ? "text-[#6b6659]" : "text-[#1d4a38]"
+                    isUnassessed ? "text-[#6b6659]" : "text-forest"
                   }`}
                 >
                   {product.conditionGrade.label_ka}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-[#5e685f]">
+                <p className="mt-1 text-sm leading-6 text-ink-muted">
                   {product.conditionGrade.description_ka}
                 </p>
                 {product.conditionSummary ? (
-                  <p className="mt-4 max-w-[65ch] whitespace-pre-line border-t border-[#e4e8e4] pt-4 text-base leading-7 text-[#5e685f]">
+                  <p className="mt-4 max-w-[65ch] whitespace-pre-line border-t border-line pt-4 text-base leading-7 text-ink-muted">
                     {product.conditionSummary}
                   </p>
                 ) : null}
@@ -298,36 +372,26 @@ export default async function ProductPage({ params }: ProductPageProps) {
               styles={product.styles}
             />
 
-            <div className="mt-8 border-t border-[#d8ded8] pt-7">
-              <h2 className="text-lg font-semibold text-[#18221d]">
+            <div className="mt-6">
+              <h2 className="text-base font-bold text-ink sm:text-lg">
                 პროდუქტის შესახებ
               </h2>
-              <p className="mt-3 max-w-[65ch] whitespace-pre-line text-base leading-8 text-[#5e685f]">
+              <p className="mt-2 max-w-[65ch] whitespace-pre-line text-base leading-7 text-ink-muted">
                 {product.description?.trim() ||
                   "აღწერა ჯერ არ არის დამატებული."}
               </p>
             </div>
-
-            <Link
-              href={
-                product.isPurchasable
-                  ? "/"
-                  : product.category
-                    ? `/categories/${encodeURIComponent(product.category.slug)}`
-                    : "/products"
-              }
-              className="group mt-9 inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#1d4a38] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38]"
-            >
-              {product.isPurchasable
-                ? "პროდუქტებზე დაბრუნება"
-                : "მსგავსი ხელმისაწვდომი ნივთები"}
-              <ArrowRight
-                className="size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
-                aria-hidden="true"
-              />
-            </Link>
           </section>
         </div>
+
+        {product.category ? (
+          <Suspense fallback={null}>
+            <RelatedProducts
+              categoryId={product.category.id}
+              productId={product.id}
+            />
+          </Suspense>
+        ) : null}
       </div>
     </main>
   );

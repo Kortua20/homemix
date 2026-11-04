@@ -13,13 +13,13 @@ type ContactResponse = {
 // Same field treatment as the catalogue filter: the label sits inside the bordered box, and
 // the box carries the hover/focus state for whatever control it wraps.
 const fieldFrameClass =
-  "relative block rounded-xl border border-[#b9c6bd] bg-white transition-colors hover:border-[#1d4a38] focus-within:border-[#1d4a38] focus-within:ring-2 focus-within:ring-[#1d4a38]/20 has-disabled:opacity-65";
+  "relative block rounded-md border border-control bg-white transition-colors hover:border-forest focus-within:border-forest focus-within:ring-2 focus-within:ring-forest/20 has-disabled:opacity-65";
 
 const fieldLabelClass =
-  "pointer-events-none absolute top-2.5 left-4 text-xs leading-4 font-semibold text-[#667168]";
+  "pointer-events-none absolute top-2.5 left-4 text-xs leading-4 font-semibold text-meta";
 
 const inputClass =
-  "h-16 w-full rounded-xl bg-transparent px-4 pt-6 text-base text-[#18221d] placeholder:text-[#667168]/70 focus:outline-none disabled:cursor-wait";
+  "h-16 w-full rounded-md bg-transparent px-4 pt-6 text-base text-ink placeholder:text-meta/70 focus:outline-none disabled:cursor-wait";
 
 export function ContactForm() {
   const [submissionState, setSubmissionState] =
@@ -79,13 +79,13 @@ export function ContactForm() {
       onSubmit={handleSubmit}
       aria-busy={submissionState === "sending"}
       aria-describedby="contact-privacy-note contact-form-notice"
-      className="rounded-2xl border border-[#d8ded8] bg-[#ece8e1] p-5 sm:p-7 lg:p-8"
+      className="rounded-lg bg-white p-5 shadow-card sm:p-7 lg:p-8"
     >
       <div className="flex items-center gap-3">
-        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-[#1d4a38]">
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-mint text-forest">
           <Mail className="size-5" aria-hidden="true" />
         </span>
-        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#18221d]">
+        <h2 className="text-xl font-bold tracking-[-0.015em] text-ink sm:text-2xl">
           მოგვწერეთ
         </h2>
       </div>
@@ -120,7 +120,7 @@ export function ContactForm() {
         <label className={fieldFrameClass}>
           {/* In flow, not absolute: a scrolled textarea would slide its text under an
               overlaid label. */}
-          <span className="block px-4 pt-2.5 text-xs leading-4 font-semibold text-[#667168]">
+          <span className="block px-4 pt-2.5 text-xs leading-4 font-semibold text-meta">
             აღწერა
           </span>
           <textarea
@@ -130,7 +130,7 @@ export function ContactForm() {
             rows={6}
             disabled={submissionState === "sending"}
             placeholder="დაწერეთ თქვენი კითხვა ან კომენტარი"
-            className="block w-full resize-y rounded-b-xl bg-transparent px-4 pt-1 pb-3 text-base leading-7 text-[#18221d] placeholder:text-[#667168]/70 focus:outline-none disabled:cursor-wait"
+            className="block w-full resize-y rounded-b-md bg-transparent px-4 pt-1 pb-3 text-base leading-7 text-ink placeholder:text-meta/70 focus:outline-none disabled:cursor-wait"
           />
         </label>
       </div>
@@ -138,7 +138,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={submissionState === "sending"}
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1d4a38] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#15382a] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#1d4a38] disabled:cursor-wait disabled:opacity-65 sm:w-auto"
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-forest-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-forest focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest disabled:cursor-wait disabled:opacity-65 sm:w-auto"
       >
         {submissionState === "sending" ? (
           <>
@@ -156,7 +156,7 @@ export function ContactForm() {
         )}
       </button>
 
-      <p id="contact-privacy-note" className="mt-4 max-w-xl text-sm leading-6 text-[#5e685f]">
+      <p id="contact-privacy-note" className="mt-4 max-w-xl text-sm leading-6 text-ink-muted">
         წერილი პირდაპირ Home Mix-ის ელფოსტაზე გაიგზავნება. თქვენი ელფოსტა მხოლოდ
         პასუხისთვის გამოიყენება.
       </p>
@@ -164,7 +164,7 @@ export function ContactForm() {
         <p
           id="contact-form-notice"
           role={submissionState === "error" ? "alert" : "status"}
-          className={`mt-3 text-sm font-medium leading-6 ${submissionState === "error" ? "text-[#a33c32]" : "text-[#1d4a38]"}`}
+          className={`mt-3 text-sm font-medium leading-6 ${submissionState === "error" ? "text-danger" : "text-forest"}`}
         >
           {notice}
         </p>
