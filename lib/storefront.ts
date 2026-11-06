@@ -119,6 +119,7 @@ export type ProductAttribute = {
 // than showing a dash, so an unmeasured piece does not look like a measured one.
 export type ProductDimensions = {
   width_cm: number | null;
+  length_cm: number | null;
   depth_cm: number | null;
   height_cm: number | null;
   seat_height_cm: number | null;
@@ -266,6 +267,7 @@ const productSelection = `
   condition_summary,
   stock_quantity,
   width_cm,
+  length_cm,
   depth_cm,
   height_cm,
   seat_height_cm,
@@ -667,6 +669,7 @@ function normalizeProduct(row: ProductRow): Product {
     // measurement of zero.
     dimensions: {
       width_cm: row.width_cm === null ? null : Number(row.width_cm),
+      length_cm: row.length_cm === null ? null : Number(row.length_cm),
       depth_cm: row.depth_cm === null ? null : Number(row.depth_cm),
       height_cm: row.height_cm === null ? null : Number(row.height_cm),
       seat_height_cm:

@@ -36,6 +36,9 @@ create table if not exists "public"."products" (
     "width_cm" numeric(7,1),
     "depth_cm" numeric(7,1),
     "height_cm" numeric(7,1),
+    -- Optional fourth axis, added 2026-11-07. Display-only: not indexed and not used by the
+    -- width filter, because depending on the piece it duplicates width or depth.
+    "length_cm" numeric(7,1),
     "seat_height_cm" numeric(7,1),
     "weight_kg" numeric(7,2),
     -- For pieces a bounding box does not describe: an L-shaped corner sofa, a round table.
@@ -65,6 +68,8 @@ create table if not exists "public"."products" (
         check (("depth_cm" is null) or (("depth_cm" > 0) and ("depth_cm" <= 2000))),
     constraint "products_height_cm_check"
         check (("height_cm" is null) or (("height_cm" > 0) and ("height_cm" <= 2000))),
+    constraint "products_length_cm_check"
+        check (("length_cm" is null) or (("length_cm" > 0) and ("length_cm" <= 2000))),
     constraint "products_seat_height_cm_check"
         check (("seat_height_cm" is null) or (("seat_height_cm" > 0) and ("seat_height_cm" <= 300))),
     constraint "products_weight_kg_check"

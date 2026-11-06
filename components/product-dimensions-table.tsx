@@ -20,6 +20,7 @@ export function ProductDimensionsTable({
 }) {
   const rows = [
     { label: "სიგანე", value: dimensions.width_cm, unit: "სმ" },
+    { label: "სიგრძე", value: dimensions.length_cm, unit: "სმ" },
     { label: "სიღრმე", value: dimensions.depth_cm, unit: "სმ" },
     { label: "სიმაღლე", value: dimensions.height_cm, unit: "სმ" },
     { label: "ჯდომის სიმაღლე", value: dimensions.seat_height_cm, unit: "სმ" },

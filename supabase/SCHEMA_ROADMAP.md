@@ -372,6 +372,10 @@ until the data earns them. See "Why 3b shipped anyway" below.
 - [x] Admin detail page dimensions panel
 - [x] Verified through PostgREST as anon: 74.5 round-trips exactly, null seat height on
       the dining table renders as an absent row
+- [ ] Optional `length_cm` (migration `20260920000000_add_product_length.sql`, 2026-11-07):
+      nullable, same bounds as the other axes, existing rows read NULL. Display-only — not
+      indexed and not part of the width filter, since length duplicates width or depth
+      depending on the piece. Written, not yet applied.
 - [x] Applied to production (2026-09-15)
 - [x] Filter by width/height in the catalogue (2026-09-16) — built alongside the 3b facets
       and gated the same way. The deferral below was superseded by the coverage gate: the
