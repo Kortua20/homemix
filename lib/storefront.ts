@@ -154,6 +154,27 @@ export type ProductCardData = {
   leadImageId: string | null;
 };
 
+// One line of the public price feed (app/prices.csv). Merchandising fields come from
+// deriveMerchandising, so the feed and the storefront cannot disagree about what is
+// buyable or discounted. The stock count is read to derive isPurchasable and is
+// deliberately not carried any further.
+export type PriceListItem = {
+  id: string;
+  name: string;
+  price: number;
+  compareAtPrice: number | null;
+  discountPercent: number | null;
+  showsDiscount: boolean;
+  status: ProductStatus;
+  listingKind: ListingKind;
+  isPurchasable: boolean;
+  conditionGrade: { code: string; label_en: string } | null;
+  dimensions: Pick<
+    ProductDimensions,
+    "width_cm" | "length_cm" | "depth_cm" | "height_cm" | "note"
+  >;
+};
+
 // A page of results plus the total matching count.
 //
 // `total` is the count of everything matching the filters, NOT items.length — the two were
@@ -236,6 +257,8 @@ const PRERENDER_SLUG_LIMIT = 500;
 // Sitemaps are capped at 50k URLs by the protocol; this is the per-request page size used
 // to walk the table, not a limit on the sitemap itself.
 const SITEMAP_PAGE_SIZE = 1000;
+// Same ceiling, for the price feed's walk of the table.
+const PRICE_LIST_PAGE_SIZE = 1000;
 
 // PostgREST caps rows per request at `db-max-rows` (1000 on Supabase by default) and
 // truncates silently — no error, just fewer products. Every unbounded list query below is
@@ -307,6 +330,25 @@ const productCardSelection = `
   conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka),
   category:categories!products_category_id_fkey (name),
   images:product_images (id, sort_order, created_at)
+`;
+
+// The price feed query. Same literal-string rule as above. published_at is here only
+// because deriveMerchandising takes it.
+const priceListSelection = `
+  id,
+  name,
+  price,
+  compare_at_price,
+  published_at,
+  status,
+  listing_kind,
+  stock_quantity,
+  width_cm,
+  length_cm,
+  depth_cm,
+  height_cm,
+  dimension_note,
+  conditionGrade:condition_grades!products_condition_grade_fkey (code, label_en)
 `;
 
 // Facet filtering as a separate id lookup, so productSelection can stay a literal.
@@ -407,9 +449,14 @@ function categoryQuery(supabase: SupabaseClient<Database>) {
   return supabase.from("categories").select(categorySelection);
 }
 
+function priceListQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("products").select(priceListSelection);
+}
+
 type ProductRow = QueryData<ReturnType<typeof productQuery>>[number];
 type ProductCardRow = QueryData<ReturnType<typeof productCardQuery>>[number];
 type CategoryRow = QueryData<ReturnType<typeof categoryQuery>>[number];
+type PriceListRow = QueryData<ReturnType<typeof priceListQuery>>[number];
 
 function publicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -826,6 +873,64 @@ export async function getSitemapProducts(): Promise<
   }
 
   return rows;
+}
+
+// Statuses the price feed lists. `reserved` is included so the feed can say "reserved"
+// rather than "we do not have it". `sold` is NOT, even though sold pages stay public: sold
+// rows accumulate forever and many used listings share generic names, so a sold sofa's
+// price would be quoted for an available one. `draft`/`archived` are also blocked by RLS.
+const PRICE_LIST_STATUSES: ProductStatus[] = ["available", "reserved"];
+
+function normalizePriceListItem(row: PriceListRow): PriceListItem {
+  const merchandising = deriveMerchandising(row);
+  const grade = row.conditionGrade;
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    price: merchandising.price,
+    compareAtPrice: merchandising.compareAtPrice,
+    discountPercent: merchandising.discountPercent,
+    showsDiscount: merchandising.showsDiscount,
+    status: String(row.status) as ProductStatus,
+    listingKind: String(row.listing_kind) as ListingKind,
+    isPurchasable: merchandising.isPurchasable,
+    conditionGrade: grade
+      ? { code: String(grade.code), label_en: String(grade.label_en) }
+      : null,
+    // Guarded per field, as in normalizeProduct: Number(null) is 0.
+    dimensions: {
+      width_cm: row.width_cm === null ? null : Number(row.width_cm),
+      length_cm: row.length_cm === null ? null : Number(row.length_cm),
+      depth_cm: row.depth_cm === null ? null : Number(row.depth_cm),
+      height_cm: row.height_cm === null ? null : Number(row.height_cm),
+      note: row.dimension_note ? String(row.dimension_note) : null,
+    },
+  };
+}
+
+// Price feed source. Paged the same way as getSitemapProducts, for the same reason: one
+// unbounded request is silently truncated at db-max-rows. Ordered by id only to make the
+// pages a stable partition — display order is the feed's concern.
+export async function getPriceListItems(): Promise<PriceListItem[]> {
+  const supabase = publicClient();
+  const items: PriceListItem[] = [];
+
+  for (let offset = 0; ; offset += PRICE_LIST_PAGE_SIZE) {
+    const { data, error } = await priceListQuery(supabase)
+      .in("status", PRICE_LIST_STATUSES)
+      .order("id", { ascending: true })
+      .range(offset, offset + PRICE_LIST_PAGE_SIZE - 1);
+
+    if (error)
+      throw new Error("Price list could not be loaded", { cause: error });
+
+    const batch = data ?? [];
+    items.push(...batch.map(normalizePriceListItem));
+
+    if (batch.length < PRICE_LIST_PAGE_SIZE) break;
+  }
+
+  return items;
 }
 
 // Per-request dedupe: price, facets and the product list each resolve the same slug, and
