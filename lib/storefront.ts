@@ -168,7 +168,7 @@ export type PriceListItem = {
   status: ProductStatus;
   listingKind: ListingKind;
   isPurchasable: boolean;
-  conditionGrade: { code: string; label_en: string } | null;
+  conditionGrade: { code: string; label_ka: string } | null;
   dimensions: Pick<
     ProductDimensions,
     "width_cm" | "length_cm" | "depth_cm" | "height_cm" | "note"
@@ -348,7 +348,7 @@ const priceListSelection = `
   depth_cm,
   height_cm,
   dimension_note,
-  conditionGrade:condition_grades!products_condition_grade_fkey (code, label_en)
+  conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka)
 `;
 
 // Facet filtering as a separate id lookup, so productSelection can stay a literal.
@@ -895,7 +895,7 @@ function normalizePriceListItem(row: PriceListRow): PriceListItem {
     listingKind: String(row.listing_kind) as ListingKind,
     isPurchasable: merchandising.isPurchasable,
     conditionGrade: grade
-      ? { code: String(grade.code), label_en: String(grade.label_en) }
+      ? { code: String(grade.code), label_ka: String(grade.label_ka) }
       : null,
     // Guarded per field, as in normalizeProduct: Number(null) is 0.
     dimensions: {
