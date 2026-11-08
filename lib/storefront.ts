@@ -175,6 +175,25 @@ export type PriceListItem = {
   >;
 };
 
+// One product in the Meta Commerce catalog feed (app/api/meta-feed.csv). Same rule as
+// PriceListItem: merchandising comes from deriveMerchandising, so the catalog cannot claim
+// a sale price or stock state the product page does not show — Meta rejects items whose
+// price disagrees with the landing page.
+export type MetaFeedItem = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  price: number;
+  compareAtPrice: number | null;
+  showsDiscount: boolean;
+  listingKind: ListingKind;
+  isPurchasable: boolean;
+  categoryName: string | null;
+  // Sorted with sortImages, so [0] is the photo the card and gallery lead with.
+  imageIds: string[];
+};
+
 // A page of results plus the total matching count.
 //
 // `total` is the count of everything matching the filters, NOT items.length — the two were
@@ -257,8 +276,8 @@ const PRERENDER_SLUG_LIMIT = 500;
 // Sitemaps are capped at 50k URLs by the protocol; this is the per-request page size used
 // to walk the table, not a limit on the sitemap itself.
 const SITEMAP_PAGE_SIZE = 1000;
-// Same ceiling, for the price feed's walk of the table.
-const PRICE_LIST_PAGE_SIZE = 1000;
+// Same ceiling, for the public feeds' walk of the table.
+const FEED_PAGE_SIZE = 1000;
 
 // PostgREST caps rows per request at `db-max-rows` (1000 on Supabase by default) and
 // truncates silently — no error, just fewer products. Every unbounded list query below is
@@ -349,6 +368,22 @@ const priceListSelection = `
   height_cm,
   dimension_note,
   conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka)
+`;
+
+// The Meta catalog feed query. Same literal-string rule as above.
+const metaFeedSelection = `
+  id,
+  slug,
+  name,
+  description,
+  price,
+  compare_at_price,
+  published_at,
+  status,
+  listing_kind,
+  stock_quantity,
+  category:categories!products_category_id_fkey (name),
+  images:product_images (id, sort_order, created_at)
 `;
 
 // Facet filtering as a separate id lookup, so productSelection can stay a literal.
@@ -453,10 +488,15 @@ function priceListQuery(supabase: SupabaseClient<Database>) {
   return supabase.from("products").select(priceListSelection);
 }
 
+function metaFeedQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("products").select(metaFeedSelection);
+}
+
 type ProductRow = QueryData<ReturnType<typeof productQuery>>[number];
 type ProductCardRow = QueryData<ReturnType<typeof productCardQuery>>[number];
 type CategoryRow = QueryData<ReturnType<typeof categoryQuery>>[number];
 type PriceListRow = QueryData<ReturnType<typeof priceListQuery>>[number];
+type MetaFeedRow = QueryData<ReturnType<typeof metaFeedQuery>>[number];
 
 function publicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -875,11 +915,13 @@ export async function getSitemapProducts(): Promise<
   return rows;
 }
 
-// Statuses the price feed lists. `reserved` is included so the feed can say "reserved"
-// rather than "we do not have it". `sold` is NOT, even though sold pages stay public: sold
-// rows accumulate forever and many used listings share generic names, so a sold sofa's
-// price would be quoted for an available one. `draft`/`archived` are also blocked by RLS.
-const PRICE_LIST_STATUSES: ProductStatus[] = ["available", "reserved"];
+// Statuses the public feeds (price list, Meta catalog) include. `reserved` is included so
+// a feed can say "reserved / out of stock" rather than "we do not have it" — a reserved
+// item can return to `available`. `sold` is NOT, even though sold pages stay public: a used
+// item never comes back, sold rows accumulate forever, and many listings share generic
+// names, so a sold sofa's price would be quoted (or advertised) for an available one.
+// `draft`/`archived` are also blocked by RLS.
+const FEED_STATUSES: ProductStatus[] = ["available", "reserved"];
 
 function normalizePriceListItem(row: PriceListRow): PriceListItem {
   const merchandising = deriveMerchandising(row);
@@ -915,11 +957,11 @@ export async function getPriceListItems(): Promise<PriceListItem[]> {
   const supabase = publicClient();
   const items: PriceListItem[] = [];
 
-  for (let offset = 0; ; offset += PRICE_LIST_PAGE_SIZE) {
+  for (let offset = 0; ; offset += FEED_PAGE_SIZE) {
     const { data, error } = await priceListQuery(supabase)
-      .in("status", PRICE_LIST_STATUSES)
+      .in("status", FEED_STATUSES)
       .order("id", { ascending: true })
-      .range(offset, offset + PRICE_LIST_PAGE_SIZE - 1);
+      .range(offset, offset + FEED_PAGE_SIZE - 1);
 
     if (error)
       throw new Error("Price list could not be loaded", { cause: error });
@@ -927,7 +969,51 @@ export async function getPriceListItems(): Promise<PriceListItem[]> {
     const batch = data ?? [];
     items.push(...batch.map(normalizePriceListItem));
 
-    if (batch.length < PRICE_LIST_PAGE_SIZE) break;
+    if (batch.length < FEED_PAGE_SIZE) break;
+  }
+
+  return items;
+}
+
+function normalizeMetaFeedItem(row: MetaFeedRow): MetaFeedItem {
+  const merchandising = deriveMerchandising(row);
+  const images = [...row.images];
+  sortImages(images);
+  return {
+    id: String(row.id),
+    slug: String(row.slug),
+    name: String(row.name),
+    description: row.description ? String(row.description) : null,
+    price: merchandising.price,
+    compareAtPrice: merchandising.compareAtPrice,
+    showsDiscount: merchandising.showsDiscount,
+    listingKind: String(row.listing_kind) as ListingKind,
+    isPurchasable: merchandising.isPurchasable,
+    categoryName: row.category ? String(row.category.name) : null,
+    imageIds: images.map((image) => String(image.id)),
+  };
+}
+
+// Meta catalog source. Same statuses and paging as getPriceListItems. Products without a
+// photo are returned too — dropping them is the feed's rule (Meta rejects them), not a
+// data-layer one.
+export async function getMetaFeedItems(): Promise<MetaFeedItem[]> {
+  const supabase = publicClient();
+  const items: MetaFeedItem[] = [];
+
+  for (let offset = 0; ; offset += FEED_PAGE_SIZE) {
+    const { data, error } = await metaFeedQuery(supabase)
+      .in("status", FEED_STATUSES)
+      .order("id", { ascending: true })
+      .range(offset, offset + FEED_PAGE_SIZE - 1);
+
+    if (error)
+      throw new Error("Meta feed products could not be loaded", { cause: error });
+
+    const batch = data ?? [];
+    items.push(...batch.map(normalizeMetaFeedItem));
+
+    if (batch.length < FEED_PAGE_SIZE) break;
   }
 
   return items;

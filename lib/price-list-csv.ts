@@ -1,3 +1,4 @@
+import { toCsv } from "@/lib/csv";
 import type { PriceListItem } from "@/lib/storefront";
 
 // Formatting for the public price feed (app/prices.csv): column values, CSV escaping and
@@ -81,15 +82,6 @@ function notes(item: PriceListItem) {
   return parts.join("; ").replace(/\s+/g, " ");
 }
 
-// RFC 4180: quote a field containing a comma, quote, CR or LF; double embedded quotes.
-function escapeCsvField(value: string) {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-}
-
-function toCsvLine(fields: string[]) {
-  return fields.map(escapeCsvField).join(",");
-}
-
 export function buildPriceListCsv(items: PriceListItem[]) {
   // Georgian collation by name; id breaks ties so listings sharing a name keep a stable
   // order between refreshes of the sheet.
@@ -97,16 +89,13 @@ export function buildPriceListCsv(items: PriceListItem[]) {
     (a, b) => nameCollator.compare(a.name, b.name) || a.id.localeCompare(b.id),
   );
 
-  const lines = [
-    toCsvLine(CSV_HEADER),
-    ...sorted.map((item) =>
-      toCsvLine([
-        item.name,
-        formatAmount(item.price),
-        availability(item),
-        notes(item),
-      ]),
-    ),
-  ];
-  return lines.join("\r\n") + "\r\n";
+  return toCsv([
+    CSV_HEADER,
+    ...sorted.map((item) => [
+      item.name,
+      formatAmount(item.price),
+      availability(item),
+      notes(item),
+    ]),
+  ]);
 }
