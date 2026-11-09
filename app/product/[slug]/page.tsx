@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, Eye, MessageCircle, Phone } from "lucide-react";
 import { ConditionAspectTable } from "@/components/condition-aspect-table";
 import { PageBanner } from "@/components/page-banner";
 import { ProductCard } from "@/components/product-card";
@@ -10,11 +10,14 @@ import { ProductConditionReport } from "@/components/product-condition-report";
 import { ProductAttributes } from "@/components/product-attributes";
 import { ProductDimensionsTable } from "@/components/product-dimensions-table";
 import { ProductRail } from "@/components/product-rail";
+import { ProductViewBeacon } from "@/components/product-view-beacon";
 import { BrandIcon } from "@/components/brand-icons";
 import { ShareLinks } from "@/components/share-links";
 import { contactDetails, socialLinks } from "@/lib/contact-details";
 import {
   formatPrice,
+  formatViewCount,
+  MIN_DISPLAYED_VIEW_COUNT,
   getProductBySlug,
   getProductSlugs,
   getRelatedProducts,
@@ -198,6 +201,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <main>
+      <ProductViewBeacon productId={product.id} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -255,6 +259,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <span className="inline-flex items-center rounded-md bg-forest px-2 py-1 text-xs leading-none font-semibold text-white">
                   ახალი შემოსული
                 </span>
+              ) : null}
+              {/* From the cached render, so it can trail the live total by up to the
+                  page's revalidate window. */}
+              {product.viewCount >= MIN_DISPLAYED_VIEW_COUNT ? (
+                <p className="flex items-center gap-1.5 text-sm font-medium text-meta tabular-nums">
+                  <Eye className="size-4" aria-hidden="true" />
+                  {formatViewCount(product.viewCount)}
+                </p>
               ) : null}
             </div>
             <h1 className="mt-2 text-2xl leading-tight font-bold tracking-[-0.02em] text-ink text-balance sm:text-3xl">

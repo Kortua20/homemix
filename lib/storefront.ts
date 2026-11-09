@@ -104,6 +104,7 @@ export type Product = {
   styles: ProductAttribute[];
   category: Category | null;
   images: ProductImage[];
+  viewCount: number;
 };
 
 // Materials, colours and styles. `hex` is present only on colours — a colour facet
@@ -152,7 +153,22 @@ export type ProductCardData = {
   // The lead image alone. The card renders images[0] and ignores the rest, so the query
   // orders by (sort_order, created_at) and takes one instead of fetching the gallery.
   leadImageId: string | null;
+  viewCount: number;
 };
+
+// De-duplicated views from supabase/schemas/08_product_views.sql. A product nobody has
+// opened yet has no counts row, so the one-to-one embed comes back null: that is zero.
+function toViewCount(views: { view_count: number } | null) {
+  return views ? Number(views.view_count) : 0;
+}
+
+// Below this, a count reads as "nobody wants this" rather than as social proof, so it is
+// hidden instead of shown. Product decision — raise it if the PM picks a threshold.
+export const MIN_DISPLAYED_VIEW_COUNT = 1;
+
+export function formatViewCount(count: number) {
+  return `${new Intl.NumberFormat("ka-GE").format(count)} ნახვა`;
+}
 
 // One line of the public price feed (app/prices.csv). Merchandising fields come from
 // deriveMerchandising, so the feed and the storefront cannot disagree about what is
@@ -327,7 +343,8 @@ const productSelection = `
   colours:product_colours (colour:colours (code, label_ka, sort_order, hex)),
   styles:product_styles (style:styles (code, label_ka, sort_order)),
   category:categories!products_category_id_fkey (id, name, slug, description, images:category_images (id, sort_order, created_at)),
-  images:product_images (id, sort_order, created_at)
+  images:product_images (id, sort_order, created_at),
+  views:product_view_counts (view_count)
 `;
 
 // The card query. Same literal-string rule as productSelection above — QueryData derives
@@ -348,7 +365,8 @@ const productCardSelection = `
   stock_quantity,
   conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka),
   category:categories!products_category_id_fkey (name),
-  images:product_images (id, sort_order, created_at)
+  images:product_images (id, sort_order, created_at),
+  views:product_view_counts (view_count)
 `;
 
 // The price feed query. Same literal-string rule as above. published_at is here only
@@ -644,6 +662,7 @@ function normalizeProductCard(row: ProductCardRow): ProductCardData {
       : null,
     categoryName: row.category ? String(row.category.name) : null,
     leadImageId: images[0] ? String(images[0].id) : null,
+    viewCount: toViewCount(row.views),
   };
 }
 
@@ -768,6 +787,7 @@ function normalizeProduct(row: ProductRow): Product {
     // productCount of 0. Callers that need the real count fetch the category directly.
     category: category ? normalizeCategory({ ...category, products: [] }) : null,
     images,
+    viewCount: toViewCount(row.views),
   };
 }
 

@@ -1,7 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ImageIcon } from "lucide-react";
-import { formatPrice, type ProductCardData } from "@/lib/storefront";
+import { ArrowRight, Eye, ImageIcon } from "lucide-react";
+import {
+  formatPrice,
+  formatViewCount,
+  MIN_DISPLAYED_VIEW_COUNT,
+  type ProductCardData,
+} from "@/lib/storefront";
 
 const badgeClass =
   "absolute top-2.5 left-2.5 z-10 inline-flex items-center rounded-md px-2 py-1 text-xs leading-none font-semibold text-white";
@@ -56,6 +61,12 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             <p className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-forest">
               <span className="size-1.5 rounded-full bg-forest" aria-hidden="true" />
               {product.conditionGrade.label_ka}
+            </p>
+          ) : null}
+          {product.viewCount >= MIN_DISPLAYED_VIEW_COUNT ? (
+            <p className="flex shrink-0 items-center gap-1 text-xs font-medium text-meta tabular-nums">
+              <Eye className="size-3.5" aria-hidden="true" />
+              {formatViewCount(product.viewCount)}
             </p>
           ) : null}
         </div>

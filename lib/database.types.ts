@@ -428,6 +428,32 @@ export type Database = {
           },
         ]
       }
+      product_view_counts: {
+        Row: {
+          product_id: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          product_id: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          product_id?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_view_counts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: string
@@ -544,6 +570,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      record_product_view: {
+        Args: {
+          p_ip_hash: string
+          p_product_id: string
+          p_secret: string
+          p_visitor_hash: string
+        }
+        Returns: boolean
+      }
       release_contact_email_quota: {
         Args: { p_client_id: string; p_secret: string }
         Returns: undefined
