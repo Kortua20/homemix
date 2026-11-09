@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { CatalogFilterForm } from "@/components/catalog-filter-form";
 import { EmptyState } from "@/components/empty-state";
 import { HeroSlider, type HeroSlide } from "@/components/hero-slider";
@@ -18,6 +18,7 @@ import {
   getCategorySlugs,
   getFacetAvailability,
   getMaxProductPrice,
+  getRenamedCategorySlug,
   normalizeSlug,
   parsePageParam,
   type Category,
@@ -56,6 +57,19 @@ type CategoryProductResultsProps = {
 
 function firstValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
+}
+
+function withQuery(
+  pathname: string,
+  query: Record<string, string | string[] | undefined>,
+) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      if (item !== undefined) params.append(key, item);
+    }
+  }
+  return params.size ? `${pathname}?${params.toString()}` : pathname;
 }
 
 // Facet params repeat (materials=oak&materials=walnut), so they read as arrays.
@@ -234,7 +248,17 @@ export default async function CategoryPage({
     getCategoryBySlug(slug),
   ]);
 
-  if (!category) notFound();
+  if (!category) {
+    // Same as the product page: 308 a renamed category's old URL to its current one,
+    // keeping the filters and page the visitor arrived with.
+    const currentSlug = await getRenamedCategorySlug(slug);
+    if (currentSlug) {
+      permanentRedirect(
+        withQuery(`/categories/${encodeURIComponent(currentSlug)}`, queryParams),
+      );
+    }
+    notFound();
+  }
   const minPrice = Math.min(
     parsePriceParam(firstValue(queryParams.minPrice)),
     availableMaxPrice,

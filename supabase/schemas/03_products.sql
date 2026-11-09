@@ -108,9 +108,10 @@ create table if not exists "public"."products" (
             and ("char_length"("btrim"("name")) <= 160))),
     constraint "products_price_check"
         check (("price" >= (0)::numeric)),
+    -- Lowercase ASCII only; see categories_slug_check.
     constraint "products_slug_check"
         check (((("char_length"("slug") >= 2) and ("char_length"("slug") <= 160))
-            and ("slug" ~ '^[ა-ჰa-z0-9]+(-[ა-ჰa-z0-9]+)*$'::"text")))
+            and ("slug" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'::"text")))
 );
 
 alter table "public"."products" owner to "postgres";

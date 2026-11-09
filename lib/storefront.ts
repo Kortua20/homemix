@@ -1391,6 +1391,38 @@ export const getCategoryBySlug = cache(
   },
 );
 
+// An old slug → the current slug of the row that owned it, or null. Only consulted after a
+// slug lookup misses, so a page's normal render never pays for it. The redirect tables are
+// filled by database triggers on every rename — see supabase/schemas/09_slug_redirects.sql.
+// RLS hides a draft product's old slugs as well as the product, so those still 404.
+export async function getRenamedProductSlug(oldSlug: string) {
+  const { data, error } = await publicClient()
+    .from("product_slug_redirects")
+    .select("product:products (slug)")
+    .eq("old_slug", normalizeSlug(oldSlug))
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Product redirect could not be loaded", { cause: error });
+  }
+
+  return data?.product?.slug ?? null;
+}
+
+export async function getRenamedCategorySlug(oldSlug: string) {
+  const { data, error } = await publicClient()
+    .from("category_slug_redirects")
+    .select("category:categories (slug)")
+    .eq("old_slug", normalizeSlug(oldSlug))
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Category redirect could not be loaded", { cause: error });
+  }
+
+  return data?.category?.slug ?? null;
+}
+
 export function formatPrice(value: number) {
   const formatted = new Intl.NumberFormat("ka-GE", {
     minimumFractionDigits: Number.isInteger(value) ? 0 : 2,

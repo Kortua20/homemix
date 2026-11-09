@@ -101,6 +101,32 @@ export type Database = {
           },
         ]
       }
+      category_slug_redirects: {
+        Row: {
+          category_id: string
+          created_at: string
+          old_slug: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          old_slug: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          old_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_slug_redirects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       colours: {
         Row: {
           code: string
@@ -391,6 +417,32 @@ export type Database = {
           },
           {
             foreignKeyName: "product_materials_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_slug_redirects: {
+        Row: {
+          created_at: string
+          old_slug: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          old_slug: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          old_slug?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_slug_redirects_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"

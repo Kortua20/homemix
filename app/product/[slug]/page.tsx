@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowRight, Eye, MessageCircle, Phone } from "lucide-react";
 import { ConditionAspectTable } from "@/components/condition-aspect-table";
 import { PageBanner } from "@/components/page-banner";
@@ -21,6 +21,7 @@ import {
   getProductBySlug,
   getProductSlugs,
   getRelatedProducts,
+  getRenamedProductSlug,
   normalizeSlug,
 } from "@/lib/storefront";
 import { absoluteUrl, siteName } from "@/lib/site";
@@ -110,7 +111,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const slug = normalizeSlug(rawSlug);
   const product = await getProductBySlug(slug);
 
-  if (!product) notFound();
+  if (!product) {
+    // A renamed product keeps its old links (shares, search results, the Meta catalog)
+    // working: 308 to the current slug, so search engines move the ranking over too.
+    const currentSlug = await getRenamedProductSlug(slug);
+    if (currentSlug) {
+      permanentRedirect(`/product/${encodeURIComponent(currentSlug)}`);
+    }
+    notFound();
+  }
 
   // Not a rung on the quality ladder — the absence of a rating. Rendered muted rather than
   // as a grade, and kept out of the card summary entirely.

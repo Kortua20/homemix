@@ -8,10 +8,12 @@ create table if not exists "public"."categories" (
     "description" "text" default ''::"text" not null,
     constraint "categories_description_check"
         check (("char_length"("description") <= 5000)),
-    -- Slug allows Georgian letters and lowercase ASCII, hyphen-separated.
+    -- Slug is lowercase ASCII, hyphen-separated: Georgian names are transliterated, so
+    -- URLs stay readable when shared (no percent-encoding). Georgian was allowed until
+    -- migrations/20261109000000_transliterate_slugs.sql.
     constraint "categories_slug_check"
         check (((("char_length"("slug") >= 2) and ("char_length"("slug") <= 80))
-            and ("slug" ~ '^[ა-ჰa-z0-9]+(-[ა-ჰa-z0-9]+)*$'::"text")))
+            and ("slug" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'::"text")))
 );
 
 alter table "public"."categories" owner to "postgres";

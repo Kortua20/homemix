@@ -53,6 +53,7 @@ schema_paths = [
   "./schemas/06_contact_rate_limit.sql",
   "./schemas/07_grants_and_rls.sql",
   "./schemas/08_product_views.sql",
+  "./schemas/09_slug_redirects.sql",
 ]
 
 [db.seed]
