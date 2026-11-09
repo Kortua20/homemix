@@ -170,13 +170,19 @@ export function formatViewCount(count: number) {
   return `${new Intl.NumberFormat("ka-GE").format(count)} ნახვა`;
 }
 
-// One line of the public price feed (app/prices.csv). Merchandising fields come from
-// deriveMerchandising, so the feed and the storefront cannot disagree about what is
-// buyable or discounted. The stock count is read to derive isPurchasable and is
-// deliberately not carried any further.
-export type PriceListItem = {
+// One product in the public feeds: the Meta Commerce catalog (app/api/meta-feed.csv) and
+// the price list the Meta Business Agent reads (app/prices.csv). One shape and one query
+// for both, so the two feeds cannot list different products.
+//
+// Merchandising fields come from deriveMerchandising, so neither feed can claim a sale
+// price or stock state the product page does not show — Meta rejects catalog items whose
+// price disagrees with the landing page. The stock count is read to derive isPurchasable
+// and is deliberately not carried any further.
+export type FeedProduct = {
   id: string;
+  slug: string;
   name: string;
+  description: string | null;
   price: number;
   compareAtPrice: number | null;
   discountPercent: number | null;
@@ -185,27 +191,12 @@ export type PriceListItem = {
   listingKind: ListingKind;
   isPurchasable: boolean;
   conditionGrade: { code: string; label_ka: string } | null;
-  dimensions: Pick<
-    ProductDimensions,
-    "width_cm" | "length_cm" | "depth_cm" | "height_cm" | "note"
-  >;
-};
-
-// One product in the Meta Commerce catalog feed (app/api/meta-feed.csv). Same rule as
-// PriceListItem: merchandising comes from deriveMerchandising, so the catalog cannot claim
-// a sale price or stock state the product page does not show — Meta rejects items whose
-// price disagrees with the landing page.
-export type MetaFeedItem = {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  price: number;
-  compareAtPrice: number | null;
-  showsDiscount: boolean;
-  listingKind: ListingKind;
-  isPurchasable: boolean;
+  conditionSummary: string | null;
   categoryName: string | null;
+  dimensions: ProductDimensions;
+  // Georgian labels, in vocabulary sort order — the order the product page lists them.
+  materials: string[];
+  colours: string[];
   // Sorted with sortImages, so [0] is the photo the card and gallery lead with.
   imageIds: string[];
 };
@@ -369,27 +360,9 @@ const productCardSelection = `
   views:product_view_counts (view_count)
 `;
 
-// The price feed query. Same literal-string rule as above. published_at is here only
-// because deriveMerchandising takes it.
-const priceListSelection = `
-  id,
-  name,
-  price,
-  compare_at_price,
-  published_at,
-  status,
-  listing_kind,
-  stock_quantity,
-  width_cm,
-  length_cm,
-  depth_cm,
-  height_cm,
-  dimension_note,
-  conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka)
-`;
-
-// The Meta catalog feed query. Same literal-string rule as above.
-const metaFeedSelection = `
+// The public feeds' query (FeedProduct). Same literal-string rule as above. published_at
+// is here only because deriveMerchandising takes it.
+const feedSelection = `
   id,
   slug,
   name,
@@ -400,6 +373,17 @@ const metaFeedSelection = `
   status,
   listing_kind,
   stock_quantity,
+  condition_summary,
+  width_cm,
+  length_cm,
+  depth_cm,
+  height_cm,
+  seat_height_cm,
+  weight_kg,
+  dimension_note,
+  conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka),
+  materials:product_materials (material:materials (label_ka, sort_order)),
+  colours:product_colours (colour:colours (label_ka, sort_order)),
   category:categories!products_category_id_fkey (name),
   images:product_images (id, sort_order, created_at)
 `;
@@ -502,19 +486,14 @@ function categoryQuery(supabase: SupabaseClient<Database>) {
   return supabase.from("categories").select(categorySelection);
 }
 
-function priceListQuery(supabase: SupabaseClient<Database>) {
-  return supabase.from("products").select(priceListSelection);
-}
-
-function metaFeedQuery(supabase: SupabaseClient<Database>) {
-  return supabase.from("products").select(metaFeedSelection);
+function feedQuery(supabase: SupabaseClient<Database>) {
+  return supabase.from("products").select(feedSelection);
 }
 
 type ProductRow = QueryData<ReturnType<typeof productQuery>>[number];
 type ProductCardRow = QueryData<ReturnType<typeof productCardQuery>>[number];
 type CategoryRow = QueryData<ReturnType<typeof categoryQuery>>[number];
-type PriceListRow = QueryData<ReturnType<typeof priceListQuery>>[number];
-type MetaFeedRow = QueryData<ReturnType<typeof metaFeedQuery>>[number];
+type FeedRow = QueryData<ReturnType<typeof feedQuery>>[number];
 
 function publicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -666,6 +645,29 @@ function normalizeProductCard(row: ProductCardRow): ProductCardData {
   };
 }
 
+// Guarded per field: Number(null) is 0, which would turn "not measured" into a
+// measurement of zero.
+function normalizeDimensions(row: {
+  width_cm: number | null;
+  length_cm: number | null;
+  depth_cm: number | null;
+  height_cm: number | null;
+  seat_height_cm: number | null;
+  weight_kg: number | null;
+  dimension_note: string | null;
+}): ProductDimensions {
+  return {
+    width_cm: row.width_cm === null ? null : Number(row.width_cm),
+    length_cm: row.length_cm === null ? null : Number(row.length_cm),
+    depth_cm: row.depth_cm === null ? null : Number(row.depth_cm),
+    height_cm: row.height_cm === null ? null : Number(row.height_cm),
+    seat_height_cm:
+      row.seat_height_cm === null ? null : Number(row.seat_height_cm),
+    weight_kg: row.weight_kg === null ? null : Number(row.weight_kg),
+    note: row.dimension_note ? String(row.dimension_note) : null,
+  };
+}
+
 function normalizeProduct(row: ProductRow): Product {
   const category = row.category ?? null;
   const images = [...row.images];
@@ -771,18 +773,7 @@ function normalizeProduct(row: ProductRow): Product {
         sort_order: Number(s.sort_order),
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
-    // Guarded per field: Number(null) is 0, which would turn "not measured" into a
-    // measurement of zero.
-    dimensions: {
-      width_cm: row.width_cm === null ? null : Number(row.width_cm),
-      length_cm: row.length_cm === null ? null : Number(row.length_cm),
-      depth_cm: row.depth_cm === null ? null : Number(row.depth_cm),
-      height_cm: row.height_cm === null ? null : Number(row.height_cm),
-      seat_height_cm:
-        row.seat_height_cm === null ? null : Number(row.seat_height_cm),
-      weight_kg: row.weight_kg === null ? null : Number(row.weight_kg),
-      note: row.dimension_note ? String(row.dimension_note) : null,
-    },
+    dimensions: normalizeDimensions(row),
     // The embedded category carries no products(count) aggregate, so it normalizes to a
     // productCount of 0. Callers that need the real count fetch the category directly.
     category: category ? normalizeCategory({ ...category, products: [] }) : null,
@@ -943,12 +934,27 @@ export async function getSitemapProducts(): Promise<
 // `draft`/`archived` are also blocked by RLS.
 const FEED_STATUSES: ProductStatus[] = ["available", "reserved"];
 
-function normalizePriceListItem(row: PriceListRow): PriceListItem {
+// Labels of a product's materials or colours, in vocabulary order. Join rows whose lookup
+// failed to resolve are dropped, as in normalizeProduct.
+function attributeLabels(
+  lookups: ({ label_ka: string; sort_order: number } | null)[],
+) {
+  return lookups
+    .filter((lookup): lookup is NonNullable<typeof lookup> => lookup !== null)
+    .sort((a, b) => Number(a.sort_order) - Number(b.sort_order))
+    .map((lookup) => String(lookup.label_ka));
+}
+
+function normalizeFeedProduct(row: FeedRow): FeedProduct {
   const merchandising = deriveMerchandising(row);
+  const images = [...row.images];
+  sortImages(images);
   const grade = row.conditionGrade;
   return {
     id: String(row.id),
+    slug: String(row.slug),
     name: String(row.name),
+    description: row.description ? String(row.description) : null,
     price: merchandising.price,
     compareAtPrice: merchandising.compareAtPrice,
     discountPercent: merchandising.discountPercent,
@@ -959,79 +965,37 @@ function normalizePriceListItem(row: PriceListRow): PriceListItem {
     conditionGrade: grade
       ? { code: String(grade.code), label_ka: String(grade.label_ka) }
       : null,
-    // Guarded per field, as in normalizeProduct: Number(null) is 0.
-    dimensions: {
-      width_cm: row.width_cm === null ? null : Number(row.width_cm),
-      length_cm: row.length_cm === null ? null : Number(row.length_cm),
-      depth_cm: row.depth_cm === null ? null : Number(row.depth_cm),
-      height_cm: row.height_cm === null ? null : Number(row.height_cm),
-      note: row.dimension_note ? String(row.dimension_note) : null,
-    },
-  };
-}
-
-// Price feed source. Paged the same way as getSitemapProducts, for the same reason: one
-// unbounded request is silently truncated at db-max-rows. Ordered by id only to make the
-// pages a stable partition — display order is the feed's concern.
-export async function getPriceListItems(): Promise<PriceListItem[]> {
-  const supabase = publicClient();
-  const items: PriceListItem[] = [];
-
-  for (let offset = 0; ; offset += FEED_PAGE_SIZE) {
-    const { data, error } = await priceListQuery(supabase)
-      .in("status", FEED_STATUSES)
-      .order("id", { ascending: true })
-      .range(offset, offset + FEED_PAGE_SIZE - 1);
-
-    if (error)
-      throw new Error("Price list could not be loaded", { cause: error });
-
-    const batch = data ?? [];
-    items.push(...batch.map(normalizePriceListItem));
-
-    if (batch.length < FEED_PAGE_SIZE) break;
-  }
-
-  return items;
-}
-
-function normalizeMetaFeedItem(row: MetaFeedRow): MetaFeedItem {
-  const merchandising = deriveMerchandising(row);
-  const images = [...row.images];
-  sortImages(images);
-  return {
-    id: String(row.id),
-    slug: String(row.slug),
-    name: String(row.name),
-    description: row.description ? String(row.description) : null,
-    price: merchandising.price,
-    compareAtPrice: merchandising.compareAtPrice,
-    showsDiscount: merchandising.showsDiscount,
-    listingKind: String(row.listing_kind) as ListingKind,
-    isPurchasable: merchandising.isPurchasable,
+    conditionSummary: row.condition_summary
+      ? String(row.condition_summary)
+      : null,
     categoryName: row.category ? String(row.category.name) : null,
+    dimensions: normalizeDimensions(row),
+    materials: attributeLabels((row.materials ?? []).map((entry) => entry.material)),
+    colours: attributeLabels((row.colours ?? []).map((entry) => entry.colour)),
     imageIds: images.map((image) => String(image.id)),
   };
 }
 
-// Meta catalog source. Same statuses and paging as getPriceListItems. Products without a
-// photo are returned too — dropping them is the feed's rule (Meta rejects them), not a
-// data-layer one.
-export async function getMetaFeedItems(): Promise<MetaFeedItem[]> {
+// Source for both public feeds. Paged the same way as getSitemapProducts, for the same
+// reason: one unbounded request is silently truncated at db-max-rows. Ordered by id only to
+// make the pages a stable partition — display order is each feed's concern. Products
+// without a photo are returned too: dropping them is the Meta feed's rule (Meta rejects
+// them), not a data-layer one — they are visible on the site, so the price list keeps them.
+export async function getFeedProducts(): Promise<FeedProduct[]> {
   const supabase = publicClient();
-  const items: MetaFeedItem[] = [];
+  const items: FeedProduct[] = [];
 
   for (let offset = 0; ; offset += FEED_PAGE_SIZE) {
-    const { data, error } = await metaFeedQuery(supabase)
+    const { data, error } = await feedQuery(supabase)
       .in("status", FEED_STATUSES)
       .order("id", { ascending: true })
       .range(offset, offset + FEED_PAGE_SIZE - 1);
 
     if (error)
-      throw new Error("Meta feed products could not be loaded", { cause: error });
+      throw new Error("Feed products could not be loaded", { cause: error });
 
     const batch = data ?? [];
-    items.push(...batch.map(normalizeMetaFeedItem));
+    items.push(...batch.map(normalizeFeedProduct));
 
     if (batch.length < FEED_PAGE_SIZE) break;
   }

@@ -1,5 +1,5 @@
 import { buildMetaFeedCsv } from "@/lib/meta-feed-csv";
-import { getMetaFeedItems } from "@/lib/storefront";
+import { getFeedProducts } from "@/lib/storefront";
 
 // Meta Commerce Manager catalog feed: https://www.homemix.ge/api/meta-feed.csv, fetched by
 // Meta on a schedule to keep the Facebook catalog in sync with the site.
@@ -13,7 +13,7 @@ import { getMetaFeedItems } from "@/lib/storefront";
 // revalidates in the background — fine for a feed Meta fetches at most hourly.
 export async function GET() {
   try {
-    const csv = buildMetaFeedCsv(await getMetaFeedItems());
+    const csv = buildMetaFeedCsv(await getFeedProducts());
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",

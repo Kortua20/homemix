@@ -1,11 +1,12 @@
 import { toCsv } from "@/lib/csv";
+import { productPageUrl, stripTags, truncate } from "@/lib/feed-format";
 import { absoluteUrl, siteName } from "@/lib/site";
-import type { MetaFeedItem } from "@/lib/storefront";
+import type { FeedProduct } from "@/lib/storefront";
 
 // Meta Commerce Manager catalog data feed (app/api/meta-feed.csv). Field names and value
 // vocabularies are Meta's: https://www.facebook.com/business/help/120325381656392
 //
-// Pure formatting. What is buyable or discounted was decided by getMetaFeedItems via the
+// Pure formatting. What is buyable or discounted was decided by getFeedProducts via the
 // storefront's deriveMerchandising, so the catalog matches the product page — Meta flags
 // items whose price or availability disagrees with the landing page.
 
@@ -28,18 +29,9 @@ const TITLE_MAX = 200;
 const DESCRIPTION_MAX = 9999;
 const ADDITIONAL_IMAGES_MAX = 10;
 
-// By code point, so an emoji in a description is never cut in half.
-function truncate(value: string, max: number) {
-  const chars = Array.from(value);
-  return chars.length > max ? chars.slice(0, max).join("") : value;
-}
-
-// Descriptions are stored and rendered as plain text (whitespace-pre-line on the product
-// page), so this is defensive. Only real tags are stripped — `<` followed by a letter or
-// `/` — so text like "სიგანე < 2 მ" survives. Line breaks are kept, as the site shows them.
+// Line breaks are kept, as the site shows them; Meta accepts them in a quoted field.
 function plainText(value: string) {
-  return value
-    .replace(/<\/?[a-zA-Z][^>]*>/g, " ")
+  return stripTags(value)
     .replace(/\r\n?/g, "\n")
     .replace(/[ \t]+/g, " ")
     .replace(/ *\n */g, "\n")
@@ -55,7 +47,7 @@ function productImageUrl(imageId: string) {
   return absoluteUrl(`/api/product-images/${imageId}`);
 }
 
-function toFeedRow(item: MetaFeedItem, leadImageId: string) {
+function toFeedRow(item: FeedProduct, leadImageId: string) {
   const title = truncate(item.name.trim(), TITLE_MAX);
   const description =
     truncate(plainText(item.description ?? ""), DESCRIPTION_MAX) || title;
@@ -73,8 +65,7 @@ function toFeedRow(item: MetaFeedItem, leadImageId: string) {
     item.listingKind === "new_stocked" ? "new" : "used",
     formatPrice(onSale ? item.compareAtPrice! : item.price),
     onSale ? formatPrice(item.price) : "",
-    // Same URL shape as the product page's canonical and the sitemap.
-    absoluteUrl(`/product/${encodeURIComponent(item.slug)}`),
+    productPageUrl(item.slug),
     productImageUrl(leadImageId),
     item.imageIds
       .slice(1, 1 + ADDITIONAL_IMAGES_MAX)
@@ -85,7 +76,7 @@ function toFeedRow(item: MetaFeedItem, leadImageId: string) {
   ];
 }
 
-export function buildMetaFeedCsv(items: MetaFeedItem[]) {
+export function buildMetaFeedCsv(items: FeedProduct[]) {
   // Meta rejects items without an image, so they are left out rather than sent to fail.
   const rows = items.flatMap((item) => {
     const leadImageId = item.imageIds[0];
