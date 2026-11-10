@@ -214,6 +214,9 @@ export type FeedProduct = {
   // Georgian labels, in vocabulary sort order — the order the product page lists them.
   materials: string[];
   colours: string[];
+  folding: ProductFolding;
+  // Null is "not specified" — same meaning as Product.hasStorage.
+  hasStorage: boolean | null;
   // Sorted with sortImages, so [0] is the photo the card and gallery lead with.
   imageIds: string[];
 };
@@ -415,6 +418,12 @@ const feedSelection = `
   seat_height_cm,
   weight_kg,
   dimension_note,
+  is_foldable,
+  unfolded_width_cm,
+  unfolded_length_cm,
+  unfolded_height_cm,
+  has_storage,
+  foldingMechanism:folding_mechanisms!products_folding_mechanism_fkey (code, label_ka),
   conditionGrade:condition_grades!products_condition_grade_fkey (code, label_ka),
   materials:product_materials (material:materials (label_ka, sort_order)),
   colours:product_colours (colour:colours (label_ka, sort_order)),
@@ -702,6 +711,34 @@ function normalizeDimensions(row: {
   };
 }
 
+// Shared by the product page and the public feeds, so both describe folding the same way.
+// Same Number(null) guard as normalizeDimensions.
+function normalizeFolding(row: {
+  is_foldable: boolean;
+  unfolded_width_cm: number | null;
+  unfolded_length_cm: number | null;
+  unfolded_height_cm: number | null;
+  foldingMechanism: { code: string; label_ka: string } | null;
+}): ProductFolding {
+  return {
+    isFoldable: Boolean(row.is_foldable),
+    mechanism: row.foldingMechanism
+      ? {
+          code: String(row.foldingMechanism.code),
+          label_ka: String(row.foldingMechanism.label_ka),
+        }
+      : null,
+    unfolded: {
+      width_cm:
+        row.unfolded_width_cm === null ? null : Number(row.unfolded_width_cm),
+      length_cm:
+        row.unfolded_length_cm === null ? null : Number(row.unfolded_length_cm),
+      height_cm:
+        row.unfolded_height_cm === null ? null : Number(row.unfolded_height_cm),
+    },
+  };
+}
+
 function normalizeProduct(row: ProductRow): Product {
   const category = row.category ?? null;
   const images = [...row.images];
@@ -777,24 +814,7 @@ function normalizeProduct(row: ProductRow): Product {
         sort_order: Number(flaw.sort_order),
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
-    // Same Number(null) guard as normalizeDimensions.
-    folding: {
-      isFoldable: Boolean(row.is_foldable),
-      mechanism: row.foldingMechanism
-        ? {
-            code: String(row.foldingMechanism.code),
-            label_ka: String(row.foldingMechanism.label_ka),
-          }
-        : null,
-      unfolded: {
-        width_cm:
-          row.unfolded_width_cm === null ? null : Number(row.unfolded_width_cm),
-        length_cm:
-          row.unfolded_length_cm === null ? null : Number(row.unfolded_length_cm),
-        height_cm:
-          row.unfolded_height_cm === null ? null : Number(row.unfolded_height_cm),
-      },
-    },
+    folding: normalizeFolding(row),
     hasStorage: row.has_storage,
     // Each join row wraps a single lookup object. Rows whose lookup failed to resolve are
     // dropped rather than rendered as blanks.
@@ -1025,6 +1045,8 @@ function normalizeFeedProduct(row: FeedRow): FeedProduct {
     dimensions: normalizeDimensions(row),
     materials: attributeLabels((row.materials ?? []).map((entry) => entry.material)),
     colours: attributeLabels((row.colours ?? []).map((entry) => entry.colour)),
+    folding: normalizeFolding(row),
+    hasStorage: row.has_storage,
     imageIds: images.map((image) => String(image.id)),
   };
 }

@@ -31,6 +31,7 @@ const CSV_HEADER = [
   "Condition / მდგომარეობა",
   "Availability / მარაგი",
   "Dimensions / ზომები",
+  "Features / მახასიათებლები",
   "Material / მასალა",
   "Color / ფერი",
   "Description / აღწერა",
@@ -124,6 +125,42 @@ function dimensions({ dimensions: d }: FeedProduct) {
   return [measured.join(", "), note].filter(Boolean).join("; ");
 }
 
+// Wording matches components/product-features-table.tsx, with the same omission rule: a
+// product that does not fold gets no folding text (false is the column default, not a
+// recorded fact), and unspecified storage is left out rather than read as "no".
+function features({ folding, hasStorage }: FeedProduct) {
+  const parts: string[] = [];
+
+  if (folding.isFoldable) {
+    parts.push(
+      folding.mechanism
+        ? `გაშლის მექანიზმი: ${folding.mechanism.label_ka} (foldable)`
+        : "გაშლის ფუნქცია: აქვს (foldable)",
+    );
+
+    const unfolded = (
+      [
+        ["სიგანე", folding.unfolded.width_cm],
+        ["სიგრძე", folding.unfolded.length_cm],
+        ["სიმაღლე", folding.unfolded.height_cm],
+      ] as const
+    )
+      .filter(([, value]) => value !== null)
+      .map(([label, value]) => `${label} ${formatMeasure(value!)} სმ`);
+    if (unfolded.length > 0) {
+      parts.push(`ზომა გაშლილ მდგომარეობაში: ${unfolded.join(", ")}`);
+    }
+  }
+
+  if (hasStorage !== null) {
+    parts.push(
+      hasStorage ? "სათავსო: აქვს (has storage)" : "სათავსო: არ აქვს (no storage)",
+    );
+  }
+
+  return parts.join("; ");
+}
+
 function toRow(item: FeedProduct) {
   const oldPrice = discountedFrom(item);
   return [
@@ -137,6 +174,7 @@ function toRow(item: FeedProduct) {
     condition(item),
     availability(item),
     dimensions(item),
+    features(item),
     item.materials.join(", "),
     item.colours.join(", "),
     truncateAtWord(oneLine(item.description ?? ""), DESCRIPTION_MAX),

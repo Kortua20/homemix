@@ -23,7 +23,22 @@ const FEED_HEADER = [
   "additional_image_link",
   "brand",
   "product_type",
+  "custom_label_0",
+  "custom_label_1",
 ];
+
+// Meta has no standard field for "folds out" or "has storage". Custom labels are never
+// shown to shoppers; they exist so product sets and ads can filter on them (e.g. a
+// "sofa beds" set: custom_label_0 is foldable). Empty means "not recorded", same omission
+// rule as the product page — not "does not fold" or "no storage".
+function foldingLabel({ folding }: FeedProduct) {
+  return folding.isFoldable ? "foldable" : "";
+}
+
+function storageLabel({ hasStorage }: FeedProduct) {
+  if (hasStorage === null) return "";
+  return hasStorage ? "storage" : "no storage";
+}
 
 const TITLE_MAX = 200;
 const DESCRIPTION_MAX = 9999;
@@ -73,6 +88,8 @@ function toFeedRow(item: FeedProduct, leadImageId: string) {
       .join(","),
     siteName,
     item.categoryName ?? "",
+    foldingLabel(item),
+    storageLabel(item),
   ];
 }
 
