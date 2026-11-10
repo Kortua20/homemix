@@ -113,6 +113,14 @@ grant select on table "public"."styles" to "anon";
 grant select, insert, update, delete on table "public"."styles" to "authenticated";
 grant all on table "public"."styles" to "service_role";
 
+-- folding_mechanisms (added 2026-11-10; see migrations/20261110000000_add_folding_and_storage.sql)
+-- Reference data, same shape as materials.
+revoke all on table "public"."folding_mechanisms" from "anon";
+revoke all on table "public"."folding_mechanisms" from "authenticated";
+grant select on table "public"."folding_mechanisms" to "anon";
+grant select, insert, update, delete on table "public"."folding_mechanisms" to "authenticated";
+grant all on table "public"."folding_mechanisms" to "service_role";
+
 -- product_materials / product_colours / product_styles
 revoke all on table "public"."product_materials" from "anon";
 revoke all on table "public"."product_materials" from "authenticated";
@@ -414,6 +422,20 @@ create policy "Permanent users can manage colours" on "public"."colours"
         and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
 
 create policy "Permanent users can manage styles" on "public"."styles"
+    for all to "authenticated"
+    using (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))
+    with check (((( select "auth"."uid"() as "uid") is not null)
+        and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)));
+
+-- folding_mechanisms: same two policies as materials. Added by
+-- migrations/20261110000000_add_folding_and_storage.sql.
+alter table "public"."folding_mechanisms" enable row level security;
+
+create policy "Folding mechanisms are publicly readable" on "public"."folding_mechanisms"
+    for select to "authenticated", "anon" using (true);
+
+create policy "Permanent users can manage folding mechanisms" on "public"."folding_mechanisms"
     for all to "authenticated"
     using (((( select "auth"."uid"() as "uid") is not null)
         and (coalesce((((select "auth"."jwt"() as "jwt") ->> 'is_anonymous'::"text"))::boolean, false) = false)))

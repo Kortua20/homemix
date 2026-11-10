@@ -4,7 +4,11 @@ import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import type { CatalogQuery } from "@/lib/catalog-query";
+import {
+  CATALOG_LIST_PARAMS,
+  CATALOG_SCALAR_PARAMS,
+  type CatalogQuery,
+} from "@/lib/catalog-query";
 import type { Category, FacetAvailability } from "@/lib/storefront";
 
 // CatalogQuery and buildPageHrefFrom live in lib/catalog-query.ts, not here: this file is
@@ -35,21 +39,12 @@ function CarriedParams({
   omit: (keyof CatalogQuery)[];
 }) {
   const skip = new Set<string>(omit as string[]);
-  const scalars: (keyof CatalogQuery)[] = [
-    "q",
-    "category",
-    "minPrice",
-    "maxPrice",
-    "minWidth",
-    "maxWidth",
-    "minHeight",
-    "maxHeight",
-  ];
-  const lists: (keyof CatalogQuery)[] = ["materials", "colours", "styles"];
 
+  // The same lists the pager uses (lib/catalog-query.ts), so a new param cannot be added to
+  // one and forgotten in the other — which would make every popover clear it on submit.
   return (
     <>
-      {scalars
+      {CATALOG_SCALAR_PARAMS
         .filter((key) => !skip.has(key) && String(query[key] ?? ""))
         .map((key) => (
           <input
@@ -59,10 +54,10 @@ function CarriedParams({
             value={String(query[key])}
           />
         ))}
-      {lists
+      {CATALOG_LIST_PARAMS
         .filter((key) => !skip.has(key))
         .flatMap((key) =>
-          (query[key] as string[]).map((value) => (
+          query[key].map((value) => (
             <input
               key={`${key}-${value}`}
               type="hidden"
@@ -468,6 +463,94 @@ export function CatalogFilterForm({
                   </label>
                 ))}
               </div>
+              <button
+                type="submit"
+                className="h-10 rounded-md bg-forest-deep text-sm font-semibold text-white transition-colors hover:bg-forest"
+              >
+                ძიება
+              </button>
+            </form>
+          </Popover>
+        ) : null}
+
+        {facets.showFolding ? (
+          <Popover
+            label="გაშლის ფუნქცია"
+            align={popoverAlign}
+            activeCount={(query.foldable ? 1 : 0) + query.mechanisms.length}
+          >
+            <form action={action} method="get" onSubmit={handleSubmit} className="grid gap-2">
+              <CarriedParams query={query} omit={["foldable", "mechanisms"]} />
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm font-semibold text-ink hover:bg-mint">
+                <input
+                  type="checkbox"
+                  name="foldable"
+                  value="1"
+                  defaultChecked={query.foldable === "1"}
+                  className="size-4 accent-forest"
+                />
+                მხოლოდ გასაშლელი / ტრანსფორმერი
+              </label>
+              {/* Only mechanisms some available product uses — see FacetAvailability. */}
+              {facets.foldingMechanisms.length > 0 ? (
+                <>
+                  <span className="mt-1 text-xs font-semibold text-ink">გაშლის მექანიზმი</span>
+                  <div className="max-h-56 overflow-y-auto">
+                    {facets.foldingMechanisms.map((mechanism) => (
+                      <label
+                        key={mechanism.code}
+                        className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-ink hover:bg-mint"
+                      >
+                        <input
+                          type="checkbox"
+                          name="mechanisms"
+                          value={mechanism.code}
+                          defaultChecked={query.mechanisms.includes(mechanism.code)}
+                          className="size-4 accent-forest"
+                        />
+                        {mechanism.label_ka}
+                      </label>
+                    ))}
+                  </div>
+                </>
+              ) : null}
+              <button
+                type="submit"
+                className="h-10 rounded-md bg-forest-deep text-sm font-semibold text-white transition-colors hover:bg-forest"
+              >
+                ძიება
+              </button>
+            </form>
+          </Popover>
+        ) : null}
+
+        {facets.showStorage ? (
+          <Popover label="სათავსო" align={popoverAlign} activeCount={query.storage ? 1 : 0}>
+            <form action={action} method="get" onSubmit={handleSubmit} className="grid gap-2">
+              <CarriedParams query={query} omit={["storage"]} />
+              <p className="text-xs leading-5 text-meta">
+                მხოლოდ ის ნივთები გამოჩნდება, რომლებზეც ეს ინფორმაცია მითითებულია.
+              </p>
+              {[
+                { value: "yes", label: "აქვს" },
+                { value: "no", label: "არ აქვს" },
+                // "" submits nothing (formActionUrl drops blanks), which clears the filter.
+                { value: "", label: "ყველა" },
+              ].map((option) => (
+                <label
+                  key={option.label}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg px-1 py-1.5 text-sm text-ink hover:bg-mint"
+                >
+                  <input
+                    type="radio"
+                    name="storage"
+                    value={option.value}
+                    defaultChecked={query.storage === option.value}
+                    className="size-4 accent-forest"
+                  />
+                  {option.label}
+                </label>
+              ))}
               <button
                 type="submit"
                 className="h-10 rounded-md bg-forest-deep text-sm font-semibold text-white transition-colors hover:bg-forest"

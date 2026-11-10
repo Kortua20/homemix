@@ -99,6 +99,10 @@ export type Product = {
   conditionAspects: ConditionAspectRating[];
   flaws: ProductFlaw[];
   dimensions: ProductDimensions;
+  folding: ProductFolding;
+  // Null is "not specified" and is never displayed — see the has_storage column comment
+  // in supabase/schemas/03_products.sql.
+  hasStorage: boolean | null;
   materials: ProductAttribute[];
   colours: ProductAttribute[];
   styles: ProductAttribute[];
@@ -126,6 +130,19 @@ export type ProductDimensions = {
   seat_height_cm: number | null;
   weight_kg: number | null;
   note: string | null;
+};
+
+// Mirrors products_folding_matches_foldable_check: everything but `isFoldable` is null when
+// the product does not fold. `mechanism` can also be null on a foldable product — staff may
+// know it opens into a bed without knowing the mechanism's name.
+export type ProductFolding = {
+  isFoldable: boolean;
+  mechanism: { code: string; label_ka: string } | null;
+  unfolded: {
+    width_cm: number | null;
+    length_cm: number | null;
+    height_cm: number | null;
+  };
 };
 
 // What a grid card renders, and nothing more. A card is not a small Product: it is a
@@ -226,6 +243,12 @@ export type CatalogFilters = {
   materials?: string[];
   colours?: string[];
   styles?: string[];
+  // Only products that fold. Implied by `mechanisms`, which narrows further.
+  foldable?: boolean;
+  mechanisms?: string[];
+  // true / false filter on has_storage; undefined = no filter. Products where storage is
+  // "not specified" (NULL) match neither, which is the honest answer to both questions.
+  hasStorage?: boolean;
   // 1-based. Clamped by toPageRange rather than validated here, so a junk param degrades to
   // page 1 instead of throwing.
   page?: number;
@@ -247,10 +270,15 @@ export type FacetAvailability = {
   materials: ProductAttribute[];
   colours: ProductAttribute[];
   styles: ProductAttribute[];
+  // Only the mechanisms some available product actually uses, so no option leads to an
+  // empty page.
+  foldingMechanisms: ProductAttribute[];
   showDimensions: boolean;
   showMaterials: boolean;
   showColours: boolean;
   showStyles: boolean;
+  showFolding: boolean;
+  showStorage: boolean;
 };
 
 // A facet needs at least this share of the available catalogue behind it before it earns a
@@ -322,6 +350,12 @@ const productSelection = `
   seat_height_cm,
   weight_kg,
   dimension_note,
+  is_foldable,
+  unfolded_width_cm,
+  unfolded_length_cm,
+  unfolded_height_cm,
+  has_storage,
+  foldingMechanism:folding_mechanisms!products_folding_mechanism_fkey (code, label_ka),
   conditionGrade:condition_grades!products_condition_grade_fkey (code, sort_order, label_ka, label_en, description_ka),
   conditionAspects:product_condition_aspects (
     aspect_code,
@@ -743,6 +777,25 @@ function normalizeProduct(row: ProductRow): Product {
         sort_order: Number(flaw.sort_order),
       }))
       .sort((a, b) => a.sort_order - b.sort_order),
+    // Same Number(null) guard as normalizeDimensions.
+    folding: {
+      isFoldable: Boolean(row.is_foldable),
+      mechanism: row.foldingMechanism
+        ? {
+            code: String(row.foldingMechanism.code),
+            label_ka: String(row.foldingMechanism.label_ka),
+          }
+        : null,
+      unfolded: {
+        width_cm:
+          row.unfolded_width_cm === null ? null : Number(row.unfolded_width_cm),
+        length_cm:
+          row.unfolded_length_cm === null ? null : Number(row.unfolded_length_cm),
+        height_cm:
+          row.unfolded_height_cm === null ? null : Number(row.unfolded_height_cm),
+      },
+    },
+    hasStorage: row.has_storage,
     // Each join row wraps a single lookup object. Rows whose lookup failed to resolve are
     // dropped rather than rendered as blanks.
     materials: (row.materials ?? [])
@@ -1069,10 +1122,13 @@ async function loadFacetAvailability(
     materials: [],
     colours: [],
     styles: [],
+    foldingMechanisms: [],
     showDimensions: false,
     showMaterials: false,
     showColours: false,
     showStyles: false,
+    showFolding: false,
+    showStorage: false,
   };
 
   if (categoryId === "") return empty;
@@ -1086,10 +1142,26 @@ async function loadFacetAvailability(
     .select("id", { count: "exact", head: true })
     .eq("status", LISTABLE_STATUS)
     .not("width_cm", "is", null);
+  // The foldable rows themselves, not a count: the mechanisms they use decide which options
+  // the mechanism filter offers. Bounded at PostgREST's row cap like every list query here;
+  // past 1000 foldable listings an unused mechanism might be offered, never a used one hidden.
+  let foldableQuery = supabase
+    .from("products")
+    .select("folding_mechanism")
+    .eq("status", LISTABLE_STATUS)
+    .eq("is_foldable", true)
+    .limit(1000);
+  let storageQuery = supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("status", LISTABLE_STATUS)
+    .not("has_storage", "is", null);
 
   if (categoryId) {
     totalQuery = totalQuery.eq("category_id", categoryId);
     dimsQuery = dimsQuery.eq("category_id", categoryId);
+    foldableQuery = foldableQuery.eq("category_id", categoryId);
+    storageQuery = storageQuery.eq("category_id", categoryId);
   }
 
   const [
@@ -1101,6 +1173,9 @@ async function loadFacetAvailability(
     taggedMaterials,
     taggedColours,
     taggedStyles,
+    foldableRows,
+    storageResult,
+    mechanismRows,
   ] = await Promise.all([
     totalQuery,
     dimsQuery,
@@ -1122,9 +1197,21 @@ async function loadFacetAvailability(
     supabase
       .from("product_styles")
       .select("product_id", { count: "exact", head: true }),
+    foldableQuery,
+    storageQuery,
+    supabase
+      .from("folding_mechanisms")
+      .select("code, label_ka, sort_order")
+      .order("sort_order"),
   ]);
 
   const totalAvailable = totalResult.count ?? 0;
+  const foldableCount = (foldableRows.data ?? []).length;
+  const mechanismsInUse = new Set(
+    (foldableRows.data ?? [])
+      .map((row) => row.folding_mechanism)
+      .filter((code): code is string => code !== null),
+  );
   const withDimensions = dimsResult.count ?? 0;
 
   // A catalogue this small is browsed, not filtered.
@@ -1166,10 +1253,25 @@ async function loadFacetAvailability(
     showColours:
       covered(taggedColours.count) && (colourRows.data ?? []).length > 0,
     showStyles: covered(taggedStyles.count) && (styleRows.data ?? []).length > 0,
+    foldingMechanisms: (mechanismRows.data ?? [])
+      .filter((row) => mechanismsInUse.has(String(row.code)))
+      .map((row) => ({
+        code: String(row.code),
+        label_ka: String(row.label_ka),
+        sort_order: Number(row.sort_order),
+      })),
+    // Not the coverage rule. Coverage protects filters that silently drop untagged rows,
+    // but "foldable" is a true/false fact on every row and matches exactly the foldable
+    // products — so it can never empty the page, and most of a furniture catalogue is
+    // rightly not foldable. One foldable listing is enough to make the filter useful.
+    showFolding: bigEnough && foldableCount > 0,
+    // Coverage DOES apply here: "not specified" rows match neither აქვს nor არ აქვს, so a
+    // mostly-unspecified catalogue would make either choice look nearly empty.
+    showStorage: covered(storageResult.count),
   };
 }
 
-// Eight queries per call, all of them catalogue-wide counts, so this is the main thing the
+// Eleven queries per call, nearly all catalogue-wide counts, so this is the main thing the
 // cache saves. A stale result only shows or hides a control a little late.
 export const getFacetAvailability = unstable_cache(
   loadFacetAvailability,
@@ -1189,6 +1291,9 @@ export async function getCatalogProducts({
   materials = [],
   colours = [],
   styles = [],
+  foldable = false,
+  mechanisms = [],
+  hasStorage,
   page = 1,
 }: CatalogFilters = {}): Promise<PaginatedResult<ProductCardData>> {
   const { page: safePage, from, to } = toPageRange(page);
@@ -1225,11 +1330,17 @@ export async function getCatalogProducts({
     gte: (c: string, v: number) => T;
     lte: (c: string, v: number) => T;
     ilike: (c: string, v: string) => T;
-    eq: (c: string, v: string) => T;
+    eq: (c: string, v: string | boolean) => T;
     in: (c: string, v: string[]) => T;
   }>(builder: T): T => {
     let next = builder;
     if (facetIds !== null) next = next.in("id", facetIds);
+
+    // A mechanism implies foldable (products_folding_matches_foldable_check), so the
+    // mechanism filter alone is enough when both are set.
+    if (mechanisms.length > 0) next = next.in("folding_mechanism", mechanisms);
+    else if (foldable) next = next.eq("is_foldable", true);
+    if (hasStorage !== undefined) next = next.eq("has_storage", hasStorage);
 
     // Dimension ranges exclude unmeasured products by necessity — see FacetAvailability.
     if (minWidth !== undefined && Number.isFinite(minWidth))

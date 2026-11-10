@@ -45,6 +45,7 @@ schema_paths = [
   "./schemas/01_extensions.sql",
   "./schemas/02_categories.sql",
   "./schemas/02a_condition_grades.sql",
+  "./schemas/02b_folding_mechanisms.sql",
   "./schemas/03_products.sql",
   "./schemas/04_category_images.sql",
   "./schemas/05_product_images.sql",

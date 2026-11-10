@@ -23,7 +23,12 @@ import {
   parsePageParam,
   type Category,
 } from "@/lib/storefront";
-import { buildPageHrefFrom, type CatalogQuery } from "@/lib/catalog-query";
+import {
+  buildPageHrefFrom,
+  readFeatureParams,
+  storageFilterValue,
+  type CatalogQuery,
+} from "@/lib/catalog-query";
 import { siteName } from "@/lib/site";
 
 export const revalidate = 60;
@@ -46,6 +51,9 @@ type CategoryFilterValues = {
   materials: string[];
   colours: string[];
   styles: string[];
+  foldable: boolean;
+  mechanisms: string[];
+  hasStorage?: boolean;
   page: number;
 };
 
@@ -120,6 +128,9 @@ function resultsKey(filters: CategoryFilterValues) {
     filters.materials.join(","),
     filters.colours.join(","),
     filters.styles.join(","),
+    filters.foldable ? "1" : "",
+    filters.mechanisms.join(","),
+    filters.hasStorage ?? "",
     // Paging re-triggers the skeleton rather than leaving the old cards in place.
     filters.page,
   ].join("|");
@@ -277,6 +288,7 @@ export default async function CategoryPage({
   const materials = listValue(queryParams.materials);
   const colours = listValue(queryParams.colours);
   const styles = listValue(queryParams.styles);
+  const features = readFeatureParams(queryParams);
   const minWidth = parseOptionalNumber(firstValue(queryParams.minWidth));
   const maxWidth = parseOptionalNumber(firstValue(queryParams.maxWidth));
   const minHeight = parseOptionalNumber(firstValue(queryParams.minHeight));
@@ -298,6 +310,9 @@ export default async function CategoryPage({
     materials,
     colours,
     styles,
+    foldable: features.foldable,
+    mechanisms: features.mechanisms,
+    hasStorage: storageFilterValue(features.storage),
     page,
   };
 
@@ -313,6 +328,9 @@ export default async function CategoryPage({
     materials,
     colours,
     styles,
+    foldable: features.foldable ? "1" : "",
+    mechanisms: features.mechanisms,
+    storage: features.storage,
   };
 
   // The category lives in the path, not in a param — `query.category` is deliberately ""
@@ -332,7 +350,10 @@ export default async function CategoryPage({
       maxHeight !== undefined ||
       materials.length > 0 ||
       colours.length > 0 ||
-      styles.length > 0,
+      styles.length > 0 ||
+      features.foldable ||
+      features.mechanisms.length > 0 ||
+      features.storage !== "",
   );
   const slides = categorySlides(category);
   const crumbs = [

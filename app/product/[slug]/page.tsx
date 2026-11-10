@@ -9,6 +9,7 @@ import { ProductCard } from "@/components/product-card";
 import { ProductConditionReport } from "@/components/product-condition-report";
 import { ProductAttributes } from "@/components/product-attributes";
 import { ProductDimensionsTable } from "@/components/product-dimensions-table";
+import { ProductFeaturesTable } from "@/components/product-features-table";
 import { ProductRail } from "@/components/product-rail";
 import { ProductViewBeacon } from "@/components/product-view-beacon";
 import { BrandIcon } from "@/components/brand-icons";
@@ -402,6 +403,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <ConditionAspectTable ratings={product.conditionAspects} />
 
             <ProductDimensionsTable dimensions={product.dimensions} />
+
+            <ProductFeaturesTable
+              folding={product.folding}
+              hasStorage={product.hasStorage}
+            />
 
             <ProductAttributes
               materials={product.materials}

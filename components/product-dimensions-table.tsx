@@ -6,7 +6,8 @@ import type { ProductDimensions } from "@/lib/storefront";
 // "სიღრმე —" implies someone looked and found nothing; absence is the honest signal that
 // the measurement was never taken.
 
-function formatCm(value: number) {
+// Exported for ProductFeaturesTable, which prints the unfolded size the same way.
+export function formatCm(value: number) {
   // 180 rather than 180.0, but 74.5 keeps its half.
   return new Intl.NumberFormat("ka-GE", {
     maximumFractionDigits: 1,

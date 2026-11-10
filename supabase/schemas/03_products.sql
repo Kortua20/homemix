@@ -1,4 +1,4 @@
--- Products. Depends on categories and condition_grades.
+-- Products. Depends on categories, condition_grades and folding_mechanisms.
 -- Captured from production 2026-09-11; condition/status columns added 2026-09-13.
 --
 -- A row is either one specific second-hand object (`used_unique`) or a new item held in
@@ -54,6 +54,26 @@ create table if not exists "public"."products" (
     -- goes on sale. Null means "never published" or "published before this column existed",
     -- and either way no recency claim is made.
     "published_at" timestamp with time zone,
+    -- Folding / transforming (added 2026-11-10). A sofa-bed, an extending table.
+    --
+    -- NOT NULL DEFAULT false, unlike has_storage below, because "not foldable" is never
+    -- shown to a customer as a claim — only `true` surfaces anything (the mechanism, the
+    -- unfolded size, the filter) — so defaulting existing rows to false says nothing untrue.
+    "is_foldable" boolean default false not null,
+    -- Optional even when foldable: staff may know a sofa opens into a bed without knowing the
+    -- mechanism's trade name, and a guessed name would be worse than none.
+    "folding_mechanism" "text",
+    -- Unfolded size. Three numeric columns, matching width/length/height above rather than a
+    -- JSON blob, so the same bounds catch the same typos and a "bed at least 140 wide"
+    -- filter stays possible later.
+    "unfolded_width_cm" numeric(7,1),
+    "unfolded_length_cm" numeric(7,1),
+    "unfolded_height_cm" numeric(7,1),
+    -- Built-in storage ("სათავსო"). Nullable on purpose: NULL is "not specified", which is
+    -- every row that existed before this column. Defaulting to false would have made every
+    -- existing ottoman-sofa announce "სათავსო: არ აქვს" on the storefront — a quiet lie the
+    -- `not measured ≠ zero` rule above exists to prevent.
+    "has_storage" boolean,
     -- Strictly greater, not >=: an equal compare-at price renders a struck-through number
     -- identical to the live one, advertising a 0% saving. Rejecting it here means no read
     -- path has to remember to filter it out.
@@ -74,6 +94,24 @@ create table if not exists "public"."products" (
         check (("seat_height_cm" is null) or (("seat_height_cm" > 0) and ("seat_height_cm" <= 300))),
     constraint "products_weight_kg_check"
         check (("weight_kg" is null) or (("weight_kg" > 0) and ("weight_kg" <= 1000))),
+    constraint "products_unfolded_width_cm_check"
+        check (("unfolded_width_cm" is null)
+            or (("unfolded_width_cm" > 0) and ("unfolded_width_cm" <= 2000))),
+    constraint "products_unfolded_length_cm_check"
+        check (("unfolded_length_cm" is null)
+            or (("unfolded_length_cm" > 0) and ("unfolded_length_cm" <= 2000))),
+    constraint "products_unfolded_height_cm_check"
+        check (("unfolded_height_cm" is null)
+            or (("unfolded_height_cm" > 0) and ("unfolded_height_cm" <= 2000))),
+    -- Same idea as products_condition_matches_kind_check: a product that does not fold
+    -- cannot carry a mechanism or an unfolded size, so unticking "foldable" in the admin
+    -- can never leave a stale "დელფინი" behind on the storefront.
+    constraint "products_folding_matches_foldable_check"
+        check (("is_foldable")
+            or (("folding_mechanism" is null)
+                and ("unfolded_width_cm" is null)
+                and ("unfolded_length_cm" is null)
+                and ("unfolded_height_cm" is null))),
     constraint "products_dimension_note_check"
         check (("char_length"("dimension_note") <= 500)),
     constraint "products_description_check"
@@ -133,6 +171,12 @@ alter table only "public"."products"
 alter table only "public"."products"
     add constraint "products_condition_grade_fkey"
     foreign key ("condition_grade") references "public"."condition_grades"("code")
+    on update cascade on delete restrict;
+
+-- RESTRICT, matching condition grades: a mechanism still in use cannot be deleted.
+alter table only "public"."products"
+    add constraint "products_folding_mechanism_fkey"
+    foreign key ("folding_mechanism") references "public"."folding_mechanisms"("code")
     on update cascade on delete restrict;
 
 create index if not exists "products_category_id_idx"

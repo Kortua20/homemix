@@ -17,7 +17,12 @@ import {
   getMaxProductPrice,
   parsePageParam,
 } from "@/lib/storefront";
-import { buildPageHrefFrom, type CatalogQuery } from "@/lib/catalog-query";
+import {
+  buildPageHrefFrom,
+  readFeatureParams,
+  storageFilterValue,
+  type CatalogQuery,
+} from "@/lib/catalog-query";
 
 type ProductsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -36,6 +41,9 @@ type CatalogFilterValues = {
   materials: string[];
   colours: string[];
   styles: string[];
+  foldable: boolean;
+  mechanisms: string[];
+  hasStorage?: boolean;
   page: number;
 };
 
@@ -83,6 +91,9 @@ function resultsKey(filters: CatalogFilterValues) {
     filters.materials.join(","),
     filters.colours.join(","),
     filters.styles.join(","),
+    filters.foldable ? "1" : "",
+    filters.mechanisms.join(","),
+    filters.hasStorage ?? "",
     // Included so paging re-triggers the Suspense fallback: without it the grid would sit
     // on the previous page's cards until the new ones resolved, with nothing to say a
     // navigation happened.
@@ -244,6 +255,7 @@ export default async function ProductsPage({
   const materials = listValue(params.materials);
   const colours = listValue(params.colours);
   const styles = listValue(params.styles);
+  const features = readFeatureParams(params);
   const minWidth = parseOptionalNumber(firstValue(params.minWidth));
   const maxWidth = parseOptionalNumber(firstValue(params.maxWidth));
   const minHeight = parseOptionalNumber(firstValue(params.minHeight));
@@ -265,6 +277,9 @@ export default async function ProductsPage({
     materials,
     colours,
     styles,
+    foldable: features.foldable,
+    mechanisms: features.mechanisms,
+    hasStorage: storageFilterValue(features.storage),
     page,
   };
 
@@ -280,6 +295,9 @@ export default async function ProductsPage({
     materials,
     colours,
     styles,
+    foldable: features.foldable ? "1" : "",
+    mechanisms: features.mechanisms,
+    storage: features.storage,
   };
 
   const buildPageHref = buildPageHrefFrom("/products", query);
@@ -295,7 +313,10 @@ export default async function ProductsPage({
       maxHeight !== undefined ||
       materials.length > 0 ||
       colours.length > 0 ||
-      styles.length > 0,
+      styles.length > 0 ||
+      features.foldable ||
+      features.mechanisms.length > 0 ||
+      features.storage !== "",
   );
 
   return (
