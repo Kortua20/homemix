@@ -46,6 +46,20 @@ last. That order is declared in `config.toml`.
 Do not change the schema through the Supabase dashboard. That is how the drift described
 below happened.
 
+## Testing the database
+
+pgTAP tests live in `tests/database/` and run against the **local** stack:
+
+```bash
+npm run test:db        # = npx supabase test db
+```
+
+Run them after applying a migration locally and before `db push`. Each file runs in a
+transaction that is rolled back, so it creates its own fixtures and leaves the database as it
+found it. `product_finances.test.sql` is the one to never skip: it is what proves the
+storefront's publishable key cannot read purchase or sale prices. See `../TESTING.md` for the
+other test layers.
+
 ## Caveats
 
 **`db diff` compares schema files against migrations, not against the live database.**
