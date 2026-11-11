@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { ArrowRight, Eye, MessageCircle, Phone } from "lucide-react";
+import { ArrowRight, Eye, MessageCircle, Package, Phone } from "lucide-react";
 import { ConditionAspectTable } from "@/components/condition-aspect-table";
 import { PageBanner } from "@/components/page-banner";
 import { ProductCard } from "@/components/product-card";
@@ -20,6 +20,7 @@ import {
   formatViewCount,
   MIN_DISPLAYED_VIEW_COUNT,
   getProductBySlug,
+  getStockLabel,
   getProductSlugs,
   getRelatedProducts,
   getRenamedProductSlug,
@@ -133,6 +134,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   );
   // schema.org availability must reflect the real state: advertising a sold item as
   // in-stock is a structured-data violation and costs rich-result eligibility.
+  const stockLabel = getStockLabel(product);
   const availability = product.isPurchasable
     ? "https://schema.org/InStock"
     : product.status === "reserved"
@@ -304,6 +306,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
               aria-hidden="true"
               className="mt-3 block h-0.75 w-11 rounded-full bg-forest"
             />
+
+            {stockLabel ? (
+              <p className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-forest tabular-nums">
+                <Package className="size-4" aria-hidden="true" />
+                {stockLabel}
+              </p>
+            ) : null}
 
             {!product.isPurchasable ? (
               <p

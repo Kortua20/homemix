@@ -171,7 +171,23 @@ export type ProductCardData = {
   // orders by (sort_order, created_at) and takes one instead of fetching the gallery.
   leadImageId: string | null;
   viewCount: number;
+  // Null for used items (one physical object, by products_condition_matches_kind_check).
+  stockQuantity: number | null;
 };
+
+// The stock count customers see, or null when none should be shown. Only a new item that
+// can actually be bought shows one: a used item is always exactly one piece, so a count
+// would say nothing, and on a sold or reserved item it would contradict the status notice.
+//
+// From the cached render like the view count, so it can trail a sale recorded in the admin
+// by up to the page's revalidate window.
+export function getStockLabel(product: {
+  stockQuantity: number | null;
+  isPurchasable: boolean;
+}): string | null {
+  if (!product.isPurchasable || product.stockQuantity === null) return null;
+  return `მარაგშია: ${product.stockQuantity} ცალი`;
+}
 
 // De-duplicated views from supabase/schemas/08_product_views.sql. A product nobody has
 // opened yet has no counts row, so the one-to-one embed comes back null: that is zero.
@@ -685,6 +701,8 @@ function normalizeProductCard(row: ProductCardRow): ProductCardData {
     categoryName: row.category ? String(row.category.name) : null,
     leadImageId: images[0] ? String(images[0].id) : null,
     viewCount: toViewCount(row.views),
+    stockQuantity:
+      row.stock_quantity === null ? null : Number(row.stock_quantity),
   };
 }
 
