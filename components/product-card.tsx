@@ -4,6 +4,7 @@ import { ArrowRight, Eye, ImageIcon } from "lucide-react";
 import {
   formatPrice,
   formatViewCount,
+  getStockLabel,
   MIN_DISPLAYED_VIEW_COUNT,
   type ProductCardData,
 } from "@/lib/storefront";
@@ -12,6 +13,8 @@ const badgeClass =
   "absolute top-2.5 left-2.5 z-10 inline-flex items-center rounded-md px-2 py-1 text-xs leading-none font-semibold text-white";
 
 export function ProductCard({ product }: { product: ProductCardData }) {
+  const stockLabel = getStockLabel(product);
+
   return (
     <Link
       href={`/product/${encodeURIComponent(product.slug)}`}
@@ -73,6 +76,12 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         <h3 className="mt-1.5 mb-3 line-clamp-2 text-sm leading-5 font-semibold text-ink sm:text-[0.9375rem]">
           {product.name}
         </h3>
+
+        {stockLabel ? (
+          <p className="-mt-1.5 mb-3 text-xs font-medium text-forest tabular-nums">
+            {stockLabel}
+          </p>
+        ) : null}
 
         {/* mt-auto pins the price row to the bottom, so rows align across a grid line. */}
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2">

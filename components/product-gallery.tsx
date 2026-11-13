@@ -1,11 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Expand, ImageIcon } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import type { ProductImage } from "@/lib/storefront";
 
 const SWIPE_THRESHOLD = 50;
+
+// The viewer is only needed once someone opens a photo, so its code is fetched then — and
+// warmed on hover / focus of the photo, so the first open does not wait on the network.
+const loadLightbox = () => import("@/components/image-lightbox");
+const ImageLightbox = dynamic(
+  () => loadLightbox().then((module) => module.ImageLightbox),
+  { ssr: false },
+);
+
+function productImageUrl(imageId: string) {
+  return `/api/product-images/${imageId}`;
+}
 
 const arrowClass =
   "absolute top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-ink shadow-card transition-colors hover:bg-white hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest";
@@ -27,6 +40,18 @@ export function ProductGallery({
   const isControlled = selectedImageId !== undefined;
   const selectedId = isControlled ? selectedImageId : uncontrolledId;
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  // Memoised for correctness, not speed: the lightbox treats a new slides array as new
+  // content and resets its position, which would cut short the slide animation each time
+  // a swipe in the viewer re-renders this gallery.
+  const lightboxImages = useMemo(
+    () =>
+      images.map((image, index) => ({
+        src: productImageUrl(image.id),
+        alt: `${productName} — ფოტო ${index + 1}`,
+      })),
+    [images, productName],
+  );
   const selectedImage =
     images.find((image) => image.id === selectedId) ?? images[0];
 
@@ -45,6 +70,7 @@ export function ProductGallery({
       (selectedIndex + direction + images.length) % images.length;
     selectImage(images[nextIndex].id);
   }
+
 
   if (!selectedImage) {
     return (
@@ -66,10 +92,11 @@ export function ProductGallery({
       aria-label={`${productName} — ფოტოგალერეა`}
       className="min-w-0 max-w-full"
     >
+      {/* The arrow keys are handled here and reach it by bubbling from the open-photo
+          button, which is the one tab stop for the photo itself. */}
       <div
-        className="relative aspect-4/3 w-full max-w-full touch-pan-y overflow-hidden rounded-lg bg-placeholder select-none focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-forest"
+        className="relative aspect-4/3 w-full max-w-full touch-pan-y overflow-hidden rounded-lg bg-placeholder select-none"
         role="group"
-        tabIndex={images.length > 1 ? 0 : -1}
         aria-label={`${productName} — ფოტო ${selectedIndex + 1} / ${images.length}. გაასრიალეთ მარცხნივ ან მარჯვნივ.`}
         onKeyDown={(event) => {
           if (event.key === "ArrowLeft") selectRelativeImage(-1);
@@ -100,13 +127,34 @@ export function ProductGallery({
       >
         <Image
           key={selectedImage.id}
-          src={`/api/product-images/${selectedImage.id}`}
+          src={productImageUrl(selectedImage.id)}
           alt={`${productName} — პროდუქტის ფოტო`}
           fill
           preload
           sizes="(max-width: 1024px) 100vw, 58vw"
           className="object-cover"
         />
+        {/* Covers the photo rather than wrapping it, so the arrows stay sibling buttons
+            instead of buttons nested in a button. A swipe never becomes a click: the
+            browser drops the click once the touch has moved. The outline is inset because
+            the frame's overflow-hidden would clip an outset one. */}
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-label="ფოტოს გადიდება"
+          onClick={() => setIsLightboxOpen(true)}
+          onPointerEnter={() => void loadLightbox()}
+          onFocus={() => void loadLightbox()}
+          className="group absolute inset-0 cursor-zoom-in rounded-lg focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-forest"
+        >
+          {/* Visible on touch screens too, where there is no zoom cursor to hint at it. */}
+          <span
+            aria-hidden="true"
+            className="absolute right-3 bottom-3 grid size-10 place-items-center rounded-full bg-white/95 text-ink shadow-card transition-colors group-hover:text-forest"
+          >
+            <Expand className="size-4.5" />
+          </span>
+        </button>
         {images.length > 1 ? (
           <>
             <button
@@ -152,7 +200,7 @@ export function ProductGallery({
                 }`}
               >
                 <Image
-                  src={`/api/product-images/${image.id}`}
+                  src={productImageUrl(image.id)}
                   alt=""
                   fill
                   sizes="160px"
@@ -162,6 +210,23 @@ export function ProductGallery({
             );
           })}
         </div>
+      ) : null}
+
+      {/* Bound to the gallery's own selection both ways: it opens on the photo being shown,
+          and whatever photo it is closed on stays selected underneath — which keeps the
+          flaw list's highlight in step too. Rendered only while open, which is also what
+          defers loading its code; the viewer plays its own fade-out before calling
+          onClose. */}
+      {isLightboxOpen ? (
+        <ImageLightbox
+          onClose={() => setIsLightboxOpen(false)}
+          index={selectedIndex}
+          onIndexChange={(index) => {
+            const image = images[index];
+            if (image && image.id !== selectedImage.id) selectImage(image.id);
+          }}
+          images={lightboxImages}
+        />
       ) : null}
     </section>
   );
