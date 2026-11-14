@@ -19,7 +19,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(46);
+select plan(60);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures (as postgres, before any role switch)
@@ -45,6 +45,18 @@ values
     ('aaaaaaaa-0000-4000-8000-000000000003', 'pgtap-used-table', 'pgTAP მაგიდა', 400,
      'aaaaaaaa-0000-4000-8000-000000000001', 'used_unique', 'available',
      (select code from public.condition_grades order by sort_order limit 1));
+
+-- A second used item, sold from its product page with record_used_sale: 400 on the site,
+-- bought for 250.
+insert into public.products
+    (id, slug, name, price, category_id, listing_kind, status, condition_grade)
+values
+    ('aaaaaaaa-0000-4000-8000-000000000004', 'pgtap-used-sofa', 'pgTAP დივანი', 400,
+     'aaaaaaaa-0000-4000-8000-000000000001', 'used_unique', 'available',
+     (select code from public.condition_grades order by sort_order limit 1));
+
+insert into public.product_finances (product_id, purchase_price)
+values ('aaaaaaaa-0000-4000-8000-000000000004', 250);
 
 -- ---------------------------------------------------------------------------
 -- 1. Grants: anon holds nothing, staff holds exactly what it needs
@@ -80,6 +92,12 @@ select function_privs_are('public', 'record_product_sale',
     'authenticated can execute record_product_sale');
 select function_privs_are('public', 'delete_product_sale', array['uuid'], 'authenticated',
     array['EXECUTE'], 'authenticated can execute delete_product_sale');
+select function_privs_are('public', 'record_used_sale',
+    array['uuid', 'numeric', 'date', 'text'], 'anon', array[]::text[],
+    'anon cannot execute record_used_sale');
+select function_privs_are('public', 'record_used_sale',
+    array['uuid', 'numeric', 'date', 'text'], 'authenticated', array['EXECUTE'],
+    'authenticated can execute record_used_sale');
 
 -- ---------------------------------------------------------------------------
 -- 2. RLS and view security
@@ -105,6 +123,9 @@ select ok(not (select prosecdef from pg_proc where oid =
 select ok(not (select prosecdef from pg_proc where oid =
            'public.delete_product_sale(uuid)'::regprocedure),
     'delete_product_sale is SECURITY INVOKER');
+select ok(not (select prosecdef from pg_proc where oid =
+           'public.record_used_sale(uuid, numeric, date, text)'::regprocedure),
+    'record_used_sale is SECURITY INVOKER');
 
 -- ---------------------------------------------------------------------------
 -- 3. As the storefront: role anon
@@ -123,6 +144,9 @@ select throws_ok('select * from public.product_sale_ledger', '42501', null,
 select throws_ok(
     $$select public.record_product_sale('aaaaaaaa-0000-4000-8000-000000000002', 1, 10, current_date)$$,
     '42501', null, 'anon calling record_product_sale is refused');
+select throws_ok(
+    $$select public.record_used_sale('aaaaaaaa-0000-4000-8000-000000000004', 10, current_date)$$,
+    '42501', null, 'anon calling record_used_sale is refused');
 -- The storefront itself keeps working: products stay publicly readable.
 select lives_ok('select id, stock_quantity from public.products',
     'anon can still read products (the storefront is unaffected)');
@@ -145,6 +169,9 @@ select is((select count(*) from public.product_finances), 0::bigint,
 select throws_ok(
     $$select public.record_product_sale('aaaaaaaa-0000-4000-8000-000000000002', 1, 10, current_date)$$,
     'P0002', 'product_not_found', 'an anonymous sign-in cannot record a sale');
+select throws_ok(
+    $$select public.record_used_sale('aaaaaaaa-0000-4000-8000-000000000004', 10, current_date)$$,
+    'P0002', 'product_not_found', 'an anonymous sign-in cannot mark a used item sold');
 
 reset role;
 
@@ -236,6 +263,53 @@ select results_eq(
 select throws_ok(
     $$select public.delete_product_sale('aaaaaaaa-0000-4000-8000-0000000000ff')$$,
     'P0002', 'sale_not_found', 'undoing a sale that does not exist is refused');
+
+-- ---------------------------------------------------------------------------
+-- 5b. As staff: selling a used item from its product page
+-- ---------------------------------------------------------------------------
+
+select throws_ok(
+    $$select public.record_used_sale('aaaaaaaa-0000-4000-8000-000000000004', null, current_date)$$,
+    '22023', 'invalid_price', 'a used sale needs a price');
+
+select throws_ok(
+    $$select public.record_used_sale('aaaaaaaa-0000-4000-8000-000000000002', 60, current_date)$$,
+    '22023', 'not_used_product', 'a new item cannot be sold as a one-off');
+
+select isnt(public.record_used_sale('aaaaaaaa-0000-4000-8000-000000000004', 350,
+                '2026-11-14', ' ვაჭრობით '), null,
+    'staff can sell a used item for a bargained price');
+
+select is((select status from public.products where id = 'aaaaaaaa-0000-4000-8000-000000000004'),
+    'sold', 'the used item is marked sold in the same step');
+
+select results_eq(
+    $$select quantity, total_price, unit_cost, list_unit_price, sold_on, note
+      from public.product_sales where product_id = 'aaaaaaaa-0000-4000-8000-000000000004'$$,
+    $$values (1, 350.00::numeric(12,2), 250.00::numeric(12,2), 400.00::numeric(12,2),
+              '2026-11-14'::date, 'ვაჭრობით'::text)$$,
+    'one unit, the price paid, and cost and list price snapshotted');
+
+select throws_ok(
+    $$select public.record_used_sale('aaaaaaaa-0000-4000-8000-000000000004', 360, current_date)$$,
+    '22023', 'already_sold', 'a one-off item cannot be sold twice');
+
+select lives_ok(
+    $$select public.delete_product_sale((select id from public.product_sales
+       where product_id = 'aaaaaaaa-0000-4000-8000-000000000004'))$$,
+    'staff can undo a used item''s sale');
+
+select results_eq(
+    $$select p.status, (select count(*) from public.product_sales s where s.product_id = p.id)
+      from public.products p where p.id = 'aaaaaaaa-0000-4000-8000-000000000004'$$,
+    $$values ('available'::text, 0::bigint)$$,
+    'undo makes the used item available again and removes its sale');
+
+update public.products set status = 'archived'
+ where id = 'aaaaaaaa-0000-4000-8000-000000000004';
+select throws_ok(
+    $$select public.record_used_sale('aaaaaaaa-0000-4000-8000-000000000004', 350, current_date)$$,
+    '22023', 'not_sellable', 'an archived listing cannot be sold');
 
 -- ---------------------------------------------------------------------------
 -- 6. Integrity of the books

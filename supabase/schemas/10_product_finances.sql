@@ -120,9 +120,9 @@ create index if not exists "product_sales_sold_on_idx"
 -- SECURITY INVOKER: it runs as the caller, so the RLS policies on products and
 -- product_sales still decide who may do this. It grants no power of its own.
 --
--- Used items do not come through here. A used item sells exactly once, and its sale is
--- recorded by setting its status to `sold` in the product form, which writes the sale row
--- directly — there is no stock to keep in step.
+-- Used items do not come through here: they have no stock. They are sold with
+-- record_used_sale below (the product page's quick sale), or by setting their status to
+-- `sold` in the product form, which writes the single sale row directly.
 --
 -- Selling the last unit sets the status to `sold`, so the item leaves the storefront's
 -- catalog lists (which filter on status) instead of lingering there as unbuyable.
@@ -189,8 +189,88 @@ $$;
 
 alter function "public"."record_product_sale"("uuid", integer, numeric, "date", "text") owner to "postgres";
 
--- The exact inverse, for a sale entered by mistake: the units go back on the shelf, and an
--- item that the sale had sold out becomes available again.
+-- Selling a used (one-off) item from its product page: mark it sold and record its single
+-- sale, together. Added 2026-11-14; see migrations/20261114000000_add_record_used_sale.sql.
+--
+-- A function for the same reasons as record_product_sale: the status change and the sale
+-- row must not come apart, and `for update` makes a second consultant recording the same
+-- piece at the same moment fail with `already_sold` instead of booking it twice.
+--
+-- Refuses an item already marked sold. One sold before sales were recorded has no sale row
+-- and gets its price through the product form, which knows to ask for the real date rather
+-- than today's.
+create or replace function "public"."record_used_sale"(
+    "p_product_id" "uuid",
+    "p_total_price" numeric,
+    "p_sold_on" "date",
+    "p_note" "text" default null
+) returns "uuid"
+    language "plpgsql"
+    security invoker
+    set "search_path" to ''
+    as $$
+declare
+    v_kind text;
+    v_status text;
+    v_price numeric(12,2);
+    v_cost numeric(12,2);
+    v_sale_id uuid;
+begin
+    select "listing_kind", "status", "price"
+      into v_kind, v_status, v_price
+      from "public"."products"
+     where "id" = p_product_id
+       for update;
+
+    if not found then
+        raise exception 'product_not_found' using errcode = 'P0002';
+    end if;
+
+    if v_kind <> 'used_unique' then
+        raise exception 'not_used_product' using errcode = '22023';
+    end if;
+
+    if v_status = 'sold'
+       or exists (select 1 from "public"."product_sales" where "product_id" = p_product_id) then
+        raise exception 'already_sold' using errcode = '22023';
+    end if;
+
+    -- `archived` is a mis-entered listing, not something that can be sold.
+    if v_status = 'archived' then
+        raise exception 'not_sellable' using errcode = '22023';
+    end if;
+
+    if p_total_price is null then
+        raise exception 'invalid_price' using errcode = '22023';
+    end if;
+
+    select "purchase_price" into v_cost
+      from "public"."product_finances"
+     where "product_id" = p_product_id;
+
+    update "public"."products"
+       set "status" = 'sold',
+           "updated_at" = now()
+     where "id" = p_product_id;
+
+    insert into "public"."product_sales"
+        ("product_id", "quantity", "total_price", "unit_cost", "list_unit_price", "sold_on", "note")
+    values
+        (p_product_id, 1, p_total_price, v_cost, v_price, p_sold_on, nullif(btrim(p_note), ''))
+    returning "id" into v_sale_id;
+
+    return v_sale_id;
+end;
+$$;
+
+alter function "public"."record_used_sale"("uuid", numeric, "date", "text") owner to "postgres";
+
+-- The exact inverse of either sale, for one entered by mistake:
+--   * a new item's units go back on the shelf, and an item the sale had sold out becomes
+--     available again;
+--   * a used item becomes available again. Its status before the sale (available or
+--     reserved) is not recorded, so `available` is the honest default; staff can reserve it
+--     again in the form.
 create or replace function "public"."delete_product_sale"("p_sale_id" "uuid")
     returns void
     language "plpgsql"
@@ -213,17 +293,20 @@ begin
         raise exception 'sale_not_found' using errcode = 'P0002';
     end if;
 
-    if v_kind <> 'new_stocked' then
-        raise exception 'not_stocked_product' using errcode = '22023';
-    end if;
-
     delete from "public"."product_sales" where "id" = p_sale_id;
 
-    update "public"."products"
-       set "stock_quantity" = coalesce("stock_quantity", 0) + v_quantity,
-           "status" = case when "status" = 'sold' then 'available' else "status" end,
-           "updated_at" = now()
-     where "id" = v_product_id;
+    if v_kind = 'new_stocked' then
+        update "public"."products"
+           set "stock_quantity" = coalesce("stock_quantity", 0) + v_quantity,
+               "status" = case when "status" = 'sold' then 'available' else "status" end,
+               "updated_at" = now()
+         where "id" = v_product_id;
+    else
+        update "public"."products"
+           set "status" = case when "status" = 'sold' then 'available' else "status" end,
+               "updated_at" = now()
+         where "id" = v_product_id;
+    end if;
 end;
 $$;
 
@@ -324,6 +407,8 @@ revoke all on function "public"."record_product_sale"("uuid", integer, numeric, 
 grant execute on function "public"."record_product_sale"("uuid", integer, numeric, "date", "text") to "authenticated", "service_role";
 revoke all on function "public"."delete_product_sale"("uuid") from public, "anon";
 grant execute on function "public"."delete_product_sale"("uuid") to "authenticated", "service_role";
+revoke all on function "public"."record_used_sale"("uuid", numeric, "date", "text") from public, "anon";
+grant execute on function "public"."record_used_sale"("uuid", numeric, "date", "text") to "authenticated", "service_role";
 
 alter table "public"."product_finances" enable row level security;
 alter table "public"."product_sales" enable row level security;

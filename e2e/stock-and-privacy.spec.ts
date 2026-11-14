@@ -76,6 +76,15 @@ test.describe("internal figures stay internal", () => {
     expect((await response.json()).code).toBe("42501");
   });
 
+  test("the public key cannot mark a used item sold", async ({ request, catalog }) => {
+    const table = await catalog.createProduct({ kind: "used_unique" });
+    const response = await request.post(`${supabaseUrl}/rest/v1/rpc/record_used_sale`, {
+      headers: { apikey: publishableKey, "Content-Type": "application/json" },
+      data: { p_product_id: table.id, p_total_price: 1, p_sold_on: "2026-01-01" },
+    });
+    expect((await response.json()).code).toBe("42501");
+  });
+
   test("the storefront's normal product read still works", async ({ request }) => {
     const response = await request.get(`${supabaseUrl}/rest/v1/products?select=id,stock_quantity&limit=1`, {
       headers: { apikey: publishableKey },
